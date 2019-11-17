@@ -8,10 +8,10 @@
 
 namespace nanospline {
 
-template<typename _Scalar, int _dim=2, int _order=3, bool _generic=_order<0 >
-class Bezier : public BezierBase<_Scalar, _dim, _order, _generic> {
+template<typename _Scalar, int _dim=2, int _degree=3, bool _generic=_degree<0 >
+class Bezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
     public:
-        using Base = BezierBase<_Scalar, _dim, _order, _generic>;
+        using Base = BezierBase<_Scalar, _dim, _degree, _generic>;
         using Scalar = typename Base::Scalar;
         using Point = typename Base::Point;
         using ControlPoints = typename Base::ControlPoints;
@@ -19,17 +19,17 @@ class Bezier : public BezierBase<_Scalar, _dim, _order, _generic> {
     public:
         Point evaluate(Scalar t) const override {
             assert(t>=0.0 && t <= 1.0);
-            const int order = Base::m_control_points.rows()-1;
-            if (order < 0) {
-                throw invalid_setting_error("Negative Bezier order.");
+            const int degree = Base::m_control_points.rows()-1;
+            if (degree < 0) {
+                throw invalid_setting_error("Negative Bezier degree.");
             }
 
             ControlPoints pts[2];
             pts[0] = Base::m_control_points;
-            pts[1].resize(order+1, _dim);
+            pts[1].resize(degree+1, _dim);
 
-            for (int i=0; i<order; i++) {
-                const auto N = order-i;
+            for (int i=0; i<degree; i++) {
+                const auto N = degree-i;
                 const auto& curr_ctrl_pts = pts[i%2];
                 auto& next_ctrl_pts = pts[(i+1)%2];
 
@@ -40,7 +40,7 @@ class Bezier : public BezierBase<_Scalar, _dim, _order, _generic> {
                 }
             }
 
-            return pts[order%2].row(0);
+            return pts[degree%2].row(0);
         }
 
         Scalar inverse_evaluate(const Point& p) const override {

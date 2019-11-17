@@ -5,7 +5,7 @@
 TEST_CASE("Bezier", "[bezier]") {
     using namespace nanospline;
 
-    SECTION("Generic order 0") {
+    SECTION("Generic degree 0") {
         Eigen::Matrix<float, 1, 2> control_pts;
         control_pts << 0.0, 0.1;
         Bezier<float, 2, 0, true> curve;
@@ -20,7 +20,7 @@ TEST_CASE("Bezier", "[bezier]") {
         REQUIRE((mid-control_pts.row(0)).norm() == Approx(0.0));
     }
 
-    SECTION("Generic order 1") {
+    SECTION("Generic degree 1") {
         Eigen::Matrix<float, 2, 2> control_pts;
         control_pts << 0.0, 0.0,
                        1.0, 0.0;
@@ -40,7 +40,7 @@ TEST_CASE("Bezier", "[bezier]") {
         REQUIRE(end[1] == Approx(0.0));
     }
 
-    SECTION("Generic order 3") {
+    SECTION("Generic degree 3") {
         Eigen::Matrix<float, 4, 2> control_pts;
         control_pts << 0.0, 0.0,
                        1.0, 1.0,
@@ -81,7 +81,7 @@ TEST_CASE("Bezier", "[bezier]") {
         }
     }
 
-    SECTION("Dynmaic order") {
+    SECTION("Dynmaic degree") {
         Eigen::Matrix<float, 4, 2> control_pts;
         control_pts << 0.0, 0.0,
                        1.0, 1.0,
@@ -122,7 +122,7 @@ TEST_CASE("Bezier", "[bezier]") {
         }
     }
 
-    SECTION("Specialized order 0") {
+    SECTION("Specialized degree 0") {
         Eigen::Matrix<float, 1, 2> control_pts;
         control_pts << 0.0, 0.1;
         Bezier<float, 2, 0> curve;
@@ -146,7 +146,7 @@ TEST_CASE("Bezier", "[bezier]") {
 
     }
 
-    SECTION("Specialized order 1") {
+    SECTION("Specialized degree 1") {
         Eigen::Matrix<float, 2, 2> control_pts;
         control_pts << 0.0, 0.0,
                        1.0, 1.0;
@@ -197,7 +197,7 @@ TEST_CASE("Bezier", "[bezier]") {
         }
     }
 
-    SECTION("Specialized order 2") {
+    SECTION("Specialized degree 2") {
         Eigen::Matrix<float, 3, 2> control_pts;
         control_pts << 0.0, 0.0,
                        1.0, 1.0,
@@ -230,7 +230,7 @@ TEST_CASE("Bezier", "[bezier]") {
         }
     }
 
-    SECTION("Specialized order 3") {
+    SECTION("Specialized degree 3") {
         Eigen::Matrix<float, 4, 2> control_pts;
         control_pts << 0.0, 0.0,
                        1.0, 1.0,

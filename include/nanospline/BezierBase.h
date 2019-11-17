@@ -6,15 +6,15 @@
 
 namespace nanospline {
 
-template<typename _Scalar, int _dim, int _order, bool _generic>
+template<typename _Scalar, int _dim, int _degree, bool _generic>
 class BezierBase {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-        static_assert(_order>=0 || _generic,
-                "Invalid order for non-generic Bezier setting");
+        static_assert(_degree>=0 || _generic,
+                "Invalid degree for non-generic Bezier setting");
         using Scalar = _Scalar;
         using Point = Eigen::Matrix<Scalar, 1, _dim>;
-        using ControlPoints = Eigen::Matrix<Scalar, _generic?Eigen::Dynamic:_order+1, _dim>;
+        using ControlPoints = Eigen::Matrix<Scalar, _generic?Eigen::Dynamic:_degree+1, _dim>;
 
     public:
         virtual ~BezierBase()=default;
@@ -28,7 +28,7 @@ class BezierBase {
                 const int level=3) const {
 
             const int num_samples = 2 *
-                (_generic ? m_control_points.rows() : _order+1);
+                (_generic ? m_control_points.rows() : _degree+1);
             const Scalar delta_t = (upper - lower) / num_samples;
 
             Scalar min_t = 0.0;
