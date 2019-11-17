@@ -8,7 +8,7 @@ TEST_CASE("Bezier", "[bezier]") {
     SECTION("Generic order 0") {
         Eigen::Matrix<float, 1, 2> control_pts;
         control_pts << 0.0, 0.1;
-        Bezier<float, 2, 0> curve;
+        Bezier<float, 2, 0, true> curve;
         curve.set_control_points(control_pts);
 
         auto start = curve.evaluate(0);
@@ -24,7 +24,7 @@ TEST_CASE("Bezier", "[bezier]") {
         Eigen::Matrix<float, 2, 2> control_pts;
         control_pts << 0.0, 0.0,
                        1.0, 0.0;
-        Bezier<float, 2, 1> curve;
+        Bezier<float, 2, 1, true> curve;
         curve.set_control_points(control_pts);
 
         auto start = curve.evaluate(0);
@@ -46,7 +46,7 @@ TEST_CASE("Bezier", "[bezier]") {
                        1.0, 1.0,
                        2.0, 1.0,
                        3.0, 0.0;
-        Bezier<float, 2, 3> curve;
+        Bezier<float, 2, 3, true> curve;
         curve.set_control_points(control_pts);
 
         SECTION("Ends") {
@@ -67,6 +67,17 @@ TEST_CASE("Bezier", "[bezier]") {
         SECTION("Inverse evaluation") {
             Eigen::Matrix<float, 1, 2> p(0.0, 1.0);
             REQUIRE_THROWS(curve.inverse_evaluate(p));
+        }
+
+        SECTION("Approximate inverse evaluation") {
+            auto t = curve.approximate_inverse_evaluate({1.5, 1.1});
+            REQUIRE(t == Approx(0.5));
+
+            t = curve.approximate_inverse_evaluate({0.0, -1.0});
+            REQUIRE(t == Approx(0.0));
+
+            t = curve.approximate_inverse_evaluate({3.1, 0.0});
+            REQUIRE(t == Approx(1.0));
         }
     }
 
@@ -97,6 +108,17 @@ TEST_CASE("Bezier", "[bezier]") {
         SECTION("Inverse evaluation") {
             Eigen::Matrix<float, 1, 2> p(0.0, 1.0);
             REQUIRE_THROWS(curve.inverse_evaluate(p));
+        }
+
+        SECTION("Approximate inverse evaluation") {
+            auto t = curve.approximate_inverse_evaluate({1.5, 1.1});
+            REQUIRE(t == Approx(0.5));
+
+            t = curve.approximate_inverse_evaluate({0.0, -1.0});
+            REQUIRE(t == Approx(0.0));
+
+            t = curve.approximate_inverse_evaluate({3.1, 0.0});
+            REQUIRE(t == Approx(1.0));
         }
     }
 
