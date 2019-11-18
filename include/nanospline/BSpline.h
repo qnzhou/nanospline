@@ -21,7 +21,7 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             const int k = Base::locate_span(t);
             const int p = Base::get_degree();
             assert(p >= 0);
-            assert(Base::m_knots.rows() == 
+            assert(Base::m_knots.rows() ==
                     Base::m_control_points.rows() + p + 1);
             assert(Base::m_knots[k] <= t);
             assert(Base::m_knots[k+1] >= t);
