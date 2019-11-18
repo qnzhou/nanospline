@@ -1,17 +1,18 @@
 #pragma once
 
-#include <limits>
-
 #include <Eigen/Core>
+
+#include <nanospline/SplineBase.h>
 
 namespace nanospline {
 
 template<typename _Scalar, int _dim, int _degree, bool _generic>
-class BezierBase {
+class BezierBase : public SplineBase<_Scalar, _dim> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         static_assert(_degree>=0 || _generic,
                 "Invalid degree for non-generic Bezier setting");
+        using Base = SplineBase<_Scalar, _dim>;
         using Scalar = _Scalar;
         using Point = Eigen::Matrix<Scalar, 1, _dim>;
         using ControlPoints = Eigen::Matrix<Scalar, _generic?Eigen::Dynamic:_degree+1, _dim>;
@@ -26,32 +27,11 @@ class BezierBase {
                 const Scalar lower=0.0,
                 const Scalar upper=1.0,
                 const int level=3) const {
-
             const int num_samples = 2 *
                 (_generic ? m_control_points.rows() : _degree+1);
-            const Scalar delta_t = (upper - lower) / num_samples;
 
-            Scalar min_t = 0.0;
-            Scalar min_dist = std::numeric_limits<Scalar>::max();
-            for (int i=0; i<=num_samples; i++) {
-                const Scalar t = lower +
-                    (Scalar)(i) / (Scalar)(num_samples) * (upper-lower);
-                const auto q = this->evaluate(t);
-                const auto dist = (p-q).squaredNorm();
-                if (dist < min_dist) {
-                    min_dist = dist;
-                    min_t = t;
-                }
-            }
-
-            if (level <= 0) {
-                return min_t;
-            } else {
-                return approximate_inverse_evaluate(p,
-                        std::max(min_t-delta_t, lower),
-                        std::min(min_t+delta_t, upper),
-                        level-1);
-            }
+            return Base::approximate_inverse_evaluate(
+                    p, num_samples, lower, upper, level);
         }
 
     public:
