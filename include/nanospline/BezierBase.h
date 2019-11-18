@@ -10,6 +10,7 @@ template<typename _Scalar, int _dim, int _degree, bool _generic>
 class BezierBase : public SplineBase<_Scalar, _dim> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+        static_assert(_dim > 0, "Dimension must be positive.");
         static_assert(_degree>=0 || _generic,
                 "Invalid degree for non-generic Bezier setting");
         using Base = SplineBase<_Scalar, _dim>;
