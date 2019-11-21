@@ -18,7 +18,12 @@ class SplineBase {
         virtual Point evaluate(Scalar t) const =0;
         virtual Scalar inverse_evaluate(const Point& p) const =0;
 
-    public:
+        virtual Scalar approximate_inverse_evaluate(const Point& p,
+                const Scalar lower=0.0,
+                const Scalar upper=1.0,
+                const int level=3) const =0;
+
+    protected:
         Scalar approximate_inverse_evaluate(const Point& p,
                 const int num_samples,
                 const Scalar lower=0.0,

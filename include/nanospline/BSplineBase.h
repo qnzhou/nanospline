@@ -22,14 +22,13 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
 
     public:
         virtual ~BSplineBase()=default;
-        virtual Point evaluate(Scalar t) const=0;
-        virtual Scalar inverse_evaluate(const Point& p) const=0;
+        virtual Point evaluate(Scalar t) const override =0;
+        virtual Scalar inverse_evaluate(const Point& p) const override =0;
 
-    public:
-        Scalar approximate_inverse_evaluate(const Point& p,
+        virtual Scalar approximate_inverse_evaluate(const Point& p,
                 const Scalar lower=0.0,
                 const Scalar upper=1.0,
-                const int level=3) const {
+                const int level=3) const override {
             assert(lower < upper);
             const int num_samples = 2 * (get_degree() + 1);
 
