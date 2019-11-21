@@ -72,13 +72,28 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
         }
 
         int locate_span(const Scalar t) const {
-            assert(m_knots.rows() > m_control_points.rows());
-            int low = m_knots.rows() - m_control_points.rows() - 1;
-            int high = m_control_points.rows();
+            const auto num_knots = m_knots.rows();
+            assert(num_knots > m_control_points.rows());
+            int low = 0;//m_knots.rows() - m_control_points.rows() - 1;
+            int high = m_knots.rows()-1; //m_control_points.rows();
             assert(m_knots[low] <= t);
             assert(m_knots[high] >= t);
 
-            if (t == m_knots[high]) return high-1;
+            auto bypass_duplicates_after = [this, num_knots](int i) {
+                while(i+1<num_knots && this->m_knots[i] == this->m_knots[i+1]) {
+                    i=i+1;
+                }
+                return i;
+            };
+
+            auto bypass_duplicates_before= [this](int i) {
+                while(i-1>=0 && this->m_knots[i] == this->m_knots[i-1]) {
+                    i=i-1;
+                }
+                return i;
+            };
+
+            if (t == m_knots[high]) return bypass_duplicates_before(high)-1;
 
             int mid = (high+low) / 2;
             while(t < m_knots[mid] || t >= m_knots[mid+1]) {
@@ -87,7 +102,7 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
                 mid = (high+low) / 2;
             }
 
-            return mid;
+            return bypass_duplicates_after(mid);
         }
 
     public:
