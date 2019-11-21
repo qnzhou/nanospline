@@ -115,4 +115,34 @@ TEST_CASE("BSpline", "[bspline]") {
             REQUIRE(p0[1] == Approx(p1[1]));
         }
     }
+
+    SECTION("Approximate closest point") {
+        Eigen::Matrix<float, 10, 2> control_pts;
+        control_pts << 0.0, 0.0,
+                       1.0, 0.0,
+                       2.0, 0.0,
+                       3.0, 0.0,
+                       4.0, 0.0,
+                       5.0, 0.0,
+                       6.0, 0.0,
+                       7.0, 0.0,
+                       8.0, 0.0,
+                       9.0, 0.0;
+        Eigen::Matrix<float, 14, 1> knots;
+        knots << 0.0, 0.0, 0.0, 0.0,
+                 0.1, 0.3, 0.4, 0.5, 0.6, 0.9,
+                 1.0, 1.0, 1.0, 1.0;
+
+        BSpline<float, 2, 3, true> curve;
+        curve.set_control_points(control_pts);
+        curve.set_knots(knots);
+
+        for (float x=0.0; x<1.01; x+=0.2) {
+            Eigen::Matrix<float, 2, 1> q(9.0 * x, 1.0);
+            const auto t = curve.approximate_inverse_evaluate(q);
+            const auto p = curve.evaluate(t);
+            REQUIRE(p[0] == Approx(q[0]).epsilon(1e-3));
+            REQUIRE(p[1] == Approx(0.0));
+        }
+    }
 }

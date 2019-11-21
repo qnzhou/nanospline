@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Eigen/Core>
+#include <iostream>
 
 #include <nanospline/SplineBase.h>
 
@@ -29,11 +30,46 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
                 const Scalar lower=0.0,
                 const Scalar upper=1.0,
                 const int level=3) const {
-            const int num_samples = 2 *
-                (_generic ? m_control_points.rows() : _degree+1);
+            assert(lower < upper);
+            const int num_samples = 2 * (get_degree() + 1);
 
-            return Base::approximate_inverse_evaluate(
-                    p, num_samples, lower, upper, level);
+            auto curr_span = locate_span(lower);
+
+            Scalar min_t = 0.0, min_delta = 0.0;
+            Scalar min_dist = std::numeric_limits<Scalar>::max();
+
+            Scalar curr_lower = lower;
+            while (curr_lower < upper) {
+                Scalar curr_upper = std::min(m_knots[curr_span+1], upper);
+
+                if (curr_upper > curr_lower) {
+                    const Scalar delta = (curr_upper - curr_lower) / num_samples;
+                    for (int j=0; j<num_samples+1; j++) {
+                        const Scalar r = (Scalar)(j) / (Scalar)(num_samples);
+                        const Scalar t = curr_lower + r * (curr_upper - curr_lower);
+                        const auto q = this->evaluate(t);
+                        const auto dist = (p-q).squaredNorm();
+                        if (dist < min_dist) {
+                            min_dist = dist;
+                            min_t = t;
+                            min_delta = delta;
+                        }
+                    }
+                }
+
+                curr_lower = curr_upper;
+                curr_span++;
+            }
+
+            if (level <= 0) {
+                return min_t;
+            } else {
+                return approximate_inverse_evaluate(
+                        p,
+                        std::max(lower, min_t-min_delta),
+                        std::min(upper, min_t+min_delta),
+                        level-1);
+            }
         }
 
         int locate_span(const Scalar t) const {
