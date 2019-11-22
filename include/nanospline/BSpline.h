@@ -18,8 +18,9 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
 
     public:
         Point evaluate(Scalar t) const override {
-            const int k = Base::locate_span(t);
+            assert(Base::in_domain(t));
             const int p = Base::get_degree();
+            const int k = Base::locate_span(t);
             assert(p >= 0);
             assert(Base::m_knots.rows() ==
                     Base::m_control_points.rows() + p + 1);

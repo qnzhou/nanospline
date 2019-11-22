@@ -29,6 +29,8 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
                 const Scalar lower=0.0,
                 const Scalar upper=1.0,
                 const int level=3) const override {
+            assert(in_domain(lower));
+            assert(in_domain(upper));
             assert(lower < upper);
             const int num_samples = 2 * (get_degree() + 1);
 
@@ -72,10 +74,11 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
         }
 
         int locate_span(const Scalar t) const {
+            const auto p = get_degree();
             const auto num_knots = m_knots.rows();
             assert(num_knots > m_control_points.rows());
-            int low = 0;//m_knots.rows() - m_control_points.rows() - 1;
-            int high = m_knots.rows()-1; //m_control_points.rows();
+            int low = p;
+            int high = m_knots.rows()-p-1;
             assert(m_knots[low] <= t);
             assert(m_knots[high] >= t);
 
@@ -140,6 +143,25 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
                 assert(degree == _degree);
             }
             return degree;
+        }
+
+        bool in_domain(Scalar t) const {
+            const int p = get_degree();
+            const int num_knots = m_knots.rows();
+            const Scalar t_min = m_knots[p];
+            const Scalar t_max = m_knots[num_knots-p-1];
+            return (t >= t_min) && (t <= t_max);
+        }
+
+        Scalar get_domain_lower_bound() const {
+            const int p = get_degree();
+            return m_knots[p];
+        }
+
+        Scalar get_domain_upper_bound() const {
+            const int p = get_degree();
+            const int num_knots = m_knots.rows();
+            return m_knots[num_knots-p-1];
         }
 
     protected:
