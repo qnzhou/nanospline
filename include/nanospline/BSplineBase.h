@@ -74,6 +74,7 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
             }
         }
 
+    public:
         int locate_span(const Scalar t) const {
             const auto p = get_degree();
             const auto num_knots = m_knots.rows();
@@ -109,7 +110,20 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
             return bypass_duplicates_after(mid);
         }
 
-    public:
+        int get_multiplicity(int k) const {
+            const int m = m_knots.rows();
+            int s =1;
+            for (int i=k-1; i>=0; i--) {
+                if (m_knots[i] == m_knots[k]) s++;
+                else break;
+            }
+            for (int i=k+1; i<m; i++) {
+                if (m_knots[i] == m_knots[k]) s++;
+                else break;
+            }
+            return s;
+        }
+
         const ControlPoints& get_control_points() const {
             return m_control_points;
         }

@@ -5,6 +5,30 @@
 
 namespace nanospline {
 
+template<typename CurveType1, typename CurveType2>
+void assert_same(const CurveType1& curve1, const CurveType2& curve2, int num_samples,
+        const typename CurveType1::Scalar tol=1e-6) {
+    using Scalar = typename CurveType1::Scalar;
+
+    REQUIRE(curve1.get_domain_lower_bound() == Approx(curve2.get_domain_lower_bound()));
+    REQUIRE(curve1.get_domain_upper_bound() == Approx(curve2.get_domain_upper_bound()));
+
+    const Scalar t_min = std::max(
+            curve1.get_domain_lower_bound(),
+            curve2.get_domain_lower_bound());
+    const Scalar t_max = std::min(
+            curve1.get_domain_upper_bound(),
+            curve2.get_domain_upper_bound());
+
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 1> samples;
+    samples.setLinSpaced(num_samples, t_min, t_max);
+    for (int i=0; i<num_samples; i++) {
+        const auto p1 = curve1.evaluate(samples[i]);
+        const auto p2 = curve2.evaluate(samples[i]);
+        REQUIRE((p1-p2).norm() == Approx(0.0).margin(tol));
+    }
+}
+
 /**
  * Validate derivative computation using finite difference.
  */
