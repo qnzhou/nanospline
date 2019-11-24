@@ -49,6 +49,18 @@ class BezierBase : public SplineBase<_Scalar, _dim> {
             m_control_points.swap(ctrl_pts);
         }
 
+        int get_degree() const {
+            return _generic ? m_control_points.rows()-1 : _degree;
+        }
+
+        Scalar get_domain_lower_bound() const {
+            return 0.0;
+        }
+
+        Scalar get_domain_upper_bound() const {
+            return 1.0;
+        }
+
     protected:
         ControlPoints m_control_points;
 };

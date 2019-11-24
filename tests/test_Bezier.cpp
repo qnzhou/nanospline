@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
 
 #include <nanospline/Bezier.h>
+#include <nanospline/save_svg.h>
 
 TEST_CASE("Bezier", "[bezier]") {
     using namespace nanospline;

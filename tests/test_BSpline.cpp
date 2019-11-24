@@ -2,6 +2,7 @@
 
 #include <nanospline/BSpline.h>
 #include <nanospline/Bezier.h>
+#include <nanospline/save_svg.h>
 
 TEST_CASE("BSpline", "[bspline]") {
     using namespace nanospline;
@@ -566,5 +567,34 @@ TEST_CASE("BSpline", "[bspline]") {
         const auto min_p = curve.evaluate(min_t);
         const auto max_p = curve.evaluate(max_t);
         REQUIRE((max_p - min_p).norm() == Approx(0.0));
+    }
+
+    SECTION("Comparison") {
+        SECTION("Open curve") {
+            Eigen::Matrix<float, 10, 2> ctrl_pts;
+            ctrl_pts << 1, 4, .5, 6, 5, 4, 3, 12, 11, 14, 8, 4, 12, 3, 11, 9, 15, 10, 17, 8;
+            Eigen::Matrix<float, 14, 1> knots;
+            knots << 0, 0, 0, 0, 1.0/7, 2.0/7, 3.0/7, 4.0/7, 5.0/7, 6.0/7, 1, 1, 1, 1;
+
+            BSpline<float, 2, 3, true> curve;
+            curve.set_control_points(ctrl_pts);
+            curve.set_knots(knots);
+        }
+
+        SECTION("Closed curve") {
+            Eigen::Matrix<float, 14, 2> ctrl_pts;
+            ctrl_pts << 1, 4, .5, 6, 5, 4, 3, 12, 11, 14, 8, 4, 12, 3, 11, 9, 15, 10, 17, 8,
+                     1, 4, .5, 6, 5, 4, 3, 12 ;
+            Eigen::Matrix<float, 18, 1> knots;
+            knots << 0.0/17, 1.0/17, 2.0/17, 3.0/17, 4.0/17, 5.0/17, 6.0/17, 7.0/17,
+                  8.0/17, 9.0/17, 10.0/17, 11.0/17, 12.0/17, 13.0/17, 14.0/17, 15.0/17,
+                  16.0/17, 17.0/17;
+
+            BSpline<float, 2, 3, true> curve;
+            curve.set_control_points(ctrl_pts);
+            curve.set_knots(knots);
+            save_svg("test.svg", curve);
+        }
+
     }
 }
