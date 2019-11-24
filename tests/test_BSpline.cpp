@@ -123,13 +123,7 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
         // B-spline without internal knots is a Bezier curve.
         Bezier<Scalar, 2, 3> bezier_curve;
         bezier_curve.set_control_points(control_pts);
-
-        for (Scalar t=0.0; t<1.01; t+=0.2) {
-            auto p0 = curve.evaluate(t);
-            auto p1 = bezier_curve.evaluate(t);
-            REQUIRE(p0[0] == Approx(p1[0]));
-            REQUIRE(p0[1] == Approx(p1[1]));
-        }
+        assert_same(curve, bezier_curve, 10);
 
         SECTION("Derivative") {
             validate_derivatives(curve, 10);

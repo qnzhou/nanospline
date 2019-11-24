@@ -155,14 +155,7 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
         SECTION("Consistency") {
             Bezier<Scalar, 2, 0, true> generic_curve;
             generic_curve.set_control_points(control_pts);
-            constexpr int N=10;
-            for (int i=0; i<N; i++) {
-                Scalar t = Scalar(i) / Scalar(N);
-                const auto p = curve.evaluate(t);
-                const auto q = generic_curve.evaluate(t);
-                REQUIRE(p[0] == Approx(q[0]));
-                REQUIRE(p[1] == Approx(q[1]));
-            }
+            assert_same(curve, generic_curve, 10);
         }
 
         SECTION("Derivative") {
@@ -180,14 +173,7 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
         SECTION("Consistency") {
             Bezier<Scalar, 2, 1, true> generic_curve;
             generic_curve.set_control_points(control_pts);
-            constexpr int N=10;
-            for (int i=0; i<N; i++) {
-                Scalar t = Scalar(i) / Scalar(N);
-                const auto p = curve.evaluate(t);
-                const auto q = generic_curve.evaluate(t);
-                REQUIRE(p[0] == Approx(q[0]));
-                REQUIRE(p[1] == Approx(q[1]));
-            }
+            assert_same(curve, generic_curve, 10);
         }
 
         SECTION("Evaluation") {
@@ -236,14 +222,7 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
         SECTION("Consistency") {
             Bezier<Scalar, 2, 2, true> generic_curve;
             generic_curve.set_control_points(control_pts);
-            constexpr int N=10;
-            for (int i=0; i<N; i++) {
-                Scalar t = Scalar(i) / Scalar(N);
-                const auto p = curve.evaluate(t);
-                const auto q = generic_curve.evaluate(t);
-                REQUIRE(p[0] == Approx(q[0]));
-                REQUIRE(p[1] == Approx(q[1]));
-            }
+            assert_same(curve, generic_curve, 10);
         }
 
         SECTION("Evaluation") {
@@ -274,14 +253,7 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
         SECTION("Consistency") {
             Bezier<Scalar, 2, 3, true> generic_curve;
             generic_curve.set_control_points(control_pts);
-            constexpr int N=10;
-            for (int i=0; i<N; i++) {
-                Scalar t = Scalar(i) / Scalar(N);
-                const auto p = curve.evaluate(t);
-                const auto q = generic_curve.evaluate(t);
-                REQUIRE(p[0] == Approx(q[0]));
-                REQUIRE(p[1] == Approx(q[1]));
-            }
+            assert_same(curve, generic_curve, 10);
         }
 
         SECTION("Evaluation") {

@@ -5,7 +5,11 @@
 
 namespace nanospline {
 
-template<typename CurveType1, typename CurveType2>
+template<typename CurveType1, typename CurveType2,
+    typename std::enable_if<std::is_same<
+        typename CurveType1::Scalar,
+        typename CurveType2::Scalar>::value,
+        int>::type =0 >
 void assert_same(const CurveType1& curve1, const CurveType2& curve2, int num_samples,
         const typename CurveType1::Scalar tol=1e-6) {
     using Scalar = typename CurveType1::Scalar;
@@ -21,8 +25,8 @@ void assert_same(const CurveType1& curve1, const CurveType2& curve2, int num_sam
             curve2.get_domain_upper_bound());
 
     Eigen::Matrix<Scalar, Eigen::Dynamic, 1> samples;
-    samples.setLinSpaced(num_samples, t_min, t_max);
-    for (int i=0; i<num_samples; i++) {
+    samples.setLinSpaced(num_samples+2, t_min, t_max);
+    for (int i=0; i<num_samples+2; i++) {
         const auto p1 = curve1.evaluate(samples[i]);
         const auto p2 = curve2.evaluate(samples[i]);
         REQUIRE((p1-p2).norm() == Approx(0.0).margin(tol));

@@ -82,11 +82,7 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             Bezier<Scalar, 2, 2> regular_bezier;
             regular_bezier.set_control_points(control_pts);
 
-            for (Scalar t=0.0; t<1.01; t+=0.2) {
-                const auto p0 = curve.evaluate(t);
-                const auto p1 = regular_bezier.evaluate(t);
-                REQUIRE((p0-p1).norm() == Approx(0.0));
-            }
+            assert_same(curve, regular_bezier, 10);
             validate_derivatives(curve, 10);
         }
 
