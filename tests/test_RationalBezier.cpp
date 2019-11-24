@@ -3,7 +3,7 @@
 #include <cmath>
 
 #include <nanospline/RationalBezier.h>
-#include "validate_derivative.h"
+#include "validation_utils.h"
 
 TEST_CASE("RationalBezier", "[rational][bezier]") {
     using namespace nanospline;

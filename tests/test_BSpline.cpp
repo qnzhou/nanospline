@@ -4,7 +4,7 @@
 #include <nanospline/Bezier.h>
 #include <nanospline/save_svg.h>
 
-#include "validate_derivative.h"
+#include "validation_utils.h"
 
 TEST_CASE("BSpline", "[nonrational][bspline]") {
     using namespace nanospline;

@@ -4,7 +4,7 @@
 #include <iostream>
 #include <nanospline/NURBS.h>
 
-#include "validate_derivative.h"
+#include "validation_utils.h"
 
 TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
     using namespace nanospline;
