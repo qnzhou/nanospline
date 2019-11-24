@@ -8,7 +8,7 @@ TEST_CASE("Bezier", "[bezier]") {
     using namespace nanospline;
 
     auto validate_derivatives = [](const auto& curve, int num_samples) {
-        // Using finite different to check derivative computation.
+        // Using finite difference to check derivative computation.
         Eigen::Matrix<float, Eigen::Dynamic, 1> samples;
         samples.setLinSpaced(num_samples+2, 0.0, 1.0);
         constexpr float delta = 1e-6;
