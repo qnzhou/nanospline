@@ -4,18 +4,21 @@
 #include <nanospline/Bezier.h>
 #include <nanospline/save_svg.h>
 
+#include "validate_derivative.h"
+
 TEST_CASE("BSpline", "[bspline]") {
     using namespace nanospline;
+    using Scalar = double;
 
     SECTION("Generic degree 0") {
-        Eigen::Matrix<float, 3, 2> control_pts;
+        Eigen::Matrix<Scalar, 3, 2> control_pts;
         control_pts << 0.0, 0.0,
                        1.0, 0.0,
                        2.0, 0.0;
-        Eigen::Matrix<float, 4, 1> knots;
+        Eigen::Matrix<Scalar, 4, 1> knots;
         knots << 0.0, 0.5, 0.75, 1.0;
 
-        BSpline<float, 2, 0, true> curve;
+        BSpline<Scalar, 2, 0, true> curve;
         curve.set_control_points(control_pts);
         curve.set_knots(knots);
 
@@ -32,18 +35,22 @@ TEST_CASE("BSpline", "[bspline]") {
         auto p2 = curve.evaluate(1.0);
         REQUIRE(p2[0] == Approx(2.0));
         REQUIRE(p2[1] == Approx(0.0));
+
+        SECTION("Derivative") {
+            validate_derivatives(curve, 10);
+        }
     }
 
     SECTION("Generic degree 1") {
-        Eigen::Matrix<float, 4, 2> control_pts;
+        Eigen::Matrix<Scalar, 4, 2> control_pts;
         control_pts << 0.0, 0.0,
                        1.0, 0.0,
                        2.0, 0.0,
                        3.0, 0.0;
-        Eigen::Matrix<float, 6, 1> knots;
+        Eigen::Matrix<Scalar, 6, 1> knots;
         knots << 0.0, 0.0, 0.2, 0.8, 1.0, 1.0;
 
-        BSpline<float, 2, 1, true> curve;
+        BSpline<Scalar, 2, 1, true> curve;
         curve.set_control_points(control_pts);
         curve.set_knots(knots);
 
@@ -58,18 +65,22 @@ TEST_CASE("BSpline", "[bspline]") {
         auto p2 = curve.evaluate(0.9);
         REQUIRE(p2[0] == Approx(2.5));
         REQUIRE(p2[1] == Approx(0.0));
+
+        SECTION("Derivative") {
+            validate_derivatives(curve, 10);
+        }
     }
 
     SECTION("Generic degree 2") {
-        Eigen::Matrix<float, 4, 2> control_pts;
+        Eigen::Matrix<Scalar, 4, 2> control_pts;
         control_pts << 0.0, 0.0,
                        1.0, 0.0,
                        2.0, 0.0,
                        3.0, 0.0;
-        Eigen::Matrix<float, 7, 1> knots;
+        Eigen::Matrix<Scalar, 7, 1> knots;
         knots << 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0;
 
-        BSpline<float, 2, 2, true> curve;
+        BSpline<Scalar, 2, 2, true> curve;
         curve.set_control_points(control_pts);
         curve.set_knots(knots);
 
@@ -90,35 +101,43 @@ TEST_CASE("BSpline", "[bspline]") {
         REQUIRE(p3[0] == Approx(3.0 - p4[0]));
         REQUIRE(p3[1] == Approx(0.0));
         REQUIRE(p4[1] == Approx(0.0));
+
+        SECTION("Derivative") {
+            validate_derivatives(curve, 10);
+        }
     }
 
     SECTION("Generic degree 3") {
-        Eigen::Matrix<float, 4, 2> control_pts;
+        Eigen::Matrix<Scalar, 4, 2> control_pts;
         control_pts << 0.0, 0.0,
                        1.0, 0.0,
                        2.0, 0.0,
                        3.0, 0.0;
-        Eigen::Matrix<float, 8, 1> knots;
+        Eigen::Matrix<Scalar, 8, 1> knots;
         knots << 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0;
 
-        BSpline<float, 2, 3, true> curve;
+        BSpline<Scalar, 2, 3, true> curve;
         curve.set_control_points(control_pts);
         curve.set_knots(knots);
 
         // B-spline without internal knots is a Bezier curve.
-        Bezier<float, 2, 3> bezier_curve;
+        Bezier<Scalar, 2, 3> bezier_curve;
         bezier_curve.set_control_points(control_pts);
 
-        for (float t=0.0; t<1.01; t+=0.2) {
+        for (Scalar t=0.0; t<1.01; t+=0.2) {
             auto p0 = curve.evaluate(t);
             auto p1 = bezier_curve.evaluate(t);
             REQUIRE(p0[0] == Approx(p1[0]));
             REQUIRE(p0[1] == Approx(p1[1]));
         }
+
+        SECTION("Derivative") {
+            validate_derivatives(curve, 10);
+        }
     }
 
     SECTION("Approximate closest point") {
-        Eigen::Matrix<float, 10, 2> control_pts;
+        Eigen::Matrix<Scalar, 10, 2> control_pts;
         control_pts << 0.0, 0.0,
                        1.0, 0.0,
                        2.0, 0.0,
@@ -129,17 +148,17 @@ TEST_CASE("BSpline", "[bspline]") {
                        7.0, 0.0,
                        8.0, 0.0,
                        9.0, 0.0;
-        Eigen::Matrix<float, 14, 1> knots;
+        Eigen::Matrix<Scalar, 14, 1> knots;
         knots << 0.0, 0.0, 0.0, 0.0,
                  0.1, 0.3, 0.4, 0.5, 0.6, 0.9,
                  1.0, 1.0, 1.0, 1.0;
 
-        BSpline<float, 2, 3, true> curve;
+        BSpline<Scalar, 2, 3, true> curve;
         curve.set_control_points(control_pts);
         curve.set_knots(knots);
 
-        for (float x=0.0; x<1.01; x+=0.2) {
-            Eigen::Matrix<float, 2, 1> q(9.0 * x, 1.0);
+        for (Scalar x=0.0; x<1.01; x+=0.2) {
+            Eigen::Matrix<Scalar, 2, 1> q(9.0 * x, 1.0);
             const auto t = curve.approximate_inverse_evaluate(q);
             const auto p = curve.evaluate(t);
             REQUIRE(p[0] == Approx(q[0]).epsilon(1e-3));
@@ -148,7 +167,7 @@ TEST_CASE("BSpline", "[bspline]") {
     }
 
     SECTION("Closed BSpline") {
-        Eigen::Matrix<float, Eigen::Dynamic, 3> control_pts(98, 3);
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 3> control_pts(98, 3);
         control_pts <<
             116.77856840140299,
             0.990973072246042,
@@ -445,7 +464,7 @@ TEST_CASE("BSpline", "[bspline]") {
             -0.9909730722460299,
             398.531783226971;
 
-        Eigen::Matrix<float, Eigen::Dynamic, 1> knots(102, 1);
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots(102, 1);
         knots << 
             -0.0029307229988643074,
             -0.0029307229988643074,
@@ -550,15 +569,15 @@ TEST_CASE("BSpline", "[bspline]") {
             0.09671385896252567,
             0.09671385896252567;
 
-        BSpline<float, 3, 3, true> curve;
+        BSpline<Scalar, 3, 3, true> curve;
         curve.set_control_points(control_pts);
         curve.set_knots(knots);
 
-        const float min_t = curve.get_domain_lower_bound();
-        const float max_t = curve.get_domain_upper_bound();
+        const Scalar min_t = curve.get_domain_lower_bound();
+        const Scalar max_t = curve.get_domain_upper_bound();
         constexpr int N=100;
         for (int i=0; i<N+1; i++) {
-            float t = min_t + float(i) / float(N) * (max_t - min_t);
+            Scalar t = min_t + Scalar(i) / Scalar(N) * (max_t - min_t);
             t = std::min(max_t, t);
             REQUIRE_NOTHROW(curve.evaluate(t));
         }
@@ -566,34 +585,45 @@ TEST_CASE("BSpline", "[bspline]") {
         // Check curve is indeed closed.
         const auto min_p = curve.evaluate(min_t);
         const auto max_p = curve.evaluate(max_t);
-        REQUIRE((max_p - min_p).norm() == Approx(0.0));
+        REQUIRE((max_p - min_p).norm() == Approx(0.0).margin(1e-6));
+
+        SECTION("Derivative") {
+            validate_derivatives(curve, 10);
+        }
     }
 
     SECTION("Comparison") {
         SECTION("Open curve") {
-            Eigen::Matrix<float, 10, 2> ctrl_pts;
+            Eigen::Matrix<Scalar, 10, 2> ctrl_pts;
             ctrl_pts << 1, 4, .5, 6, 5, 4, 3, 12, 11, 14, 8, 4, 12, 3, 11, 9, 15, 10, 17, 8;
-            Eigen::Matrix<float, 14, 1> knots;
+            Eigen::Matrix<Scalar, 14, 1> knots;
             knots << 0, 0, 0, 0, 1.0/7, 2.0/7, 3.0/7, 4.0/7, 5.0/7, 6.0/7, 1, 1, 1, 1;
 
-            BSpline<float, 2, 3, true> curve;
+            BSpline<Scalar, 2, 3, true> curve;
             curve.set_control_points(ctrl_pts);
             curve.set_knots(knots);
+
+            SECTION("Derivative") {
+                validate_derivatives(curve, 10);
+            }
         }
 
         SECTION("Closed curve") {
-            Eigen::Matrix<float, 14, 2> ctrl_pts;
+            Eigen::Matrix<Scalar, 14, 2> ctrl_pts;
             ctrl_pts << 1, 4, .5, 6, 5, 4, 3, 12, 11, 14, 8, 4, 12, 3, 11, 9, 15, 10, 17, 8,
                      1, 4, .5, 6, 5, 4, 3, 12 ;
-            Eigen::Matrix<float, 18, 1> knots;
+            Eigen::Matrix<Scalar, 18, 1> knots;
             knots << 0.0/17, 1.0/17, 2.0/17, 3.0/17, 4.0/17, 5.0/17, 6.0/17, 7.0/17,
                   8.0/17, 9.0/17, 10.0/17, 11.0/17, 12.0/17, 13.0/17, 14.0/17, 15.0/17,
                   16.0/17, 17.0/17;
 
-            BSpline<float, 2, 3, true> curve;
+            BSpline<Scalar, 2, 3, true> curve;
             curve.set_control_points(ctrl_pts);
             curve.set_knots(knots);
-            //save_svg("test.svg", curve);
+
+            SECTION("Derivative") {
+                validate_derivatives(curve, 10);
+            }
         }
 
     }

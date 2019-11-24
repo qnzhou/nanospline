@@ -4,28 +4,16 @@
 #include <nanospline/Bezier.h>
 #include <nanospline/save_svg.h>
 
+#include "validate_derivative.h"
+
 TEST_CASE("Bezier", "[bezier]") {
     using namespace nanospline;
-
-    auto validate_derivatives = [](const auto& curve, int num_samples) {
-        // Using finite difference to check derivative computation.
-        Eigen::Matrix<float, Eigen::Dynamic, 1> samples;
-        samples.setLinSpaced(num_samples+2, 0.0, 1.0);
-        constexpr float delta = 1e-6;
-        for (int i=1; i<= num_samples; i++) {
-            auto t = samples[i];
-            auto d = curve.evaluate_derivative(t);
-            auto p0 = curve.evaluate(t);
-            auto p1 = curve.evaluate(t+delta);
-            REQUIRE(d[0]*delta == Approx(p1[0]-p0[0]).margin(1e-6));
-            REQUIRE(d[1]*delta == Approx(p1[1]-p0[1]).margin(1e-6));
-        }
-    };
+    using Scalar = double;
 
     SECTION("Generic degree 0") {
-        Eigen::Matrix<float, 1, 2> control_pts;
+        Eigen::Matrix<Scalar, 1, 2> control_pts;
         control_pts << 0.0, 0.1;
-        Bezier<float, 2, 0, true> curve;
+        Bezier<Scalar, 2, 0, true> curve;
         curve.set_control_points(control_pts);
 
         auto start = curve.evaluate(0);
@@ -42,10 +30,10 @@ TEST_CASE("Bezier", "[bezier]") {
     }
 
     SECTION("Generic degree 1") {
-        Eigen::Matrix<float, 2, 2> control_pts;
+        Eigen::Matrix<Scalar, 2, 2> control_pts;
         control_pts << 0.0, 0.0,
                        1.0, 0.0;
-        Bezier<float, 2, 1, true> curve;
+        Bezier<Scalar, 2, 1, true> curve;
         curve.set_control_points(control_pts);
 
         auto start = curve.evaluate(0);
@@ -66,12 +54,12 @@ TEST_CASE("Bezier", "[bezier]") {
     }
 
     SECTION("Generic degree 3") {
-        Eigen::Matrix<float, 4, 2> control_pts;
+        Eigen::Matrix<Scalar, 4, 2> control_pts;
         control_pts << 0.0, 0.0,
                        1.0, 1.0,
                        2.0, 1.0,
                        3.0, 0.0;
-        Bezier<float, 2, 3, true> curve;
+        Bezier<Scalar, 2, 3, true> curve;
         curve.set_control_points(control_pts);
 
         SECTION("Ends") {
@@ -90,7 +78,7 @@ TEST_CASE("Bezier", "[bezier]") {
         }
 
         SECTION("Inverse evaluation") {
-            Eigen::Matrix<float, 1, 2> p(0.0, 1.0);
+            Eigen::Matrix<Scalar, 1, 2> p(0.0, 1.0);
             REQUIRE_THROWS(curve.inverse_evaluate(p));
         }
 
@@ -111,12 +99,12 @@ TEST_CASE("Bezier", "[bezier]") {
     }
 
     SECTION("Dynmaic degree") {
-        Eigen::Matrix<float, 4, 2> control_pts;
+        Eigen::Matrix<Scalar, 4, 2> control_pts;
         control_pts << 0.0, 0.0,
                        1.0, 1.0,
                        2.0, 1.0,
                        3.0, 0.0;
-        Bezier<float, 2, -1> curve;
+        Bezier<Scalar, 2, -1> curve;
         curve.set_control_points(control_pts);
 
         SECTION("Ends") {
@@ -135,7 +123,7 @@ TEST_CASE("Bezier", "[bezier]") {
         }
 
         SECTION("Inverse evaluation") {
-            Eigen::Matrix<float, 1, 2> p(0.0, 1.0);
+            Eigen::Matrix<Scalar, 1, 2> p(0.0, 1.0);
             REQUIRE_THROWS(curve.inverse_evaluate(p));
         }
 
@@ -156,20 +144,20 @@ TEST_CASE("Bezier", "[bezier]") {
     }
 
     SECTION("Specialized degree 0") {
-        Eigen::Matrix<float, 1, 2> control_pts;
+        Eigen::Matrix<Scalar, 1, 2> control_pts;
         control_pts << 0.0, 0.1;
-        Bezier<float, 2, 0> curve;
+        Bezier<Scalar, 2, 0> curve;
         curve.set_control_points(control_pts);
 
-        Eigen::Matrix<float, 1, 2> p(0.0, 1.0);
+        Eigen::Matrix<Scalar, 1, 2> p(0.0, 1.0);
         curve.inverse_evaluate(p);
 
         SECTION("Consistency") {
-            Bezier<float, 2, 0, true> generic_curve;
+            Bezier<Scalar, 2, 0, true> generic_curve;
             generic_curve.set_control_points(control_pts);
             constexpr int N=10;
             for (int i=0; i<N; i++) {
-                float t = float(i) / float(N);
+                Scalar t = Scalar(i) / Scalar(N);
                 const auto p = curve.evaluate(t);
                 const auto q = generic_curve.evaluate(t);
                 REQUIRE(p[0] == Approx(q[0]));
@@ -183,18 +171,18 @@ TEST_CASE("Bezier", "[bezier]") {
     }
 
     SECTION("Specialized degree 1") {
-        Eigen::Matrix<float, 2, 2> control_pts;
+        Eigen::Matrix<Scalar, 2, 2> control_pts;
         control_pts << 0.0, 0.0,
                        1.0, 1.0;
-        Bezier<float, 2, 1> curve;
+        Bezier<Scalar, 2, 1> curve;
         curve.set_control_points(control_pts);
 
         SECTION("Consistency") {
-            Bezier<float, 2, 1, true> generic_curve;
+            Bezier<Scalar, 2, 1, true> generic_curve;
             generic_curve.set_control_points(control_pts);
             constexpr int N=10;
             for (int i=0; i<N; i++) {
-                float t = float(i) / float(N);
+                Scalar t = Scalar(i) / Scalar(N);
                 const auto p = curve.evaluate(t);
                 const auto q = generic_curve.evaluate(t);
                 REQUIRE(p[0] == Approx(q[0]));
@@ -214,20 +202,20 @@ TEST_CASE("Bezier", "[bezier]") {
         }
 
         SECTION("Inverse evaluate") {
-            float t0 = 0.2f;
+            Scalar t0 = 0.2f;
             const auto p0 = curve.evaluate(t0);
             const auto t = curve.inverse_evaluate(p0);
             REQUIRE(t0 == Approx(t));
 
-            Eigen::Matrix<float, 1, 2> p1(1.0, 0.0);
+            Eigen::Matrix<Scalar, 1, 2> p1(1.0, 0.0);
             const auto t1 = curve.inverse_evaluate(p1);
             REQUIRE(t1 == Approx(0.5));
 
-            Eigen::Matrix<float, 1, 2> p2(-1.0, 0.0);
+            Eigen::Matrix<Scalar, 1, 2> p2(-1.0, 0.0);
             const auto t2 = curve.inverse_evaluate(p2);
             REQUIRE(t2 == Approx(0.0));
 
-            Eigen::Matrix<float, 1, 2> p3(1.0, 1.1);
+            Eigen::Matrix<Scalar, 1, 2> p3(1.0, 1.1);
             const auto t3 = curve.inverse_evaluate(p3);
             REQUIRE(t3 == Approx(1.0));
         }
@@ -238,19 +226,19 @@ TEST_CASE("Bezier", "[bezier]") {
     }
 
     SECTION("Specialized degree 2") {
-        Eigen::Matrix<float, 3, 2> control_pts;
+        Eigen::Matrix<Scalar, 3, 2> control_pts;
         control_pts << 0.0, 0.0,
                        1.0, 1.0,
                        2.0, 0.0;
-        Bezier<float, 2, 2> curve;
+        Bezier<Scalar, 2, 2> curve;
         curve.set_control_points(control_pts);
 
         SECTION("Consistency") {
-            Bezier<float, 2, 2, true> generic_curve;
+            Bezier<Scalar, 2, 2, true> generic_curve;
             generic_curve.set_control_points(control_pts);
             constexpr int N=10;
             for (int i=0; i<N; i++) {
-                float t = float(i) / float(N);
+                Scalar t = Scalar(i) / Scalar(N);
                 const auto p = curve.evaluate(t);
                 const auto q = generic_curve.evaluate(t);
                 REQUIRE(p[0] == Approx(q[0]));
@@ -275,20 +263,20 @@ TEST_CASE("Bezier", "[bezier]") {
     }
 
     SECTION("Specialized degree 3") {
-        Eigen::Matrix<float, 4, 2> control_pts;
+        Eigen::Matrix<Scalar, 4, 2> control_pts;
         control_pts << 0.0, 0.0,
                        1.0, 1.0,
                        2.0, 1.0,
                        3.0, 0.0;
-        Bezier<float, 2, 3> curve;
+        Bezier<Scalar, 2, 3> curve;
         curve.set_control_points(control_pts);
 
         SECTION("Consistency") {
-            Bezier<float, 2, 3, true> generic_curve;
+            Bezier<Scalar, 2, 3, true> generic_curve;
             generic_curve.set_control_points(control_pts);
             constexpr int N=10;
             for (int i=0; i<N; i++) {
-                float t = float(i) / float(N);
+                Scalar t = Scalar(i) / Scalar(N);
                 const auto p = curve.evaluate(t);
                 const auto q = generic_curve.evaluate(t);
                 REQUIRE(p[0] == Approx(q[0]));

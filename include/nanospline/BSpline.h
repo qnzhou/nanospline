@@ -32,6 +32,48 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
                 ctrl_pts.row(i) = Base::m_control_points.row(i+k-p);
             }
 
+            deBoor(t, p, k, ctrl_pts);
+            return ctrl_pts.row(p);
+        }
+
+        Scalar inverse_evaluate(const Point& p) const override {
+            throw not_implemented_error("Too complex, sigh");
+        }
+
+        Point evaluate_derivative(Scalar t) const override {
+            assert(Base::in_domain(t));
+            const int p = Base::get_degree();
+            const int k = Base::locate_span(t);
+            assert(p >= 0);
+            assert(Base::m_knots.rows() ==
+                    Base::m_control_points.rows() + p + 1);
+            assert(Base::m_knots[k] <= t);
+            assert(Base::m_knots[k+1] >= t);
+
+            if (p == 0) return Point::Zero();
+
+            ControlPoints ctrl_pts(p, _dim);
+            for(int i=0; i<p; i++) {
+                const Scalar diff = Base::m_knots[i+k+1] - Base::m_knots[i+k-p+1];
+                Scalar alpha = 0.0;
+                if (diff > 0) {
+                    alpha = p / diff;
+                }
+                ctrl_pts.row(i) = alpha * (
+                        Base::m_control_points.row(i+k-p+1) -
+                        Base::m_control_points.row(i+k-p));
+            }
+
+            deBoor(t, p-1, k, ctrl_pts);
+            return ctrl_pts.row(p-1);
+        }
+
+    private:
+        template<typename Derived>
+        void deBoor(Scalar t, int p, int k,
+                Eigen::PlainObjectBase<Derived>& ctrl_pts) const {
+            assert(ctrl_pts.rows() >= p+1);
+
             for (int r=1; r<=p; r++) {
                 for (int j=p; j>=r; j--) {
                     const Scalar diff =
@@ -45,16 +87,6 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
                         alpha * ctrl_pts.row(j);
                 }
             }
-
-            return ctrl_pts.row(p);
-        }
-
-        Scalar inverse_evaluate(const Point& p) const override {
-            throw not_implemented_error("Too complex, sigh");
-        }
-
-        Point evaluate_derivative(Scalar t) const override {
-            throw not_implemented_error("Too complex, sigh");
         }
 };
 
