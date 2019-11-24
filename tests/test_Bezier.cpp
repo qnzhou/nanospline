@@ -6,7 +6,7 @@
 
 #include "validate_derivative.h"
 
-TEST_CASE("Bezier", "[bezier]") {
+TEST_CASE("Bezier", "[nonrational][bezier]") {
     using namespace nanospline;
     using Scalar = double;
 

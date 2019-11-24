@@ -7,14 +7,15 @@
 
 TEST_CASE("RationalBezier", "[rational][bezier]") {
     using namespace nanospline;
+    using Scalar = double;
 
     SECTION("Generic degree 0") {
-        Eigen::Matrix<float, 1, 2> control_pts;
+        Eigen::Matrix<Scalar, 1, 2> control_pts;
         control_pts << 0.0, 0.1;
-        Eigen::Matrix<float, 1, 1> weights;
+        Eigen::Matrix<Scalar, 1, 1> weights;
         weights << 1.0;
 
-        RationalBezier<float, 2, 0, true> curve;
+        RationalBezier<Scalar, 2, 0, true> curve;
         curve.set_control_points(control_pts);
         curve.set_weights(weights);
         curve.initialize();
@@ -33,13 +34,13 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
     }
 
     SECTION("Generic degree 1") {
-        Eigen::Matrix<float, 2, 2> control_pts;
+        Eigen::Matrix<Scalar, 2, 2> control_pts;
         control_pts << 0.0, 0.0,
                        1.0, 0.0;
-        Eigen::Matrix<float, 2, 1> weights;
+        Eigen::Matrix<Scalar, 2, 1> weights;
         weights << 0.1, 1.0;
 
-        RationalBezier<float, 2, 1, true> curve;
+        RationalBezier<Scalar, 2, 1, true> curve;
         curve.set_control_points(control_pts);
         curve.set_weights(weights);
         curve.initialize();
@@ -58,15 +59,15 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
     }
 
     SECTION("Generic degree 2") {
-        RationalBezier<float, 2, 2, true> curve;
+        RationalBezier<Scalar, 2, 2, true> curve;
 
-        Eigen::Matrix<float, 3, 2> control_pts;
+        Eigen::Matrix<Scalar, 3, 2> control_pts;
         control_pts << 0.0, 0.0,
                        1.0, 1.0,
                        2.0, 0.0;
         curve.set_control_points(control_pts);
 
-        Eigen::Matrix<float, 3, 1> weights;
+        Eigen::Matrix<Scalar, 3, 1> weights;
 
         SECTION("Uniform weight") {
             SECTION("all ones") {
@@ -78,10 +79,10 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             curve.set_weights(weights);
             curve.initialize();
 
-            Bezier<float, 2, 2> regular_bezier;
+            Bezier<Scalar, 2, 2> regular_bezier;
             regular_bezier.set_control_points(control_pts);
 
-            for (float t=0.0; t<1.01; t+=0.2) {
+            for (Scalar t=0.0; t<1.01; t+=0.2) {
                 const auto p0 = curve.evaluate(t);
                 const auto p1 = regular_bezier.evaluate(t);
                 REQUIRE((p0-p1).norm() == Approx(0.0));
@@ -120,7 +121,7 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
 
             REQUIRE((start-control_pts.row(0)).norm() == Approx(0.0));
             REQUIRE((end-control_pts.row(2)).norm() == Approx(0.0));
-            validate_derivatives(curve, 10);
+            validate_derivatives(curve, 10, 1e-5);
         }
     }
 
@@ -129,21 +130,21 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
         // Let's check.
 
         SECTION("Quarter circle") {
-            const float R = 1.2;
-            RationalBezier<float, 2, 2, true> curve;
+            const Scalar R = 1.2;
+            RationalBezier<Scalar, 2, 2, true> curve;
 
-            Eigen::Matrix<float, 3, 2> control_pts;
+            Eigen::Matrix<Scalar, 3, 2> control_pts;
             control_pts << R, 0.0,
                            R, R,
                            0.0, R;
             curve.set_control_points(control_pts);
 
-            Eigen::Matrix<float, 3, 1> weights;
+            Eigen::Matrix<Scalar, 3, 1> weights;
             weights << 1.0, sqrt(2) / 2, 1.0;
             curve.set_weights(weights);
             curve.initialize();
 
-            for (float t=0.0; t<1.01; t+=0.2) {
+            for (Scalar t=0.0; t<1.01; t+=0.2) {
                 const auto p = curve.evaluate(t);
                 REQUIRE(p.norm() == Approx(R));
             }
@@ -153,23 +154,23 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
         }
 
         SECTION("One third circle") {
-            const float R = 2.5;
-            Eigen::Matrix<float, 1, 2> c(0.0, R);
-            RationalBezier<float, 2, 2, true> curve;
+            const Scalar R = 2.5;
+            Eigen::Matrix<Scalar, 1, 2> c(0.0, R);
+            RationalBezier<Scalar, 2, 2, true> curve;
 
-            Eigen::Matrix<float, 3, 2> control_pts;
+            Eigen::Matrix<Scalar, 3, 2> control_pts;
             control_pts << 0.5 * sqrt(3) * R, 1.5*R,
                            0.0, 3*R,
                           -0.5 * sqrt(3) * R, 1.5*R;
                             
             curve.set_control_points(control_pts);
 
-            Eigen::Matrix<float, 3, 1> weights;
+            Eigen::Matrix<Scalar, 3, 1> weights;
             weights << 1.0, 0.5, 1.0;
             curve.set_weights(weights);
             curve.initialize();
 
-            for (float t=0.0; t<1.01; t+=0.2) {
+            for (Scalar t=0.0; t<1.01; t+=0.2) {
                 const auto p = curve.evaluate(t);
                 REQUIRE((p-c).norm() == Approx(R));
             }

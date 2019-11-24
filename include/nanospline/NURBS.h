@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Eigen/Core>
+#include <iostream>
 
 #include <nanospline/Exceptions.h>
 #include <nanospline/BSplineBase.h>

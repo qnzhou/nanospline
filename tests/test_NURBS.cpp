@@ -6,21 +6,22 @@
 
 #include "validate_derivative.h"
 
-TEST_CASE("NURBS", "[nurbs]") {
+TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
     using namespace nanospline;
+    using Scalar = double;
 
     SECTION("Generic degree 0") {
-        Eigen::Matrix<float, 3, 2> control_pts;
+        Eigen::Matrix<Scalar, 3, 2> control_pts;
         control_pts << 0.0, 0.0,
                        1.0, 0.0,
                        2.0, 0.0;
-        Eigen::Matrix<float, 4, 1> knots;
+        Eigen::Matrix<Scalar, 4, 1> knots;
         knots << 0.0, 0.5, 0.75, 1.0;
 
-        Eigen::Matrix<float, 3, 1> weights;
+        Eigen::Matrix<Scalar, 3, 1> weights;
         weights << 1.0, 2.0, 3.0;
 
-        NURBS<float, 2, 0, true> curve;
+        NURBS<Scalar, 2, 0, true> curve;
         curve.set_control_points(control_pts);
         curve.set_knots(knots);
         curve.set_weights(weights);
@@ -47,9 +48,9 @@ TEST_CASE("NURBS", "[nurbs]") {
 
     SECTION("Circles") {
         SECTION("3-way split") {
-            constexpr float R = 1.1;
-            Eigen::Matrix<float, 1, 2> c(0.0, R);
-            Eigen::Matrix<float, 7, 2> control_pts;
+            constexpr Scalar R = 1.1;
+            Eigen::Matrix<Scalar, 1, 2> c(0.0, R);
+            Eigen::Matrix<Scalar, 7, 2> control_pts;
             control_pts << 0.0, 0.0,
                            sqrt(3)*R, 0.0,
                            0.5*sqrt(3)*R, 1.5*R,
@@ -57,16 +58,16 @@ TEST_CASE("NURBS", "[nurbs]") {
                           -0.5*sqrt(3)*R, 1.5*R,
                           -sqrt(3)*R, 0.0,
                            0.0, 0.0;
-            Eigen::Matrix<float, 10, 1> knots;
+            Eigen::Matrix<Scalar, 10, 1> knots;
             knots << 0.0, 0.0, 0.0,
                      1.0/3.0, 1.0/3.0,
                      2.0/3.0, 2.0/3.0,
                      1.0, 1.0, 1.0;
 
-            Eigen::Matrix<float, 7, 1> weights;
+            Eigen::Matrix<Scalar, 7, 1> weights;
             weights << 1.0, 0.5, 1.0, 0.5, 1.0, 0.5, 1.0;
 
-            NURBS<float, 2, 2, true> curve;
+            NURBS<Scalar, 2, 2, true> curve;
             curve.set_control_points(control_pts);
             curve.set_knots(knots);
             curve.set_weights(weights);
@@ -74,7 +75,7 @@ TEST_CASE("NURBS", "[nurbs]") {
 
             REQUIRE(curve.get_degree() == 2);
 
-            for (float t=0.0; t<1.01; t+=0.2) {
+            for (Scalar t=0.0; t<1.01; t+=0.2) {
                 const auto p = curve.evaluate(t);
                 REQUIRE((p-c).norm() == Approx(R));
             }
@@ -84,9 +85,9 @@ TEST_CASE("NURBS", "[nurbs]") {
         }
 
         SECTION("4-way split") {
-            constexpr float R = 12.1;
-            Eigen::Matrix<float, 1, 2> c(0.0, R);
-            Eigen::Matrix<float, 9, 2> control_pts;
+            constexpr Scalar R = 12.1;
+            Eigen::Matrix<Scalar, 1, 2> c(0.0, R);
+            Eigen::Matrix<Scalar, 9, 2> control_pts;
             control_pts << 0.0, 0.0,
                            R, 0.0,
                            R, R,
@@ -96,20 +97,20 @@ TEST_CASE("NURBS", "[nurbs]") {
                            -R, R,
                            -R, 0.0,
                            0.0, 0.0;
-            Eigen::Matrix<float, 12, 1> knots;
+            Eigen::Matrix<Scalar, 12, 1> knots;
             knots << 0.0, 0.0, 0.0,
                      0.25, 0.25,
                      0.5, 0.5,
                      0.75, 0.75,
                      1.0, 1.0, 1.0;
-            Eigen::Matrix<float, 9, 1> weights;
+            Eigen::Matrix<Scalar, 9, 1> weights;
             weights << 1.0, sqrt(2)/2,
                        1.0, sqrt(2)/2,
                        1.0, sqrt(2)/2,
                        1.0, sqrt(2)/2,
                        1.0;
 
-            NURBS<float, 2, 2, true> curve;
+            NURBS<Scalar, 2, 2, true> curve;
             curve.set_control_points(control_pts);
             curve.set_knots(knots);
             curve.set_weights(weights);
@@ -117,7 +118,7 @@ TEST_CASE("NURBS", "[nurbs]") {
 
             REQUIRE(curve.get_degree() == 2);
 
-            for (float t=0.0; t<1.01; t+=0.2) {
+            for (Scalar t=0.0; t<1.01; t+=0.2) {
                 const auto p = curve.evaluate(t);
                 REQUIRE((p-c).norm() == Approx(R));
             }
