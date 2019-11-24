@@ -52,6 +52,10 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
         Scalar inverse_evaluate(const Point& p) const override {
             throw not_implemented_error("Too complex, sigh");
         }
+
+        Point evaluate_derivative(Scalar t) const override {
+            throw not_implemented_error("Too complex, sigh");
+        }
 };
 
 }

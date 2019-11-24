@@ -46,6 +46,10 @@ class Bezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
         Scalar inverse_evaluate(const Point& p) const override {
             throw not_implemented_error("Too complex, sigh");
         }
+
+        Point evaluate_derivative(Scalar t) const override {
+            throw not_implemented_error("Too complex, sigh");
+        }
 };
 
 template<typename _Scalar, int _dim>
@@ -63,6 +67,10 @@ class Bezier<_Scalar, _dim, 0, false> : public BezierBase<_Scalar, _dim, 0, fals
 
         Scalar inverse_evaluate(const Point& p) const override {
             return 0.0;
+        }
+
+        Point evaluate_derivative(Scalar t) const override {
+            return Point::Zero();
         }
 };
 
@@ -85,6 +93,10 @@ class Bezier<_Scalar, _dim, 1, false> : public BezierBase<_Scalar, _dim, 1, fals
             Scalar t = (p - Base::m_control_points.row(0)).dot(e) / e.squaredNorm();
             return std::max<Scalar>(std::min<Scalar>(t, 1.0), 0.0);
         }
+
+        Point evaluate_derivative(Scalar t) const override {
+            return Base::m_control_points.row(1) - Base::m_control_points.row(0);
+        }
 };
 
 template<typename _Scalar, int _dim>
@@ -105,6 +117,10 @@ class Bezier<_Scalar, _dim, 2, false> : public BezierBase<_Scalar, _dim, 2, fals
         }
 
         Scalar inverse_evaluate(const Point& p) const override {
+            throw not_implemented_error("Too complex, sigh");
+        }
+
+        Point evaluate_derivative(Scalar t) const override {
             throw not_implemented_error("Too complex, sigh");
         }
 };
@@ -132,6 +148,10 @@ class Bezier<_Scalar, _dim, 3, false> : public BezierBase<_Scalar, _dim, 3, fals
         }
 
         Scalar inverse_evaluate(const Point& p) const override {
+            throw not_implemented_error("Too complex, sigh");
+        }
+
+        Point evaluate_derivative(Scalar t) const override {
             throw not_implemented_error("Too complex, sigh");
         }
 };

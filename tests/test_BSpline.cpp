@@ -593,7 +593,7 @@ TEST_CASE("BSpline", "[bspline]") {
             BSpline<float, 2, 3, true> curve;
             curve.set_control_points(ctrl_pts);
             curve.set_knots(knots);
-            save_svg("test.svg", curve);
+            //save_svg("test.svg", curve);
         }
 
     }

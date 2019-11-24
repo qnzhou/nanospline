@@ -28,6 +28,10 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
             throw not_implemented_error("Too complex, sigh");
         }
 
+        Point evaluate_derivative(Scalar t) const override {
+            throw not_implemented_error("Too complex, sigh");
+        }
+
     public:
         void initialize() {
             typename BezierHomogeneous::ControlPoints ctrl_pts(
