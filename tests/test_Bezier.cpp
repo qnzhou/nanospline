@@ -1,10 +1,26 @@
 #include <catch2/catch.hpp>
+#include <iostream>
 
 #include <nanospline/Bezier.h>
 #include <nanospline/save_svg.h>
 
 TEST_CASE("Bezier", "[bezier]") {
     using namespace nanospline;
+
+    auto validate_derivatives = [](const auto& curve, int num_samples) {
+        // Using finite different to check derivative computation.
+        Eigen::Matrix<float, Eigen::Dynamic, 1> samples;
+        samples.setLinSpaced(num_samples+2, 0.0, 1.0);
+        constexpr float delta = 1e-6;
+        for (int i=1; i<= num_samples; i++) {
+            auto t = samples[i];
+            auto d = curve.evaluate_derivative(t);
+            auto p0 = curve.evaluate(t);
+            auto p1 = curve.evaluate(t+delta);
+            REQUIRE(d[0]*delta == Approx(p1[0]-p0[0]).margin(1e-6));
+            REQUIRE(d[1]*delta == Approx(p1[1]-p0[1]).margin(1e-6));
+        }
+    };
 
     SECTION("Generic degree 0") {
         Eigen::Matrix<float, 1, 2> control_pts;
@@ -19,6 +35,10 @@ TEST_CASE("Bezier", "[bezier]") {
         REQUIRE((start-control_pts.row(0)).norm() == Approx(0.0));
         REQUIRE((end-control_pts.row(0)).norm() == Approx(0.0));
         REQUIRE((mid-control_pts.row(0)).norm() == Approx(0.0));
+
+        SECTION("Derivative") {
+            validate_derivatives(curve, 10);
+        }
     }
 
     SECTION("Generic degree 1") {
@@ -39,6 +59,10 @@ TEST_CASE("Bezier", "[bezier]") {
         REQUIRE(start[1] == Approx(0.0));
         REQUIRE(mid[1] == Approx(0.0));
         REQUIRE(end[1] == Approx(0.0));
+
+        SECTION("Derivative") {
+            validate_derivatives(curve, 10);
+        }
     }
 
     SECTION("Generic degree 3") {
@@ -79,6 +103,10 @@ TEST_CASE("Bezier", "[bezier]") {
 
             t = curve.approximate_inverse_evaluate({3.1, 0.0});
             REQUIRE(t == Approx(1.0));
+        }
+
+        SECTION("Derivative") {
+            validate_derivatives(curve, 10);
         }
     }
 
@@ -121,6 +149,10 @@ TEST_CASE("Bezier", "[bezier]") {
             t = curve.approximate_inverse_evaluate({3.1, 0.0});
             REQUIRE(t == Approx(1.0));
         }
+
+        SECTION("Derivative") {
+            validate_derivatives(curve, 10);
+        }
     }
 
     SECTION("Specialized degree 0") {
@@ -145,6 +177,9 @@ TEST_CASE("Bezier", "[bezier]") {
             }
         }
 
+        SECTION("Derivative") {
+            validate_derivatives(curve, 10);
+        }
     }
 
     SECTION("Specialized degree 1") {
@@ -196,6 +231,10 @@ TEST_CASE("Bezier", "[bezier]") {
             const auto t3 = curve.inverse_evaluate(p3);
             REQUIRE(t3 == Approx(1.0));
         }
+
+        SECTION("Derivative") {
+            validate_derivatives(curve, 10);
+        }
     }
 
     SECTION("Specialized degree 2") {
@@ -228,6 +267,10 @@ TEST_CASE("Bezier", "[bezier]") {
             REQUIRE((end-control_pts.row(2)).norm() == Approx(0.0));
             REQUIRE(mid[0] == Approx(1.0));
             REQUIRE(mid[1] < 1.0);
+        }
+
+        SECTION("Derivative") {
+            validate_derivatives(curve, 10);
         }
     }
 
@@ -262,6 +305,10 @@ TEST_CASE("Bezier", "[bezier]") {
             REQUIRE((end-control_pts.row(3)).norm() == Approx(0.0));
             REQUIRE(mid[0] == Approx(1.5));
             REQUIRE(mid[1] < 1.0);
+        }
+
+        SECTION("Derivative") {
+            validate_derivatives(curve, 10);
         }
     }
 

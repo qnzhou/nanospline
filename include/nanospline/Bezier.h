@@ -18,29 +18,8 @@ class Bezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
 
     public:
         Point evaluate(Scalar t) const override {
-            assert(t>=0.0 && t <= 1.0);
-            const int degree = Base::m_control_points.rows()-1;
-            if (degree < 0) {
-                throw invalid_setting_error("Negative Bezier degree.");
-            }
-
-            ControlPoints pts[2];
-            pts[0] = Base::m_control_points;
-            pts[1].resize(degree+1, _dim);
-
-            for (int i=0; i<degree; i++) {
-                const auto N = degree-i;
-                const auto& curr_ctrl_pts = pts[i%2];
-                auto& next_ctrl_pts = pts[(i+1)%2];
-
-                for (int j=0; j<N; j++) {
-                    next_ctrl_pts.row(j) =
-                        (1.0-t) * curr_ctrl_pts.row(j) +
-                        t * curr_ctrl_pts.row(j+1);
-                }
-            }
-
-            return pts[degree%2].row(0);
+            const auto control_pts = deBoor(t, Base::get_degree());
+            return control_pts.row(0);
         }
 
         Scalar inverse_evaluate(const Point& p) const override {
@@ -48,7 +27,34 @@ class Bezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
         }
 
         Point evaluate_derivative(Scalar t) const override {
-            throw not_implemented_error("Too complex, sigh");
+            const auto degree = Base::get_degree();
+            assert(degree >= 0);
+            if (degree == 0) {
+                return Point::Zero();
+            } else {
+                const auto control_pts = deBoor(t, degree-1);
+                return (control_pts.row(1) - control_pts.row(0))*degree;
+            }
+        }
+
+    private:
+        ControlPoints deBoor(Scalar t, int num_recurrsions) const {
+            const auto degree = Base::get_degree();
+            if (num_recurrsions < 0 || num_recurrsions > degree) {
+                throw invalid_setting_error(
+                        "Number of de Boor recurrsion cannot exceeds degree");
+            }
+
+            if (num_recurrsions == 0) {
+                return Base::m_control_points;
+            } else {
+                ControlPoints ctrl_pts = deBoor(t, num_recurrsions-1);
+                assert(ctrl_pts.rows() >= degree+1-num_recurrsions);
+                for (int i=0; i<degree+1-num_recurrsions; i++) {
+                    ctrl_pts.row(i) = (1.0-t) * ctrl_pts.row(i) + t * ctrl_pts.row(i+1);
+                }
+                return ctrl_pts;
+            }
         }
 };
 
@@ -121,7 +127,11 @@ class Bezier<_Scalar, _dim, 2, false> : public BezierBase<_Scalar, _dim, 2, fals
         }
 
         Point evaluate_derivative(Scalar t) const override {
-            throw not_implemented_error("Too complex, sigh");
+            const Point p0 = (1.0-t) * Base::m_control_points.row(0) +
+                t * Base::m_control_points.row(1);
+            const Point p1 = (1.0-t) * Base::m_control_points.row(1) +
+                t * Base::m_control_points.row(2);
+            return (p1-p0) * 2;
         }
 };
 
@@ -152,7 +162,17 @@ class Bezier<_Scalar, _dim, 3, false> : public BezierBase<_Scalar, _dim, 3, fals
         }
 
         Point evaluate_derivative(Scalar t) const override {
-            throw not_implemented_error("Too complex, sigh");
+            const Point q0 = (1.0-t) * Base::m_control_points.row(0) +
+                t * Base::m_control_points.row(1);
+            const Point q1 = (1.0-t) * Base::m_control_points.row(1) +
+                t * Base::m_control_points.row(2);
+            const Point q2 = (1.0-t) * Base::m_control_points.row(2) +
+                t * Base::m_control_points.row(3);
+
+            const Point p0 = (1.0-t) * q0 + t * q1;
+            const Point p1 = (1.0-t) * q1 + t * q2;
+
+            return (p1-p0)*3;
         }
 };
 
