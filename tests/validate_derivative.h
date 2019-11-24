@@ -34,8 +34,8 @@ void validate_derivatives(const CurveType& curve, int num_samples) {
             REQUIRE(d[1]*delta == Approx(p1[1]-p0[1]).margin(1e-6));
         } else {
             // Center difference.
-            const auto t0 = std::max(t_min, t-0.5*delta);
-            const auto t1 = std::max(t_min, t-0.5*delta);
+            const auto t0 = std::max(t_min, t-delta/2);
+            const auto t1 = std::max(t_min, t-delta/2);
             const auto diff = t1-t0;
             auto p0 = curve.evaluate(t0);
             auto p1 = curve.evaluate(t1);

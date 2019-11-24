@@ -4,6 +4,8 @@
 #include <iostream>
 #include <nanospline/NURBS.h>
 
+#include "validate_derivative.h"
+
 TEST_CASE("NURBS", "[nurbs]") {
     using namespace nanospline;
 
@@ -37,6 +39,10 @@ TEST_CASE("NURBS", "[nurbs]") {
         auto p2 = curve.evaluate(1.0);
         REQUIRE(p2[0] == Approx(2.0));
         REQUIRE(p2[1] == Approx(0.0));
+
+        SECTION("Derivative") {
+            validate_derivatives(curve, 10);
+        }
     }
 
     SECTION("Circles") {
@@ -71,6 +77,9 @@ TEST_CASE("NURBS", "[nurbs]") {
             for (float t=0.0; t<1.01; t+=0.2) {
                 const auto p = curve.evaluate(t);
                 REQUIRE((p-c).norm() == Approx(R));
+            }
+            SECTION("Derivative") {
+                validate_derivatives(curve, 10);
             }
         }
 
@@ -111,6 +120,10 @@ TEST_CASE("NURBS", "[nurbs]") {
             for (float t=0.0; t<1.01; t+=0.2) {
                 const auto p = curve.evaluate(t);
                 REQUIRE((p-c).norm() == Approx(R));
+            }
+
+            SECTION("Derivative") {
+                validate_derivatives(curve, 10);
             }
         }
     }

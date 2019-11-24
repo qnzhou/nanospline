@@ -11,6 +11,7 @@ namespace nanospline {
 template<typename _Scalar, int _dim, int _degree, bool _generic>
 class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
     public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         using Base = BezierBase<_Scalar, _dim, _degree, _generic>;
         using Scalar = typename Base::Scalar;
         using Point = typename Base::Point;
@@ -21,7 +22,7 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
     public:
         Point evaluate(Scalar t) const override {
             auto p = m_bezier_homogeneous.evaluate(t);
-            return p.template segment<_dim>(0) / p[_dim];
+            return p.template head<_dim>() / p[_dim];
         }
 
         Scalar inverse_evaluate(const Point& p) const override {
@@ -29,7 +30,13 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
         }
 
         Point evaluate_derivative(Scalar t) const override {
-            throw not_implemented_error("Too complex, sigh");
+            const auto p = m_bezier_homogeneous.evaluate(t);
+            const auto d =
+                m_bezier_homogeneous.evaluate_derivative(t);
+
+            return (d.template head<_dim>() -
+                    p.template head<_dim>() * d[_dim] / p[_dim])
+                / p[_dim];
         }
 
     public:

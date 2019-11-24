@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include <nanospline/RationalBezier.h>
+#include "validate_derivative.h"
 
 TEST_CASE("RationalBezier", "[rational][bezier]") {
     using namespace nanospline;
@@ -25,6 +26,10 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
         REQUIRE((start-control_pts.row(0)).norm() == Approx(0.0));
         REQUIRE((end-control_pts.row(0)).norm() == Approx(0.0));
         REQUIRE((mid-control_pts.row(0)).norm() == Approx(0.0));
+
+        SECTION("Derivative") {
+            validate_derivatives(curve, 10);
+        }
     }
 
     SECTION("Generic degree 1") {
@@ -46,6 +51,10 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
         REQUIRE((start-control_pts.row(0)).norm() == Approx(0.0));
         REQUIRE((end-control_pts.row(1)).norm() == Approx(0.0));
         REQUIRE((mid-control_pts.row(0)).norm() > 0.5);
+
+        SECTION("Derivative") {
+            validate_derivatives(curve, 10);
+        }
     }
 
     SECTION("Generic degree 2") {
@@ -77,6 +86,7 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
                 const auto p1 = regular_bezier.evaluate(t);
                 REQUIRE((p0-p1).norm() == Approx(0.0));
             }
+            validate_derivatives(curve, 10);
         }
 
         SECTION("Non-uniform weights") {
@@ -110,6 +120,7 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
 
             REQUIRE((start-control_pts.row(0)).norm() == Approx(0.0));
             REQUIRE((end-control_pts.row(2)).norm() == Approx(0.0));
+            validate_derivatives(curve, 10);
         }
     }
 
@@ -136,6 +147,9 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
                 const auto p = curve.evaluate(t);
                 REQUIRE(p.norm() == Approx(R));
             }
+            SECTION("Derivative") {
+                validate_derivatives(curve, 10);
+            }
         }
 
         SECTION("One third circle") {
@@ -158,6 +172,9 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             for (float t=0.0; t<1.01; t+=0.2) {
                 const auto p = curve.evaluate(t);
                 REQUIRE((p-c).norm() == Approx(R));
+            }
+            SECTION("Derivative") {
+                validate_derivatives(curve, 10);
             }
         }
     }

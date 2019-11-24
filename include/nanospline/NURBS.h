@@ -11,6 +11,7 @@ namespace nanospline {
 template<typename _Scalar, int _dim, int _degree, bool _generic>
 class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
     public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         using Base = BSplineBase<_Scalar, _dim, _degree, _generic>;
         using Scalar = typename Base::Scalar;
         using Point = typename Base::Point;
@@ -29,7 +30,13 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
         }
 
         Point evaluate_derivative(Scalar t) const override {
-            throw not_implemented_error("Too complex, sigh");
+            const auto p = m_bspline_homogeneous.evaluate(t);
+            const auto d =
+                m_bspline_homogeneous.evaluate_derivative(t);
+
+            return (d.template head<_dim>() -
+                    p.template head<_dim>() * d[_dim] / p[_dim])
+                / p[_dim];
         }
 
     public:
