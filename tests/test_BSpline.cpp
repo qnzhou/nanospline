@@ -133,6 +133,15 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
             auto curve2 = curve;
             curve2.insert_knot(0.5);
             assert_same(curve, curve2, 10);
+
+            curve2.insert_knot(0.5);
+            assert_same(curve, curve2, 10);
+
+            curve2.insert_knot(0.5, 1);
+            assert_same(curve, curve2, 10);
+
+            curve2.insert_knot(0.6, 3);
+            assert_same(curve, curve2, 10);
         }
     }
 

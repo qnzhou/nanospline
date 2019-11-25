@@ -86,8 +86,16 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             knots_new.segment(k+1+r, m-k-1) = Base::m_knots.segment(k+1,m-k-1);
 
             ControlPoints ctrl_pts_new(n+r+1, _dim);
-            ctrl_pts_new.topRows(k-p+1) = Base::m_control_points.topRows(k-p+1);
-            ctrl_pts_new.bottomRows(n-k-s+1) = Base::m_control_points.bottomRows(n-k+s+1);
+            assert(k-p+1 >= 0);
+            if (k-p+1 > 0) {
+                ctrl_pts_new.topRows(k-p+1) =
+                    Base::m_control_points.topRows(k-p+1);
+            }
+            assert(n-k+s+1 >= 0);
+            if (n-k+s+1 > 0) {
+                ctrl_pts_new.bottomRows(n-k+s+1) =
+                    Base::m_control_points.bottomRows(n-k+s+1);
+            }
 
             ControlPoints Rw = Base::m_control_points.block(k-p, 0, p-s+1, _dim);
             for (int j=1; j<=r; j++) {
