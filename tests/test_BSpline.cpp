@@ -69,6 +69,12 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
         }
+
+        SECTION("Knot insertion") {
+            auto curve2 = curve;
+            curve2.insert_knot(0.5, 1);
+            assert_same(curve, curve2, 10);
+        }
     }
 
     SECTION("Generic degree 2") {
@@ -104,6 +110,12 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
 
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
+        }
+
+        SECTION("Knot insertion") {
+            auto curve2 = curve;
+            curve2.insert_knot(0.1, 2);
+            assert_same(curve, curve2, 10);
         }
     }
 
@@ -632,6 +644,12 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
 
             SECTION("Derivative") {
                 validate_derivatives(curve, 10);
+            }
+
+            SECTION("Knot insertion") {
+                auto curve2 = curve;
+                curve2.insert_knot(0.5, 3);
+                assert_same(curve, curve2, 10);
             }
         }
 
