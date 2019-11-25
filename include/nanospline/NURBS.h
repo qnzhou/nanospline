@@ -40,6 +40,16 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
                 / p[_dim];
         }
 
+        void insert_knot(Scalar t, int multiplicity=1) override {
+            m_bspline_homogeneous.insert_knot(t, multiplicity);
+
+            // Extract control points, weights and knots;
+            const auto ctrl_pts = m_bspline_homogeneous.get_control_points();
+            m_weights = ctrl_pts.col(_dim);
+            Base::m_control_points = ctrl_pts.leftCols(_dim).array().colwise() / m_weights.array();
+            Base::m_knots = m_bspline_homogeneous.get_knots();
+        }
+
     public:
         void initialize() {
             typename BSplineHomogeneous::ControlPoints ctrl_pts(

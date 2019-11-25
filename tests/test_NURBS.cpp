@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iostream>
 #include <nanospline/NURBS.h>
+#include <nanospline/save_svg.h>
 
 #include "validation_utils.h"
 
@@ -125,6 +126,18 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
 
             SECTION("Derivative") {
                 validate_derivatives(curve, 10);
+            }
+
+            SECTION("Insert knot") {
+                auto curve2 = curve;
+                curve2.insert_knot(0.6);
+                assert_same(curve, curve2, 10);
+
+                curve2.insert_knot(0.7, 2);
+                assert_same(curve, curve2, 10);
+
+                curve2.initialize();
+                assert_same(curve, curve2, 10);
             }
         }
     }
