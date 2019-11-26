@@ -64,6 +64,19 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
             m_weights.swap(weights);
         }
 
+        const BezierHomogeneous& get_homogeneous() const {
+            return m_bezier_homogeneous;
+        }
+
+        void set_homogeneous(const BezierHomogeneous& homogeneous) {
+            const auto ctrl_pts = homogeneous.get_control_points();
+            m_bezier_homogeneous = homogeneous;
+            m_weights = ctrl_pts.template rightCols<1>();
+            Base::m_control_points =
+                ctrl_pts.template leftCols<_dim>().array().colwise()
+                / m_weights.array();
+        }
+
     private:
         BezierHomogeneous m_bezier_homogeneous;
         WeightVector m_weights;

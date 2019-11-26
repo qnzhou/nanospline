@@ -74,9 +74,10 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
             }
         }
 
-        virtual void insert_knot(Scalar t, int multiplicity=1) {
+        virtual void insert_knot(Scalar t, int num_copies=1) {
+            assert(num_copies >= 1);
             assert(in_domain(t));
-            const int r = multiplicity;
+            const int r = num_copies;
             const int p = get_degree();
             const int k = locate_span(t);
             const int s = (t == m_knots[k]) ? get_multiplicity(k):0;

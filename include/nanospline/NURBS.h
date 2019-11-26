@@ -76,6 +76,20 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             m_weights.swap(weights);
         }
 
+        const BSplineHomogeneous& get_homogeneous() const {
+            return m_bspline_homogeneous;
+        }
+
+        void set_homogeneous(const BSplineHomogeneous& homogeneous) {
+            const auto ctrl_pts = homogeneous.get_control_points();
+            m_bspline_homogeneous = homogeneous;
+            m_weights = ctrl_pts.template rightCols<1>();
+            Base::m_control_points =
+                ctrl_pts.template leftCols<_dim>().array().colwise()
+                / m_weights.array();
+            Base::m_knots = homogeneous.get_knots();
+        }
+
     private:
         BSplineHomogeneous m_bspline_homogeneous;
         WeightVector m_weights;

@@ -33,6 +33,30 @@ void assert_same(const CurveType1& curve1, const CurveType2& curve2, int num_sam
     }
 }
 
+template<typename CurveType1, typename CurveType2,
+    typename std::enable_if<std::is_same<
+        typename CurveType1::Scalar,
+        typename CurveType2::Scalar>::value,
+        int>::type =0 >
+void assert_same(const CurveType1& curve1, const CurveType2& curve2, int num_samples,
+        const typename CurveType1::Scalar lower_1,
+        const typename CurveType1::Scalar upper_1,
+        const typename CurveType1::Scalar lower_2,
+        const typename CurveType1::Scalar upper_2,
+        const typename CurveType1::Scalar tol=1e-6) {
+    using Scalar = typename CurveType1::Scalar;
+
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 1> samples_1, samples_2;
+    samples_1.setLinSpaced(num_samples+2, lower_1, upper_1);
+    samples_2.setLinSpaced(num_samples+2, lower_2, upper_2);
+
+    for (int i=0; i<num_samples+2; i++) {
+        const auto p1 = curve1.evaluate(samples_1[i]);
+        const auto p2 = curve2.evaluate(samples_2[i]);
+        REQUIRE((p1-p2).norm() == Approx(0.0).margin(tol));
+    }
+}
+
 /**
  * Validate derivative computation using finite difference.
  */
