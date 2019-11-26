@@ -178,7 +178,7 @@ TEST_CASE("split", "[split]") {
         curve.set_knots(knots);
         curve.set_weights(weights);
         curve.initialize();
-        save_svg("test.svg", curve);
+        //save_svg("test.svg", curve);
 
         Scalar split_location = 0.0;
         SECTION("Beginning") {
