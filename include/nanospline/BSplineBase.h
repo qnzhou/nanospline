@@ -208,11 +208,7 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
         }
 
         int get_degree() const {
-            int degree = m_knots.rows() - m_control_points.rows() - 1;
-            if (_degree >= 0) {
-                assert(degree == _degree);
-            }
-            return degree;
+            return m_knots.rows() - m_control_points.rows() - 1;
         }
 
         bool in_domain(Scalar t) const {
@@ -237,8 +233,8 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
     protected:
         void validate_curve() const {
             const auto d = get_degree();
-            if (d < 0 || (!_generic && d != _degree)) {
-                throw invalid_setting_error("BSpline curve is not valid.");
+            if (d < 0 || (_degree >= 0 && d != _degree)) {
+                throw invalid_setting_error("Invalid BSpline curve: wrong degree.");
             }
         }
 
