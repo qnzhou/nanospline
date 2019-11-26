@@ -33,6 +33,7 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
             assert(in_domain(lower));
             assert(in_domain(upper));
             assert(lower < upper);
+            validate_curve();
             const int num_samples = 2 * (get_degree() + 1);
 
             auto curr_span = locate_span(lower);
@@ -77,6 +78,7 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
         virtual void insert_knot(Scalar t, int num_copies=1) {
             assert(num_copies >= 1);
             assert(in_domain(t));
+            validate_curve();
             const int r = num_copies;
             const int p = get_degree();
             const int k = locate_span(t);
@@ -230,6 +232,14 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
             const int p = get_degree();
             const int num_knots = m_knots.rows();
             return m_knots[num_knots-p-1];
+        }
+
+    protected:
+        void validate_curve() const {
+            const auto d = get_degree();
+            if (d < 0 || (!_generic && d != _degree)) {
+                throw invalid_setting_error("BSpline curve is not valid.");
+            }
         }
 
     protected:

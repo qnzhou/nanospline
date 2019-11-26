@@ -22,6 +22,7 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
 
     public:
         Point evaluate(Scalar t) const override {
+            validate_initialization();
             auto p = m_bspline_homogeneous.evaluate(t);
             return p.template segment<_dim>(0) / p[_dim];
         }
@@ -31,6 +32,7 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
         }
 
         Point evaluate_derivative(Scalar t) const override {
+            validate_initialization();
             const auto p = m_bspline_homogeneous.evaluate(t);
             const auto d =
                 m_bspline_homogeneous.evaluate_derivative(t);
@@ -41,6 +43,7 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
         }
 
         void insert_knot(Scalar t, int multiplicity=1) override {
+            validate_initialization();
             m_bspline_homogeneous.insert_knot(t, multiplicity);
 
             // Extract control points, weights and knots;
@@ -88,6 +91,17 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
                 ctrl_pts.template leftCols<_dim>().array().colwise()
                 / m_weights.array();
             Base::m_knots = homogeneous.get_knots();
+            validate_initialization();
+        }
+
+    private:
+        void validate_initialization() const {
+            Base::validate_curve();
+            const auto& ctrl_pts = m_bspline_homogeneous.get_control_points();
+            if (ctrl_pts.rows() != Base::m_control_points.rows() ||
+                ctrl_pts.rows() != m_weights.rows() ) {
+                throw invalid_setting_error("NURBS curve is not initialized.");
+            }
         }
 
     private:

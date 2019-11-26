@@ -19,6 +19,7 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
     public:
         Point evaluate(Scalar t) const override {
             assert(Base::in_domain(t));
+            Base::validate_curve();
             const int p = Base::get_degree();
             const int k = Base::locate_span(t);
             assert(p >= 0);
@@ -42,6 +43,7 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
 
         Point evaluate_derivative(Scalar t) const override {
             assert(Base::in_domain(t));
+            Base::validate_curve();
             const int p = Base::get_degree();
             const int k = Base::locate_span(t);
             assert(p >= 0);
