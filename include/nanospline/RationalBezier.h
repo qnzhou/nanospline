@@ -40,7 +40,18 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
         }
 
         Point evaluate_2nd_derivative(Scalar t) const override {
-            throw not_implemented_error("Too complex, sigh");
+            const auto p0 = m_bezier_homogeneous.evaluate(t);
+            const auto d1 =
+                m_bezier_homogeneous.evaluate_derivative(t);
+            const auto d2 =
+                m_bezier_homogeneous.evaluate_2nd_derivative(t);
+
+            const auto c0 = p0.template head<_dim>() / p0[_dim];
+            const auto c1 = (d1.template head<_dim>() -
+                    p0.template head<_dim>() * d1[_dim] / p0[_dim]) / p0[_dim];
+
+            return (d2.template head<_dim>()
+                    - d2[_dim] * c0 - 2 * d1[_dim] * c1) / p0[_dim];
         }
 
     public:

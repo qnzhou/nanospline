@@ -30,6 +30,7 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
 
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
+            validate_2nd_derivatives(curve, 10);
         }
     }
 
@@ -55,6 +56,7 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
 
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
+            validate_2nd_derivatives(curve, 10);
         }
     }
 
@@ -84,6 +86,7 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
 
             assert_same(curve, regular_bezier, 10);
             validate_derivatives(curve, 10);
+            validate_2nd_derivatives(curve, 10);
         }
 
         SECTION("Non-uniform weights") {
@@ -118,6 +121,7 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             REQUIRE((start-control_pts.row(0)).norm() == Approx(0.0));
             REQUIRE((end-control_pts.row(2)).norm() == Approx(0.0));
             validate_derivatives(curve, 10, 1e-5);
+            validate_2nd_derivatives(curve, 10);
         }
     }
 
@@ -146,6 +150,7 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             }
             SECTION("Derivative") {
                 validate_derivatives(curve, 10);
+                validate_2nd_derivatives(curve, 10);
             }
         }
 
@@ -172,6 +177,7 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             }
             SECTION("Derivative") {
                 validate_derivatives(curve, 10);
+                validate_2nd_derivatives(curve, 10);
             }
         }
     }
