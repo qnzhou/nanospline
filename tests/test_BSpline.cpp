@@ -38,6 +38,7 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
 
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
+            validate_2nd_derivatives(curve, 10);
         }
     }
 
@@ -68,6 +69,7 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
 
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
+            validate_2nd_derivatives(curve, 10);
         }
 
         SECTION("Knot insertion") {
@@ -110,6 +112,7 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
 
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
+            validate_2nd_derivatives(curve, 10);
         }
 
         SECTION("Knot insertion") {
@@ -139,6 +142,7 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
 
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
+            validate_2nd_derivatives(curve, 10);
         }
 
         SECTION("Knot insertion") {
@@ -610,6 +614,7 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
 
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
+            validate_2nd_derivatives(curve, 10);
         }
     }
 
@@ -626,6 +631,7 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
 
             SECTION("Derivative") {
                 validate_derivatives(curve, 10);
+                validate_2nd_derivatives(curve, 10);
             }
         }
 
@@ -644,6 +650,7 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
 
             SECTION("Derivative") {
                 validate_derivatives(curve, 10);
+                validate_2nd_derivatives(curve, 10);
             }
 
             SECTION("Knot insertion") {

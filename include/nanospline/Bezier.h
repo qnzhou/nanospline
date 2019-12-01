@@ -44,7 +44,7 @@ class Bezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
                 return Point::Zero();
             } else {
                 const auto control_pts = deBoor(t, degree-2);
-                return (control_pts.row(2) + control_pts.row(0) - control_pts.row(1))
+                return (control_pts.row(2) + control_pts.row(0) - 2 * control_pts.row(1))
                     * degree * (degree-1);
             }
         }

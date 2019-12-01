@@ -2,6 +2,7 @@
 #include <catch2/catch.hpp>
 #include <limits>
 #include <iostream>
+#include <nanospline/hodograph.h>
 
 namespace nanospline {
 
@@ -69,7 +70,7 @@ void validate_derivatives(const CurveType& curve, int num_samples,
     const Scalar t_min = curve.get_domain_lower_bound();
     const Scalar t_max = curve.get_domain_upper_bound();
     samples.setLinSpaced(num_samples+2, t_min, t_max);
-    constexpr Scalar delta = std::numeric_limits<Scalar>::epsilon() * 100;
+    const Scalar delta = (t_max - t_min) * 1e-6;
 
     for (int i=0; i< num_samples+2; i++) {
         auto t = samples[i];
@@ -112,7 +113,8 @@ void validate_2nd_derivatives(const CurveType& curve, int num_samples,
     const Scalar t_min = curve.get_domain_lower_bound();
     const Scalar t_max = curve.get_domain_upper_bound();
     samples.setLinSpaced(num_samples+2, t_min, t_max);
-    constexpr Scalar delta = std::numeric_limits<Scalar>::epsilon() * 100;
+    //constexpr Scalar delta = std::numeric_limits<Scalar>::epsilon() * 1e3;
+    const Scalar delta = (t_max - t_min) * 1e-6;
 
     for (int i=0; i< num_samples+2; i++) {
         auto t = samples[i];
@@ -139,6 +141,52 @@ void validate_2nd_derivatives(const CurveType& curve, int num_samples,
             REQUIRE(d[0]*diff == Approx(p1[0]-p0[0]).margin(tol));
             REQUIRE(d[1]*diff == Approx(p1[1]-p0[1]).margin(tol));
         }
+    }
+}
+
+/**
+ * Validate 2nd derivative computation using hodograph.
+ */
+template<typename Scalar, int dim, int degree, bool generic>
+void validate_2nd_derivatives(const Bezier<Scalar, dim, degree, generic>& curve,
+        int num_samples, const Scalar tol=1e-6) {
+
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 1> samples;
+    const Scalar t_min = curve.get_domain_lower_bound();
+    const Scalar t_max = curve.get_domain_upper_bound();
+    samples.setLinSpaced(num_samples+2, t_min, t_max);
+
+    auto hodograph = compute_hodograph(curve);
+    auto hodograph2 = compute_hodograph(hodograph);
+
+    for (int i=0; i< num_samples+2; i++) {
+        auto t = samples[i];
+        auto d = curve.evaluate_2nd_derivative(t);
+        auto c = hodograph2.evaluate(t);
+        REQUIRE((d-c).norm() == Approx(0.0).margin(tol));
+    }
+}
+
+/**
+ * Validate 2nd derivative computation using hodograph.
+ */
+template<typename Scalar, int dim, int degree, bool generic>
+void validate_2nd_derivatives(const BSpline<Scalar, dim, degree, generic>& curve,
+        int num_samples, const Scalar tol=1e-6) {
+
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 1> samples;
+    const Scalar t_min = curve.get_domain_lower_bound();
+    const Scalar t_max = curve.get_domain_upper_bound();
+    samples.setLinSpaced(num_samples+2, t_min, t_max);
+
+    auto hodograph = compute_hodograph(curve);
+    auto hodograph2 = compute_hodograph(hodograph);
+
+    for (int i=0; i< num_samples+2; i++) {
+        auto t = samples[i];
+        auto d = curve.evaluate_2nd_derivative(t);
+        auto c = hodograph2.evaluate(t);
+        REQUIRE((d-c).norm() == Approx(0.0).margin(tol));
     }
 }
 

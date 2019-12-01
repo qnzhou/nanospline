@@ -16,7 +16,8 @@ auto compute_hodograph(const Bezier<Scalar, dim, degree, generic>& curve) {
             num_ctrl_pts-1, ctrl_pts.cols());
 
     if (num_ctrl_pts == 1) {
-        ctrl_pts_2.row(0)=ctrl_pts.row(0);
+        ctrl_pts_2.resize(1, ctrl_pts.cols());
+        ctrl_pts_2.setZero();
         hodograph.set_control_points(ctrl_pts_2);
         return hodograph;
     }
@@ -40,7 +41,9 @@ auto compute_hodograph(const BSpline<Scalar, dim, degree, generic>& curve) {
     const auto num_ctrl_pts = ctrl_pts.rows();
 
     if (d == 0) {
-        hodograph.set_control_points(ctrl_pts);
+        typename HodographType::ControlPoints ctrl_pts_2(num_ctrl_pts, ctrl_pts.cols());
+        ctrl_pts_2.setZero();
+        hodograph.set_control_points(std::move(ctrl_pts_2));
         hodograph.set_knots(knots);
         return hodograph;
     }

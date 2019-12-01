@@ -71,7 +71,44 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
         }
 
         Point evaluate_2nd_derivative(Scalar t) const override {
-            throw not_implemented_error("Too complex, sigh");
+            assert(Base::in_domain(t));
+            Base::validate_curve();
+            const int p = Base::get_degree();
+            const int k = Base::locate_span(t);
+            assert(p >= 0);
+            assert(Base::m_knots.rows() ==
+                    Base::m_control_points.rows() + p + 1);
+            assert(Base::m_knots[k] <= t);
+            assert(Base::m_knots[k+1] >= t);
+
+            if (p <= 1) return Point::Zero();
+
+            ControlPoints ctrl_pts(p, _dim);
+
+            // First derivative control pts.
+            for(int i=0; i<p; i++) {
+                const Scalar diff = Base::m_knots[i+k+1] - Base::m_knots[i+k-p+1];
+                Scalar alpha = 0.0;
+                if (diff > 0) {
+                    alpha = p / diff;
+                }
+                ctrl_pts.row(i) = alpha * (
+                        Base::m_control_points.row(i+k-p+1) -
+                        Base::m_control_points.row(i+k-p));
+            }
+
+            // Second derivative control pts.
+            for (int i=0; i<p-1; i++) {
+                const Scalar diff = Base::m_knots[i+k+1] - Base::m_knots[i+k-p+2];
+                Scalar alpha = 0.0;
+                if (diff > 0) {
+                    alpha = (p-1) / diff;
+                }
+                ctrl_pts.row(i) = alpha * (ctrl_pts.row(i+1) - ctrl_pts.row(i));
+            }
+
+            deBoor(t, p-2, k, ctrl_pts);
+            return ctrl_pts.row(p-2);
         }
 
     private:
