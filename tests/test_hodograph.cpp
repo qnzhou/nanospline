@@ -31,7 +31,7 @@ TEST_CASE("hodograph", "[hodograph]") {
 
         auto hodograph4 = compute_hodograph(hodograph3);
         REQUIRE(hodograph4.get_degree() == 0);
-        assert_same(hodograph3, hodograph4, 10);
+        REQUIRE(hodograph4.get_control_points().norm() == 0.0);
     }
 
     SECTION("BSpline degree 1") {
@@ -53,7 +53,7 @@ TEST_CASE("hodograph", "[hodograph]") {
 
         SECTION("Recursive hodograph") {
             auto hodograph2 = compute_hodograph(hodograph);
-            assert_same(hodograph, hodograph2, 10);
+            REQUIRE(hodograph2.get_control_points().norm() == 0.0);
         }
     }
 
@@ -76,7 +76,7 @@ TEST_CASE("hodograph", "[hodograph]") {
 
         SECTION("Recursive hodograph") {
             auto hodograph2 = compute_hodograph(hodograph);
-            assert_same(hodograph, hodograph2, 10);
+            REQUIRE(hodograph2.get_control_points().norm() == 0.0);
         }
     }
 
