@@ -100,4 +100,23 @@ void validate_derivatives(const CurveType& curve, int num_samples,
     }
 }
 
+template<typename CurveType, typename CurveType2>
+void validate_hodograph(const CurveType& curve, const CurveType2& hodograph,
+        int num_samples, const typename CurveType::Scalar tol=1e-6) {
+    using Scalar = typename CurveType::Scalar;
+
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 1> samples;
+    const Scalar t_min = curve.get_domain_lower_bound();
+    const Scalar t_max = curve.get_domain_upper_bound();
+    samples.setLinSpaced(num_samples+2, t_min, t_max);
+
+    for (int i=0; i< num_samples+2; i++) {
+        auto t = samples[i];
+        auto d = curve.evaluate_derivative(t);
+        auto d2 = hodograph.evaluate(t);
+        REQUIRE((d-d2).norm() == Approx(0.0).margin(tol));
+    }
+}
+
+
 }

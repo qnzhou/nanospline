@@ -193,7 +193,7 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
             m_control_points.swap(ctrl_pts);
         }
 
-        const KnotVector get_knots() const {
+        const KnotVector& get_knots() const {
             return m_knots;
         }
 
