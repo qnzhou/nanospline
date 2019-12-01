@@ -23,6 +23,7 @@ class BezierBase : public SplineBase<_Scalar, _dim> {
         virtual Point evaluate(Scalar t) const override =0;
         virtual Scalar inverse_evaluate(const Point& p) const override =0;
         virtual Point evaluate_derivative(Scalar t) const override =0;
+        virtual Point evaluate_2nd_derivative(Scalar t) const override =0;
 
         virtual Scalar approximate_inverse_evaluate(const Point& p,
                 const Scalar lower=0.0,

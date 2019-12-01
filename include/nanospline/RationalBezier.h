@@ -39,6 +39,10 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
                 / p[_dim];
         }
 
+        Point evaluate_2nd_derivative(Scalar t) const override {
+            throw not_implemented_error("Too complex, sigh");
+        }
+
     public:
         void initialize() {
             typename BezierHomogeneous::ControlPoints ctrl_pts(

@@ -70,6 +70,10 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             return ctrl_pts.row(p-1);
         }
 
+        Point evaluate_2nd_derivative(Scalar t) const override {
+            throw not_implemented_error("Too complex, sigh");
+        }
+
     private:
         template<typename Derived>
         void deBoor(Scalar t, int p, int k,

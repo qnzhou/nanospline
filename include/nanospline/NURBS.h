@@ -42,6 +42,10 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
                 / p[_dim];
         }
 
+        Point evaluate_2nd_derivative(Scalar t) const override {
+            throw not_implemented_error("Too complex, sigh");
+        }
+
         void insert_knot(Scalar t, int multiplicity=1) override {
             validate_initialization();
             m_bspline_homogeneous.insert_knot(t, multiplicity);
