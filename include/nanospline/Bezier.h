@@ -38,7 +38,15 @@ class Bezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
         }
 
         Point evaluate_2nd_derivative(Scalar t) const override {
-            throw not_implemented_error("Too complex, sigh");
+            const auto degree = Base::get_degree();
+            assert(degree >= 0);
+            if (degree <= 1) {
+                return Point::Zero();
+            } else {
+                const auto control_pts = deBoor(t, degree-2);
+                return (control_pts.row(2) + control_pts.row(0) - control_pts.row(1))
+                    * degree * (degree-1);
+            }
         }
 
     private:
@@ -147,7 +155,8 @@ class Bezier<_Scalar, _dim, 2, false> : public BezierBase<_Scalar, _dim, 2, fals
         }
 
         Point evaluate_2nd_derivative(Scalar t) const override {
-            throw not_implemented_error("Too complex, sigh");
+            const auto& ctrl_pts = Base::m_control_points;
+            return 2 * (ctrl_pts.row(0) + ctrl_pts.row(2) - 2 * ctrl_pts.row(1));
         }
 };
 
@@ -192,7 +201,13 @@ class Bezier<_Scalar, _dim, 3, false> : public BezierBase<_Scalar, _dim, 3, fals
         }
 
         Point evaluate_2nd_derivative(Scalar t) const override {
-            throw not_implemented_error("Too complex, sigh");
+            const Point q0 = (1.0-t) * Base::m_control_points.row(0) +
+                t * Base::m_control_points.row(1);
+            const Point q1 = (1.0-t) * Base::m_control_points.row(1) +
+                t * Base::m_control_points.row(2);
+            const Point q2 = (1.0-t) * Base::m_control_points.row(2) +
+                t * Base::m_control_points.row(3);
+            return 6 * (q0+q2-2*q1);
         }
 };
 

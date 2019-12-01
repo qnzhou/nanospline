@@ -26,6 +26,7 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
 
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
+            validate_2nd_derivatives(curve, 10);
         }
     }
 
@@ -50,6 +51,7 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
 
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
+            validate_2nd_derivatives(curve, 10);
         }
     }
 
@@ -95,6 +97,7 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
 
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
+            validate_2nd_derivatives(curve, 10);
         }
     }
 
@@ -140,6 +143,7 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
 
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
+            validate_2nd_derivatives(curve, 10);
         }
     }
 
@@ -160,6 +164,7 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
 
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
+            validate_2nd_derivatives(curve, 10);
         }
     }
 
@@ -208,6 +213,7 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
 
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
+            validate_2nd_derivatives(curve, 10);
         }
     }
 
@@ -238,6 +244,7 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
 
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
+            validate_2nd_derivatives(curve, 10);
         }
     }
 
@@ -269,6 +276,7 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
 
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
+            validate_2nd_derivatives(curve, 10);
         }
     }
 
