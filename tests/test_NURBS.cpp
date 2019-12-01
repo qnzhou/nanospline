@@ -85,6 +85,18 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
                 validate_derivatives(curve, 10);
                 validate_2nd_derivatives(curve, 10);
             }
+            SECTION("Curvature") {
+                auto k = curve.evaluate_curvature(0.4);
+                REQUIRE(k.norm() == Approx(1.0/R));
+                k = curve.evaluate_curvature(0.5);
+                REQUIRE(k.norm() == Approx(1.0/R));
+                k = curve.evaluate_curvature(0.8);
+                REQUIRE(k.norm() == Approx(1.0/R));
+                k = curve.evaluate_curvature(0.0);
+                REQUIRE(k.norm() == Approx(1.0/R));
+                k = curve.evaluate_curvature(1.0);
+                REQUIRE(k.norm() == Approx(1.0/R));
+            }
         }
 
         SECTION("4-way split") {
@@ -141,6 +153,19 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
 
                 curve2.initialize();
                 assert_same(curve, curve2, 10);
+            }
+
+            SECTION("Curvature") {
+                auto k = curve.evaluate_curvature(0.4);
+                REQUIRE(k.norm() == Approx(1.0/R));
+                k = curve.evaluate_curvature(0.5);
+                REQUIRE(k.norm() == Approx(1.0/R));
+                k = curve.evaluate_curvature(0.8);
+                REQUIRE(k.norm() == Approx(1.0/R));
+                k = curve.evaluate_curvature(0.0);
+                REQUIRE(k.norm() == Approx(1.0/R));
+                k = curve.evaluate_curvature(1.0);
+                REQUIRE(k.norm() == Approx(1.0/R));
             }
         }
     }

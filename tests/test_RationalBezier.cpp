@@ -32,6 +32,10 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             validate_derivatives(curve, 10);
             validate_2nd_derivatives(curve, 10);
         }
+        SECTION("Curvature") {
+            auto k = curve.evaluate_curvature(0.4);
+            REQUIRE(k.norm() == Approx(0.0));
+        }
     }
 
     SECTION("Generic degree 1") {
@@ -57,6 +61,10 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
             validate_2nd_derivatives(curve, 10);
+        }
+        SECTION("Curvature") {
+            auto k = curve.evaluate_curvature(0.4);
+            REQUIRE(k.norm() == Approx(0.0));
         }
     }
 
@@ -152,6 +160,18 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
                 validate_derivatives(curve, 10);
                 validate_2nd_derivatives(curve, 10);
             }
+            SECTION("Curvature") {
+                auto k = curve.evaluate_curvature(0.4);
+                REQUIRE(k.norm() == Approx(1.0/R));
+                k = curve.evaluate_curvature(0.5);
+                REQUIRE(k.norm() == Approx(1.0/R));
+                k = curve.evaluate_curvature(0.8);
+                REQUIRE(k.norm() == Approx(1.0/R));
+                k = curve.evaluate_curvature(0.0);
+                REQUIRE(k.norm() == Approx(1.0/R));
+                k = curve.evaluate_curvature(1.0);
+                REQUIRE(k.norm() == Approx(1.0/R));
+            }
         }
 
         SECTION("One third circle") {
@@ -178,6 +198,18 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             SECTION("Derivative") {
                 validate_derivatives(curve, 10);
                 validate_2nd_derivatives(curve, 10);
+            }
+            SECTION("Curvature") {
+                auto k = curve.evaluate_curvature(0.4);
+                REQUIRE(k.norm() == Approx(1.0/R));
+                k = curve.evaluate_curvature(0.5);
+                REQUIRE(k.norm() == Approx(1.0/R));
+                k = curve.evaluate_curvature(0.8);
+                REQUIRE(k.norm() == Approx(1.0/R));
+                k = curve.evaluate_curvature(0.0);
+                REQUIRE(k.norm() == Approx(1.0/R));
+                k = curve.evaluate_curvature(1.0);
+                REQUIRE(k.norm() == Approx(1.0/R));
             }
         }
     }

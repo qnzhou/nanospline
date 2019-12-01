@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <cmath>
 #include <limits>
 
 #include <Eigen/Core>
@@ -24,6 +25,19 @@ class SplineBase {
                 const Scalar lower=0.0,
                 const Scalar upper=1.0,
                 const int level=3) const =0;
+
+    public:
+        Point evaluate_curvature(Scalar t) const {
+            const auto d1 = evaluate_derivative(t);
+            const auto d2 = evaluate_2nd_derivative(t);
+
+            const auto sq_speed = d1.squaredNorm();
+            if (sq_speed == 0) {
+                return Point::Zero();
+            } else {
+                return (d2 - d1 * (d1.dot(d2)) / sq_speed) / sq_speed;
+            }
+        }
 
     protected:
         Scalar approximate_inverse_evaluate(const Point& p,
