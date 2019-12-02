@@ -31,36 +31,70 @@ parameters:
 
 ### Creation
 
-Beziér curve:
+#### Beziér curve
 
 ```c++
 #include <nanospline/Bezier.h>
 
-// e.g. Construct a cubic Beziér curve
+// Construct a 2D cubic Beziér curve
 nanospline::Bezier<double, 2, 3> curve;
 
-// Setting control points.
-// Assuming `ctrl_pts` is a 4x2 Eigen matrix.
+// Setting control points. Assuming `ctrl_pts` is a 4x2 Eigen matrix.
 curve.set_control_points(ctrl_pts);
 ```
 
-Rational Beziér curve:
-
+#### B-spline curve
 ```c++
-#include <nanospline/Bezier.h>
+#include <nanospline/BSpline.h>
 
-// e.g. Construct a cubic rational Beziér curve
-nanospline::RationalBezier<double, 2, 3> curve;
+// Construct a 2D cubic B-spline curve
+nanospline::BSpline<double, 2, 3> curve;
 
-// Setting control points.
-// Assuming `ctrl_pts` is a 4x2 Eigen matrix.
+// Setting control points. Assuming `ctrl_pts` is a nx2 Eigen matrix.
 curve.set_control_points(ctrl_pts);
 
-// Setting weights.
-// Assuming `weights` is a 4x1 Eigen matrix.
+// Setting knots.  Assuming `knots` is a mx1 Eigen matrix.
+// Where m = n+p+1, and `p` is the degree of the curve.
+curve.set_knots(knots);
+```
+
+#### Rational Beziér curve
+
+```c++
+#include <nanospline/RationalBezier.h>
+
+// Construct a 2D cubic rational Beziér curve
+nanospline::RationalBezier<double, 2, 3> curve;
+
+// Setting control points. Assuming `ctrl_pts` is a 4x2 Eigen matrix.
+curve.set_control_points(ctrl_pts);
+
+// Setting weights. Assuming `weights` is a 4x1 Eigen matrix.
 curve.set_weights(weights);
 
-// Important: RationalBezier requires initialization.
+// **Important**: RationalBezier requires initialization.
+curve.initialize();
+```
+
+#### NURBS curve
+
+```c++
+#include <nanospline/NURBS.h>
+
+// Construct a 2D cubic NURBS curve
+nanospline::NURBS<double, 2, 3> curve;
+
+// Setting control points. Assuming `ctrl_pts` is a 4x2 Eigen matrix.
+curve.set_control_points(ctrl_pts);
+
+// Setting knots.  Assuming `knots` is a mx1 Eigen matrix.
+// Where m = n+p+1, and `p` is the degree of the curve.
+curve.set_knots(knots);
+
+// Setting weights. Assuming `weights` is a 4x1 Eigen matrix.
+curve.set_weights(weights);
+
+// **Important**: NURBS requires initialization.
 curve.initialize();
 ```
 
