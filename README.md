@@ -1,8 +1,8 @@
 # nanospline
 
 Nanospline is a header-only spline library written with modern C++. It is
-created by Qingnan Zhou as a coding exercise. It supports Beziér, rational
-Beziér, B-spline and NURBS curves of _arbitrary_ degree in _arbitrary_
+created by Qingnan Zhou as a coding exercise. It supports Bézier, rational
+Bézier, B-spline and NURBS curves of _arbitrary_ degree in _arbitrary_
 dimension. Most of the algorithms are covered by [The NURBS Book].
 
 ## Functionalities
@@ -12,7 +12,7 @@ The following functionalities are covered:
 ### Data structure
 
 Nanospline provide 4 basic data structures for the 4 types of curves: 
-Beziér, rational Beziér, B-spline and NURBS.  All of them are templated by 4
+Bézier, rational Bézier, B-spline and NURBS.  All of them are templated by 4
 parameters:
 
 * `Scalar`: The floating point data type.  (e.g. `float`, `double`, `long
@@ -31,12 +31,26 @@ parameters:
 
 ### Creation
 
-#### Beziér curve
+All 4 types of curves can be constructed in the following pattern:
+
+```c++
+CurveType<Scalar, dim, degree, generic> curve;
+```
+
+However, different curve types requires setting different fields:
+
+| Data | Bézier | B-spline | Rational Bézier | NURBS |
+|------|--------|----------|-----------------|-------|
+| Control points | Yes | Yes | Yes | Yes |
+| Knots | No | Yes | No | Yes |
+| Weights | No | No | Yes | Yes |
+
+#### Bézier curve
 
 ```c++
 #include <nanospline/Bezier.h>
 
-// Construct a 2D cubic Beziér curve
+// Construct a 2D cubic Bézier curve
 nanospline::Bezier<double, 2, 3> curve;
 
 // Setting control points. Assuming `ctrl_pts` is a 4x2 Eigen matrix.
@@ -58,12 +72,12 @@ curve.set_control_points(ctrl_pts);
 curve.set_knots(knots);
 ```
 
-#### Rational Beziér curve
+#### Rational Bézier curve
 
 ```c++
 #include <nanospline/RationalBezier.h>
 
-// Construct a 2D cubic rational Beziér curve
+// Construct a 2D cubic rational Bézier curve
 nanospline::RationalBezier<double, 2, 3> curve;
 
 // Setting control points. Assuming `ctrl_pts` is a 4x2 Eigen matrix.
