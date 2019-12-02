@@ -9,6 +9,15 @@ dimension. Most of the algorithms are covered by [The NURBS Book].
 
 The following functionalities are covered:
 
+* [Data structure](#Data-structure)
+* [Creation](#Creation)
+* [Evaluation](#Evaluation)
+* [Derivatives](#Derivatives)
+* [Curvature](#Curvature)
+* [Hodograph](#Hodograph)
+* [Inverse evaluation](#Inverse-evaluation)
+* [Knot insersion and splitting](#Knot-insertion-and-splitting)
+
 ### Data structure
 
 Nanospline provide 4 basic data structures for the 4 types of curves: 
@@ -37,13 +46,16 @@ All 4 types of curves can be constructed in the following pattern:
 CurveType<Scalar, dim, degree, generic> curve;
 ```
 
-However, different curve types requires setting different fields:
+where `CurveType` is one of the following: `Bezier`, `BSpline`, `RationalBezier`
+and `NURBS`.  Different curve type requires setting different fields:
 
-| Data | Bézier | B-spline | Rational Bézier | NURBS |
-|------|--------|----------|-----------------|-------|
+| Fields | Bézier | B-spline | Rational Bézier | NURBS |
+|--------|--------|----------|-----------------|-------|
 | Control points | Yes | Yes | Yes | Yes |
 | Knots | No | Yes | No | Yes |
 | Weights | No | No | Yes | Yes |
+
+All fields are represented using `Eigen::Matrix` types.
 
 #### Bézier curve
 
