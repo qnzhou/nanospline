@@ -1,4 +1,4 @@
-# nanospline
+# Nanospline
 
 Nanospline is a header-only spline library written with modern C++. It is
 created by Qingnan Zhou as a coding exercise. It supports Bézier, rational
@@ -28,7 +28,7 @@ parameters:
         double`, etc.)
 * `dim`: The dimension of the embedding space.  (e.g. `2` for 2D curves, and `3`
         for 3D curves.)
-* `degree`: The degree of the curve.  (e.g. `2` for quardratic curves, `3` for
+* `degree`: The degree of the curve.  (e.g. `2` for quadratic curves, `3` for
         cubic curves.)  The special value `-1` is used to indicate dynamic
         degree.
 * `generic`: (Optional) This is a boolean flag indicating whether to treat the
@@ -134,6 +134,6 @@ curve.initialize();
 
 ### Inverse evaluation
 
-### Knot insersion and splitting
+### Knot insertion and splitting
 
 [The NURBS Book]: https://www.springer.com/gp/book/9783642973857
