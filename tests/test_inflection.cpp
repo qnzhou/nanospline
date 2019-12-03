@@ -14,6 +14,7 @@ TEST_CASE("inflection", "[inflection]") {
                        1.0, 0.0;
 
         Bezier<Scalar, 2, 3> curve;
+        curve.set_control_points(control_pts);
         auto inflections = compute_inflections(curve);
 
         REQUIRE(inflections.size() == 0);
@@ -27,6 +28,7 @@ TEST_CASE("inflection", "[inflection]") {
                        1.0, 0.0;
 
         Bezier<Scalar, 2, 3> curve;
+        curve.set_control_points(control_pts);
         auto inflections = compute_inflections(curve);
 
         REQUIRE(inflections.size() == 1);
