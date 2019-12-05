@@ -55,7 +55,6 @@ TEST_CASE("inflection", "[inflection]") {
         auto halves = split(curve, inflections[0]);
 
         auto curvature = curve.evaluate_curvature(inflections[0]);
-        std::cout<<curvature.norm()<<std::endl;
         REQUIRE(curvature.norm() == Approx(0.0).margin(1e-12));
     }
 }
