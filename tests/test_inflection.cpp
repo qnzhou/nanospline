@@ -48,13 +48,14 @@ TEST_CASE("inflection", "[inflection]") {
         Bezier<Scalar, 2, 3> curve;
         curve.set_control_points(control_pts);
         auto inflections = compute_inflections(curve);
-
         REQUIRE(inflections.size() == 1);
+        REQUIRE(inflections[0] == Approx(0.49874999));
         REQUIRE(inflections[0] < 0.5);
 
         auto halves = split(curve, inflections[0]);
 
         auto curvature = curve.evaluate_curvature(inflections[0]);
-        REQUIRE(curvature.norm() == Approx(0.0));
+        std::cout<<curvature.norm()<<std::endl;
+        REQUIRE(curvature.norm() == Approx(0.0).margin(1e-12));
     }
 }

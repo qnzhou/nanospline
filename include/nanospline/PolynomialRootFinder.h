@@ -88,18 +88,18 @@ class PolynomialRootFinder<Scalar, 2>
         //dublicate root
         if (abs(discr) < eps)
         {
-            const Scalar root = -b / (4 * a * c);
+            const Scalar root = -b / (2 * a);
             if (root >= t0 && root <= t1)
                 roots.push_back(root);
             return;
         }
 
         const Scalar sqrt_discr = sqrt(discr);
-        Scalar root = (-b - sqrt_discr) / (4 * a * c);
+        Scalar root = (-b - sqrt_discr) / (2 * a);
         if (root >= t0 && root <= t1)
             roots.push_back(root);
 
-        root = (-b + sqrt_discr) / (4 * a * c);
+        root = (-b + sqrt_discr) / (2 * a);
         if (root >= t0 && root <= t1)
             roots.push_back(root);
     }
