@@ -239,4 +239,18 @@ To split a curve into two halves at parameter value `t`:
 auto halves = nanospline::split(curve, t);
 ```
 
+### Inflection
+
+Nanospline also supports computing 2D Bézier inflection points, i.e. points
+with zero curvature.
+
+```c++
+#include <nanospline/inflection.h>
+
+auto inflections = nanospline::compute_inflections(curve);
+```
+
+where `inflections` is a vector of parameter values corresponding to inflection
+points.
+
 [The NURBS Book]: https://www.springer.com/gp/book/9783642973857
