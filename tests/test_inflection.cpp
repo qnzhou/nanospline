@@ -133,4 +133,57 @@ TEST_CASE("inflection", "[inflection]") {
         }
     }
 
+    SECTION("RationalBezier with uniform weights") {
+        RationalBezier<Scalar, 2, 3, true> curve;
+
+        Eigen::Matrix<Scalar, 4, 2> control_pts;
+        control_pts << 0.0, 0.0,
+                       0.0, 1.0,
+                       1.0,-1.0,
+                       1.0, 0.0;
+        curve.set_control_points(control_pts);
+        REQUIRE(curve.get_degree() == 3);
+
+        Eigen::Matrix<Scalar, 4, 1> weights;
+        weights.setConstant(1.1);
+
+        curve.set_weights(weights);
+        curve.initialize();
+        auto inflections = compute_inflections(curve, 1e-12, 1.0-1e-12);
+
+        CHECK(inflections.size() == 1);
+        for (auto t : inflections) {
+            auto curvature = curve.evaluate_curvature(t);
+            REQUIRE(curvature.norm() == Approx(0.0).margin(1e-12));
+        }
+    }
+
+    SECTION("RationalBezier with non-uniform weights") {
+        RationalBezier<Scalar, 2, 3, true> curve;
+
+        Eigen::Matrix<Scalar, 4, 2> control_pts;
+        control_pts << 0.0, 0.0,
+                       0.0, 1.0,
+                       1.0,-1.0,
+                       1.0, 0.0;
+        curve.set_control_points(control_pts);
+        REQUIRE(curve.get_degree() == 3);
+
+        Eigen::Matrix<Scalar, 4, 1> weights;
+        int expected_num_inflections = 0;
+
+        weights << 1.0, 1.0, 0.0, 1.0;
+        expected_num_inflections = 0;
+
+        curve.set_weights(weights);
+        curve.initialize();
+        auto inflections = compute_inflections(curve, 1e-12, 1.0-1e-12);
+
+        CHECK(inflections.size() == expected_num_inflections);
+        for (auto t : inflections) {
+            auto curvature = curve.evaluate_curvature(t);
+            REQUIRE(curvature.norm() == Approx(0.0).margin(1e-12));
+        }
+    }
+
 }
