@@ -133,4 +133,76 @@ TEST_CASE("inflection", "[inflection]") {
         }
     }
 
+    SECTION("RationalBezier") {
+        RationalBezier<Scalar, 2, 3, true> curve;
+
+        Eigen::Matrix<Scalar, 4, 2> control_pts;
+        control_pts << 0.0, 0.0,
+                       0.0, 1.0,
+                       1.0,-1.0,
+                       1.0, 0.0;
+        curve.set_control_points(control_pts);
+
+        Eigen::Matrix<Scalar, 4, 1> weights;
+        int expected_num_inflections = 0;
+
+        SECTION("Uniform weights") {
+            weights.setConstant(1.1);
+            expected_num_inflections = 1;
+        }
+        SECTION("Non-uniform weights") {
+            weights << 1.0, 1.0, 0.0, 1.0;
+            expected_num_inflections = 0;
+        }
+        SECTION("Large weights") {
+            weights << 1.0, 1.0, 20.0, 1.0;
+            expected_num_inflections = 1;
+        }
+
+        curve.set_weights(weights);
+        curve.initialize();
+        REQUIRE(curve.get_degree() == 3);
+        auto inflections = compute_inflections(curve, 1e-12, 1.0-1e-12);
+
+        CHECK(inflections.size() == expected_num_inflections);
+        for (auto t : inflections) {
+            auto curvature = curve.evaluate_curvature(t);
+            REQUIRE(curvature.norm() == Approx(0.0).margin(1e-12));
+        }
+    }
+
+    SECTION("RationalBezier quartic") {
+        RationalBezier<Scalar, 2, 4, true> curve;
+
+        Eigen::Matrix<Scalar, 5, 2> control_pts;
+        control_pts << 0.0, 0.0,
+                       1.0, 1.0,
+                       2.0, 0.0,
+                       3.0, 1.0,
+                       4.0, 0.0;
+        curve.set_control_points(control_pts);
+
+        Eigen::Matrix<Scalar, 5, 1> weights;
+        int expected_num_inflections = 0;
+
+        SECTION("Uniform weights") {
+            weights.setConstant(1.1);
+            expected_num_inflections = 0;
+        }
+        SECTION("Non-uniform weights") {
+            weights << 1.0, 10.0, 1.0, 10.0, 1.0;
+            expected_num_inflections = 2;
+        }
+
+        curve.set_weights(weights);
+        curve.initialize();
+        REQUIRE(curve.get_degree() == 4);
+        auto inflections = compute_inflections(curve, 1e-12, 1.0-1e-12);
+
+        CHECK(inflections.size() == expected_num_inflections);
+        for (auto t : inflections) {
+            auto curvature = curve.evaluate_curvature(t);
+            REQUIRE(curvature.norm() == Approx(0.0).margin(1e-12));
+        }
+    }
 }

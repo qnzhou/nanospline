@@ -21,6 +21,7 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
 
     public:
         Point evaluate(Scalar t) const override {
+            validate_initialization();
             auto p = m_bezier_homogeneous.evaluate(t);
             return p.template head<_dim>() / p[_dim];
         }
@@ -30,6 +31,7 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
         }
 
         Point evaluate_derivative(Scalar t) const override {
+            validate_initialization();
             const auto p = m_bezier_homogeneous.evaluate(t);
             const auto d =
                 m_bezier_homogeneous.evaluate_derivative(t);
@@ -40,6 +42,7 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
         }
 
         Point evaluate_2nd_derivative(Scalar t) const override {
+            validate_initialization();
             const auto p0 = m_bezier_homogeneous.evaluate(t);
             const auto d1 =
                 m_bezier_homogeneous.evaluate_derivative(t);
@@ -92,6 +95,14 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
                 / m_weights.array();
         }
 
+    private:
+        void validate_initialization() const {
+            const auto& ctrl_pts = m_bezier_homogeneous.get_control_points();
+            if (ctrl_pts.rows() != Base::m_control_points.rows() ||
+                ctrl_pts.rows() != m_weights.rows() ) {
+                throw invalid_setting_error("Rational Bezier curve is not initialized.");
+            }
+        }
     private:
         BezierHomogeneous m_bezier_homogeneous;
         WeightVector m_weights;
