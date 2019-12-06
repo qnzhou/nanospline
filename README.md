@@ -241,8 +241,8 @@ auto halves = nanospline::split(curve, t);
 
 ### Inflection
 
-Nanospline also supports computing 2D Bézier inflection points, i.e. points
-with zero curvature.
+Nanospline also supports computing 2D Bézier and rational Bézier inflection
+points, i.e. points with zero curvature.
 
 ```c++
 #include <nanospline/inflection.h>
