@@ -49,7 +49,10 @@ def bezier(degree, t, rational, sysms):
 
     denom = 0
     for i in range(n+1):
-        tot += int(comb(n, i)) * (1-t)**(n-i) * t**i * syms[i][0]
+        if rational:
+            tot += int(comb(n, i)) * (1-t)**(n-i) * t**i * syms[i][0] * syms[i][1]
+        else:
+            tot += int(comb(n, i)) * (1-t)**(n-i) * t**i * syms[i][0]
         denom += int(comb(n, i)) * (1-t)**(n-i) * t**i * syms[i][1]
 
     if rational:
