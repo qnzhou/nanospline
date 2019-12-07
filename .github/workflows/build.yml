@@ -3,10 +3,8 @@ name: build and test
 on: [push]
 
 jobs:
-  build:
-
+  build Ubuntu:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v1
     - name: Checkout submodules
@@ -16,6 +14,25 @@ jobs:
       run: |
           sudo apt-get update
           sudo apt-get install -y libeigen3-dev
+    - name: build and run
+      run: |
+        mkdir build
+        cd build
+        cmake ..
+        make
+        ./nanospline_test
+
+  build MacOS:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Checkout submodules
+      uses: textbook/git-checkout-submodule-action@2.0.0
+
+    - name: install Eigen
+      run: |
+          sudo brew update
+          sudo brew install eigen
     - name: build and run
       run: |
         mkdir build
