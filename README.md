@@ -24,7 +24,7 @@ The following functionalities are covered:
 
 ### Data structure
 
-Nanospline provide 4 basic data structures for the 4 types of curves: 
+Nanospline provide 4 basic data structures for the 4 types of curves:
 Bézier, rational Bézier, B-spline and NURBS.  All of them are templated by 4
 parameters:
 
