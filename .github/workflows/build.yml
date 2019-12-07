@@ -10,10 +10,6 @@ jobs:
     - name: Checkout submodules
       uses: textbook/git-checkout-submodule-action@2.0.0
 
-    - name: install Eigen
-      run: |
-          sudo apt-get update
-          sudo apt-get install -y libeigen3-dev
     - name: build and run
       run: |
         mkdir build
@@ -27,10 +23,6 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - name: install Eigen
-      run: |
-          brew update
-          brew install eigen
     - name: build and run
       run: |
         git submodule update --init
@@ -48,8 +40,8 @@ jobs:
     - name: build and run
       run: |
         git submodule update --init
-        git clone https://github.com/PyMesh/eigen.git
         mkdir build
         cd build
-        cmake .. -DEigen3_DIR=$Env:GITHUB_WORKSPACE\nanospline\eigen -DCMAKE_GENERATOR_PLATFORM=x64
+        cmake .. -DCMAKE_GENERATOR_PLATFORM=x64
         cmake --build . --config Release
+        cmake --build . --config Release --target run_unit_tests
