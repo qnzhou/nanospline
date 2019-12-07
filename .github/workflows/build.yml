@@ -3,7 +3,7 @@ name: build and test
 on: [push]
 
 jobs:
-  build Ubuntu:
+  build-Ubuntu:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
@@ -22,7 +22,7 @@ jobs:
         make
         ./nanospline_test
 
-  build MacOS:
+  build-MacOS:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v1
