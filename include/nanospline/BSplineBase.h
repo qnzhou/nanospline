@@ -94,6 +94,7 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
             knots_new.segment(0, k+1) = m_knots.segment(0, k+1);
             knots_new.segment(k+1, r).setConstant(t);
             knots_new.segment(k+1+r, m-k-1) = m_knots.segment(k+1,m-k-1);
+            knots_new[m+r] = m_knots[m]; // Copy the last knot over.  It has no effects on the curve.
 
             ControlPoints ctrl_pts_new(n+r+1, _dim);
             assert(k-p+1 >= 0);

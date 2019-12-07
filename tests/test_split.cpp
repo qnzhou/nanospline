@@ -206,4 +206,54 @@ TEST_CASE("split", "[split]") {
             assert_same(curve, parts[1], 10, split_location, 6.0, split_location, 6.0);
         }
     }
+
+    SECTION("BSpline loop") {
+        Eigen::Matrix<Scalar, 14, 2> ctrl_pts;
+        ctrl_pts << 1, 4, .5, 6, 5, 4, 3, 12, 11, 14, 8, 4, 12, 3, 11, 9, 15, 10, 17, 8,
+                 1, 4, .5, 6, 5, 4, 3, 12 ;
+        Eigen::Matrix<Scalar, 18, 1> knots;
+        knots << 0.0/17, 1.0/17, 2.0/17, 3.0/17, 4.0/17, 5.0/17, 6.0/17, 7.0/17,
+              8.0/17, 9.0/17, 10.0/17, 11.0/17, 12.0/17, 13.0/17, 14.0/17, 15.0/17,
+              16.0/17, 17.0/17;
+
+        BSpline<Scalar, 2, 3, true> curve;
+        curve.set_control_points(ctrl_pts);
+        curve.set_knots(knots);
+
+        const auto t_min = curve.get_domain_lower_bound();
+        const auto t_max = curve.get_domain_upper_bound();
+        Scalar split_location = 0.0;
+
+        SECTION("Beginning") {
+            split_location = t_min;
+            const auto parts = split(curve, split_location);
+            REQUIRE(parts.size() == 1);
+            assert_same(curve, parts[0], 10);
+        }
+
+        SECTION("End") {
+            split_location = t_max;
+            const auto parts = split(curve, split_location);
+            REQUIRE(parts.size() == 1);
+            assert_same(curve, parts[0], 10);
+        }
+
+        SECTION("Half") {
+            split_location = 0.5;
+            const auto parts = split(curve, split_location);
+            REQUIRE(parts.size() == 2);
+
+            assert_same(curve, parts[0], 10, t_min, split_location, t_min, split_location);
+            assert_same(curve, parts[1], 10, split_location, t_max, split_location, t_max);
+        }
+
+        SECTION("One knot before the end") {
+            split_location = 13.0/17;
+            const auto parts = split(curve, split_location);
+            REQUIRE(parts.size() == 2);
+
+            assert_same(curve, parts[0], 10, t_min, split_location, t_min, split_location);
+            assert_same(curve, parts[1], 10, split_location, t_max, split_location, t_max);
+        }
+    }
 }

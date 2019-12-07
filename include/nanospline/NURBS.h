@@ -9,7 +9,7 @@
 
 namespace nanospline {
 
-template<typename _Scalar, int _dim, int _degree, bool _generic>
+template<typename _Scalar, int _dim=2, int _degree=3, bool _generic=_degree<0 >
 class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
