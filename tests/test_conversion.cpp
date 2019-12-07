@@ -53,9 +53,6 @@ TEST_CASE("conversion", "[conversion]") {
         curve.set_control_points(ctrl_pts);
         curve.set_knots(knots);
 
-        curve.insert_knot(3.0/17, 2);
-        curve.insert_knot(14.0/17, 2);
-
         SECTION("To Bezier") {
             auto segments = convert_to_Bezier(curve);
             REQUIRE(segments.size() == 11);

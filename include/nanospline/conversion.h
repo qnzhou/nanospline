@@ -31,10 +31,10 @@ std::vector<Bezier<Scalar, dim, degree, generic>> convert_to_Bezier(
             const auto s_start = curve.get_multiplicity(k_start);
             const auto s_end = curve.get_multiplicity(k_end+1);
             if (d > s_start) {
-                curve.insert_knot(knots[0], d-s_start);
+                curve.insert_knot(t_min, d-s_start);
             }
             if (d > s_end) {
-                curve.insert_knot(knots[m-1], d-s_end);
+                curve.insert_knot(t_max, d-s_end);
             }
         }
 
