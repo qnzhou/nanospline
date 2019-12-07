@@ -56,10 +56,41 @@ TEST_CASE("conversion", "[conversion]") {
         curve.insert_knot(3.0/17, 2);
         curve.insert_knot(14.0/17, 2);
 
-        auto segments = convert_to_Bezier(curve);
-        REQUIRE(segments.size() == 11);
-        for (int i=0; i<11; i++) {
-            assert_same(curve, segments[i], 10, (3.0+i)/17, (4.0+i)/17, 0.0, 1.0);
+        SECTION("To Bezier") {
+            auto segments = convert_to_Bezier(curve);
+            REQUIRE(segments.size() == 11);
+            for (int i=0; i<11; i++) {
+                assert_same(curve, segments[i], 10, (3.0+i)/17, (4.0+i)/17, 0.0, 1.0);
+            }
         }
+
+        SECTION("To NURBS") {
+            auto nurbs = convert_to_NURBS(curve);
+            assert_same(curve, nurbs, 10);
+
+            auto bspline = convert_to_BSpline(nurbs);
+            assert_same(curve, bspline, 10);
+        }
+    }
+
+    SECTION("Rational Bezier to Bezier") {
+        Eigen::Matrix<Scalar, 4, 2> ctrl_pts;
+        ctrl_pts << 0.0, 0.0,
+                    0.0, 1.0,
+                    1.0, 1.0,
+                    1.0, 0.0;
+        Eigen::Matrix<Scalar, 4, 1> weights;
+        weights.setConstant(2.0);
+
+        RationalBezier<Scalar, 2, 3> curve;
+        curve.set_control_points(ctrl_pts);
+        curve.set_weights(weights);
+        curve.initialize();
+
+        auto bezier = convert_to_Bezier(curve);
+        assert_same(curve, bezier, 10);
+
+        auto bspline = convert_to_BSpline(bezier);
+        assert_same(curve, bspline, 10);
     }
 }
