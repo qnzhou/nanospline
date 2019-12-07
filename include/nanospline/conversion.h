@@ -23,10 +23,25 @@ std::vector<Bezier<Scalar, dim, degree, generic>> convert_to_Bezier(
         const auto knots = curve.get_knots(); // Copy on purpose
         const auto m = knots.size();
 
+        {
+            // Add multiplicity in end points first.
+            // This ensures BSpline loops are handled correctly.
+            const auto k_start = curve.locate_span(t_min);
+            const auto k_end = curve.locate_span(t_max);
+            const auto s_start = curve.get_multiplicity(k_start);
+            const auto s_end = curve.get_multiplicity(k_end+1);
+            if (d > s_start) {
+                curve.insert_knot(knots[0], d-s_start);
+            }
+            if (d > s_end) {
+                curve.insert_knot(knots[m-1], d-s_end);
+            }
+        }
+
         Scalar t = t_min;
         for (int i=0; i<m; i++) {
-            if (knots[i] < t_min) continue;
-            if (knots[i] > t_max) break;
+            if (knots[i] <= t_min) continue;
+            if (knots[i] >= t_max) break;
 
             const int k = curve.locate_span(knots[i]);
             const int s = curve.get_multiplicity(k);
