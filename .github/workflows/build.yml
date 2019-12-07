@@ -1,4 +1,4 @@
-name: CI
+name: build and test
 
 on: [push]
 
@@ -9,6 +9,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+    - name: install Eigen
+      run: |
+          apt-get update
+          apt-get install -y libeigen3-dev
     - name: build and run
       run: |
         mkdir build
