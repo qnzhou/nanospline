@@ -17,7 +17,6 @@ std::vector<Bezier<Scalar, dim, degree, generic>> convert_to_Bezier(
     const auto t_min = curve.get_domain_lower_bound();
     const auto t_max = curve.get_domain_upper_bound();
 
-    std::cout << curve.get_knots().transpose() << std::endl;
     {
         // Insert more knots such that all internal knots has multiplicity d.
         const auto knots = curve.get_knots(); // Copy on purpose
@@ -35,7 +34,6 @@ std::vector<Bezier<Scalar, dim, degree, generic>> convert_to_Bezier(
             }
         }
     }
-    std::cout << curve.get_knots().transpose() << std::endl;
 
     using CurveType = Bezier<Scalar, dim, degree, generic>;
     std::vector<CurveType> segments;

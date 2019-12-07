@@ -53,10 +53,16 @@ TEST_CASE("conversion", "[conversion]") {
         curve.set_control_points(ctrl_pts);
         curve.set_knots(knots);
 
+        save_svg("debug.svg", curve);
+        curve.insert_knot(3.0/17, 2);
+        save_svg("debug2.svg", curve);
+        curve.insert_knot(14.0/17, 2);
+        save_svg("debug3.svg", curve);
+
         auto segments = convert_to_Bezier(curve);
         REQUIRE(segments.size() == 11);
+        save_svg("debug4.svg", segments);
         for (int i=0; i<11; i++) {
-            std::cout << i << std::endl;
             assert_same(curve, segments[i], 10, (3.0+i)/17, (4.0+i)/17, 0.0, 1.0);
         }
     }
