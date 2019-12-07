@@ -39,3 +39,17 @@ jobs:
         cmake ..
         make
         ./nanospline_test
+
+  build-Windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: build and run
+      run: |
+        git submodule update --init
+        git clone https://github.com/PyMesh/eigen.git
+        mkdir build
+        cd build
+        cmake .. -DEigen3_DIR=../eigen -DCMAKE_GENERATOR_PLATFORM=x64
+        cmake --build . --config Release
