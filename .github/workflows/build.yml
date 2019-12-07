@@ -51,5 +51,5 @@ jobs:
         git clone https://github.com/PyMesh/eigen.git
         mkdir build
         cd build
-        cmake .. -DEigen3_DIR=../eigen -DCMAKE_GENERATOR_PLATFORM=x64
+        cmake .. -DEigen3_DIR=$Env:GITHUB_WORKSPACE\nanospline\eigen -DCMAKE_GENERATOR_PLATFORM=x64
         cmake --build . --config Release
