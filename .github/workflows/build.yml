@@ -29,8 +29,8 @@ jobs:
 
     - name: install Eigen
       run: |
-          sudo brew update
-          sudo brew install eigen
+          brew update
+          brew install eigen
     - name: build and run
       run: |
         git submodule update --init
