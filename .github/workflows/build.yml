@@ -26,8 +26,6 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v1
-    - name: Checkout submodules
-      uses: textbook/git-checkout-submodule-action@2.0.0
 
     - name: install Eigen
       run: |
@@ -35,6 +33,7 @@ jobs:
           sudo brew install eigen
     - name: build and run
       run: |
+        git submodule update --init
         mkdir build
         cd build
         cmake ..
