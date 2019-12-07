@@ -18,7 +18,9 @@ The following functionalities are covered:
 * [Hodograph](#Hodograph)
 * [Inverse evaluation](#Inverse-evaluation)
 * [Knot insersion](#Knot-insertion)
-* [Split](#split)
+* [Split](#Split)
+* [Inflection](#Inflection)
+* [Conversion](#Conversion)
 
 ### Data structure
 
@@ -252,5 +254,58 @@ auto inflections = nanospline::compute_inflections(curve);
 
 where `inflections` is a vector of parameter values corresponding to inflection
 points.
+
+### Conversion
+
+It is easy to convert a Bézier curve into a BSpline curve:
+
+```c++
+#include <nanospline/conversion.h>
+
+auto bspline = nanospline::convert_to_BSpline(bezier);
+```
+
+It is also possible to convert a BSpline curve into a sequence of Bézier curves:
+
+```c++
+#include <nanospline/conversion.h>
+
+auto beziers = nanospline::convert_to_Bezier(bspline);
+for (const auto& curve : bezier) {
+    // `curve` is a Bezier<...> curve.
+}
+```
+
+To convert a Bézier into rational Bézier curve:
+
+```c++
+#include <nanospline/conversion.h>
+
+auto rationa_bezier = nanospline::convert_to_RationalBezier(bezier);
+```
+
+To convert a BSpline into NURBS curve:
+
+```c++
+#include <nanospline/conversion.h>
+
+auto nurbs = nanospline::convert_to_nurbs(bspline);
+```
+
+It is sometimes possible to convert a rational Bézier curve into a plane Bézier
+curve, and convert a NURBS curves into a BSpline curve.
+Such conversion is allowed when the all weights are the same.  Otherwise, an
+exception will be raised.
+
+```c++
+#include <nanospline/conversion.h>
+
+try {
+    auto bezier = nanospline::convert_to_Bezier(rational_bezier);
+    auto bspline = nanospline::convert_to_BSpline(nurbs);
+} catch (const std::exception& e) {
+    ...
+}
+```
 
 [The NURBS Book]: https://www.springer.com/gp/book/9783642973857
