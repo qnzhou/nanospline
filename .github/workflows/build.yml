@@ -1,14 +1,15 @@
-name: CI
+name: build and test
 
 on: [push]
 
 jobs:
-  build:
-
+  build-Ubuntu:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v1
+    - name: Checkout submodules
+      uses: textbook/git-checkout-submodule-action@2.0.0
+
     - name: build and run
       run: |
         mkdir build
@@ -16,3 +17,31 @@ jobs:
         cmake ..
         make
         ./nanospline_test
+
+  build-MacOS:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: build and run
+      run: |
+        git submodule update --init
+        mkdir build
+        cd build
+        cmake ..
+        make
+        ./nanospline_test
+
+  build-Windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: build and run
+      run: |
+        git submodule update --init
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_GENERATOR_PLATFORM=x64
+        cmake --build . --config Release
+        cmake --build . --config Release --target run_unit_tests

@@ -71,9 +71,9 @@ auto split(BSpline<Scalar, dim, degree, generic> curve, Scalar t) {
     }
 
     const auto& ctrl_pts = curve.get_control_points();
-    const int n = ctrl_pts.rows()-1;
+    const int n = static_cast<int>(ctrl_pts.rows()-1);
     const auto& knots = curve.get_knots();
-    const int m = knots.rows()-1;
+    const int m = static_cast<int>(knots.rows()-1);
     const int k = curve.locate_span(t);
 
     typename CurveType::ControlPoints ctrl_pts_1(k-d+1, dim);

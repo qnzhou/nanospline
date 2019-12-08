@@ -38,7 +38,6 @@ std::vector<Bezier<Scalar, dim, degree, generic>> convert_to_Bezier(
             }
         }
 
-        Scalar t = t_min;
         for (int i=0; i<m; i++) {
             if (knots[i] <= t_min) continue;
             if (knots[i] >= t_max) break;
@@ -135,7 +134,6 @@ NURBS<Scalar, dim, degree, generic> convert_to_NURBS(
     out_curve.set_control_points(control_points);
     out_curve.set_knots(curve.get_knots());
 
-    const int d = curve.get_degree();
     Eigen::Matrix<Scalar, Eigen::Dynamic, 1> weights(control_points.rows());
     weights.setConstant(1.0);
     out_curve.set_weights(weights);
