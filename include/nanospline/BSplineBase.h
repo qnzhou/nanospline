@@ -87,8 +87,8 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
             assert(k>=p);
             assert(r+s<=p);
 
-            const int n = m_control_points.rows()-1;
-            const int m = m_knots.rows()-1;
+            const int n = static_cast<int>(m_control_points.rows()-1);
+            const int m = static_cast<int>(m_knots.rows()-1);
 
             KnotVector knots_new(m+r+1, 1);
             knots_new.segment(0, k+1) = m_knots.segment(0, k+1);
@@ -137,7 +137,7 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
             const auto num_knots = m_knots.rows();
             assert(num_knots > m_control_points.rows());
             int low = p;
-            int high = m_knots.rows()-p-1;
+            int high = static_cast<int>(m_knots.rows()-p-1);
             assert(m_knots[low] <= t);
             assert(m_knots[high] >= t);
 
@@ -168,7 +168,7 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
         }
 
         int get_multiplicity(int k) const {
-            const int m = m_knots.rows();
+            const int m = static_cast<int>(m_knots.rows());
             int s =1;
             for (int i=k-1; i>=0; i--) {
                 if (m_knots[i] == m_knots[k]) s++;
@@ -210,12 +210,13 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
         }
 
         int get_degree() const {
-            return m_knots.rows() - m_control_points.rows() - 1;
+            return static_cast<int>(
+                    m_knots.rows() - m_control_points.rows() - 1);
         }
 
         bool in_domain(Scalar t) const {
             const int p = get_degree();
-            const int num_knots = m_knots.rows();
+            const int num_knots = static_cast<int>(m_knots.rows());
             const Scalar t_min = m_knots[p];
             const Scalar t_max = m_knots[num_knots-p-1];
             return (t >= t_min) && (t <= t_max);
@@ -228,7 +229,7 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
 
         Scalar get_domain_upper_bound() const {
             const int p = get_degree();
-            const int num_knots = m_knots.rows();
+            const int num_knots = static_cast<int>(m_knots.rows());
             return m_knots[num_knots-p-1];
         }
 

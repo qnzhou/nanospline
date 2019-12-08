@@ -18,6 +18,10 @@ ADD_EXECUTABLE(nanospline_test ${SRC_FILES} ${INC_FILES})
 TARGET_LINK_LIBRARIES(nanospline_test Catch2::Catch2 Eigen3::Eigen)
 TARGET_INCLUDE_DIRECTORIES(nanospline_test PRIVATE
     ${PROJECT_SOURCE_DIR}/include)
+IF(NOT MSVC)
+    TARGET_COMPILE_OPTIONS(nanospline_test PRIVATE
+        -Wconversion -Wall -Werror)
+ENDIF()
 
 ADD_CUSTOM_TARGET(run_unit_tests
     COMMAND nanospline_test

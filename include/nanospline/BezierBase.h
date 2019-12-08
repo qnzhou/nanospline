@@ -29,8 +29,7 @@ class BezierBase : public SplineBase<_Scalar, _dim> {
                 const Scalar lower=0.0,
                 const Scalar upper=1.0,
                 const int level=3) const override {
-            const int num_samples = 2 *
-                (_generic ? m_control_points.rows() : _degree+1);
+            const int num_samples = 2 * (get_degree()+1);
 
             return Base::approximate_inverse_evaluate(
                     p, num_samples, lower, upper, level);
@@ -52,7 +51,7 @@ class BezierBase : public SplineBase<_Scalar, _dim> {
         }
 
         int get_degree() const {
-            return _generic ? m_control_points.rows()-1 : _degree;
+            return _generic ? static_cast<int>(m_control_points.rows())-1 : _degree;
         }
 
         Scalar get_domain_lower_bound() const {

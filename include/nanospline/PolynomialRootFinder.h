@@ -41,7 +41,8 @@ class PolynomialRootFinder
             companion(i + 1, i) = 1;
 
         for (int i = 0; i < _degree; ++i)
-            companion(i, _degree - 1) = -coeffs[i] / coeffs[_degree];
+            companion(i, _degree - 1) =
+                -coeffs[static_cast<size_t>(i)] / coeffs[_degree];
 
         Eigen::EigenSolver<MatType> es(companion, false);
         const auto &vals = es.eigenvalues();

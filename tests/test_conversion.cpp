@@ -57,7 +57,8 @@ TEST_CASE("conversion", "[conversion]") {
             auto segments = convert_to_Bezier(curve);
             REQUIRE(segments.size() == 11);
             for (int i=0; i<11; i++) {
-                assert_same(curve, segments[i], 10, (3.0+i)/17, (4.0+i)/17, 0.0, 1.0);
+                assert_same(curve, segments[static_cast<size_t>(i)],
+                        10, (3.0+i)/17, (4.0+i)/17, 0.0, 1.0);
             }
         }
 
