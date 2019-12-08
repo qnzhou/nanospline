@@ -5,7 +5,7 @@ created by Qingnan Zhou as a coding exercise. It supports Bézier, rational
 Bézier, B-spline and NURBS curves of _arbitrary_ degree in _arbitrary_
 dimension. Most of the algorithms are covered by [The NURBS Book].
 
-![](https://github.com/qnzhou/nanospline/workflows/build%20and%20test/badge.svg)
+[![](https://github.com/qnzhou/nanospline/workflows/build%20and%20test/badge.svg)](https://github.com/qnzhou/nanospline/actions)
 
 ## Functionalities
 
