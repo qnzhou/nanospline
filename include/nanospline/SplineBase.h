@@ -26,6 +26,33 @@ class SplineBase {
                 const Scalar upper=1.0,
                 const int level=3) const =0;
 
+        virtual friend ostream &operator<<(ostream &out, const SplineBase &c) = 0;
+        virtual std::shared_ptr<SplineBase> simplify(const Point& start, const Point& end, Scalar eps) const { return nullptr; }
+        virtual std::vector<Scalar> inflection_points(Scalar t0, Scalar t1) const  = 0;
+        virtual std::string to_eps() const = 0;
+        virtual Scalar optimal_point_to_reduce_turning_angle(Scalar t0, Scalar t1, bool to_flip = false) const = 0;
+        virtual bool is_point() const = 0;
+
+        Scalar get_turning_angle(Scalar t0, Scalar t1) const
+        {
+            using std::acos;
+
+            Point n0 = evaluate_derivative(t0);
+            n0.normalize();
+            Point n1 = eval_first_derivative(t1);
+            n1.normalize();
+
+            Scalar cos_a = n0.dot(n1);
+            if (cos_a > 1)
+                cos_a = 1;
+            if (cos_a < -1)
+                cos_a = -1;
+
+            const Scalar angle = acos(cos_a);
+
+            return angle;
+        }
+
     public:
         Point evaluate_curvature(Scalar t) const {
             const auto d1 = evaluate_derivative(t);
