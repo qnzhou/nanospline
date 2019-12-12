@@ -16,10 +16,14 @@ TEST_CASE("inflection", "[inflection]") {
                        1.0, 1.0,
                        1.0, 0.0;
 
-        Bezier<Scalar, 2, 3> curve;
+        using Curve = Bezier<Scalar, 2, 3>;
+        Curve curve;
         curve.set_control_points(control_pts);
         auto inflections = compute_inflections(curve);
 
+        REQUIRE(inflections.size() == 0);
+
+        inflections = InlfectionPoints<Curve>::compute(curve);
         REQUIRE(inflections.size() == 0);
     }
 
@@ -30,10 +34,15 @@ TEST_CASE("inflection", "[inflection]") {
                        1.0,-1.0,
                        1.0, 0.0;
 
-        Bezier<Scalar, 2, 3> curve;
+        using Curve = Bezier<Scalar, 2, 3>;
+        Curve curve;
         curve.set_control_points(control_pts);
         auto inflections = compute_inflections(curve);
 
+        REQUIRE(inflections.size() == 1);
+        REQUIRE(inflections[0] == Approx(0.5));
+
+        inflections = InlfectionPoints<Curve>::compute(curve);
         REQUIRE(inflections.size() == 1);
         REQUIRE(inflections[0] == Approx(0.5));
     }
@@ -45,7 +54,8 @@ TEST_CASE("inflection", "[inflection]") {
                        0.99,-1.0,
                        1.0, 0.0;
 
-        Bezier<Scalar, 2, 3> curve;
+        using Curve = Bezier<Scalar, 2, 3>;
+        Curve curve;
         curve.set_control_points(control_pts);
         auto inflections = compute_inflections(curve);
         REQUIRE(inflections.size() == 1);
@@ -54,6 +64,11 @@ TEST_CASE("inflection", "[inflection]") {
 
         auto curvature = curve.evaluate_curvature(inflections[0]);
         REQUIRE(curvature.norm() == Approx(0.0).margin(1e-12));
+
+        inflections = InlfectionPoints<Curve>::compute(curve);
+        REQUIRE(inflections.size() == 1);
+        REQUIRE(inflections[0] == Approx(0.49874999));
+        REQUIRE(inflections[0] < 0.5);
     }
 
     SECTION("Almost collinear") {
@@ -63,9 +78,14 @@ TEST_CASE("inflection", "[inflection]") {
                        0.0, 2.0,
                        1.0, 0.0;
 
-        Bezier<Scalar, 2, 3> curve;
+        using Curve = Bezier<Scalar, 2, 3>;
+        Curve curve;
         curve.set_control_points(control_pts);
         auto inflections = compute_inflections(curve);
+        REQUIRE(inflections.size() == 1);
+        REQUIRE(inflections[0] == Approx(0.0));
+
+        inflections = InlfectionPoints<Curve>::compute(curve);
         REQUIRE(inflections.size() == 1);
         REQUIRE(inflections[0] == Approx(0.0));
 
@@ -80,9 +100,11 @@ TEST_CASE("inflection", "[inflection]") {
                        0.0, 2.0,
                        0.0, 3.0;
 
-        Bezier<Scalar, 2, 3> curve;
+        using Curve = Bezier<Scalar, 2, 3>;
+        Curve curve;
         curve.set_control_points(control_pts);
         REQUIRE_THROWS(compute_inflections(curve));
+        REQUIRE_THROWS(InlfectionPoints<Curve>::compute(curve));
     }
 
     SECTION("Quadratic Bezier") {
@@ -91,9 +113,13 @@ TEST_CASE("inflection", "[inflection]") {
                        1.0, 1.0,
                        0.0, 2.0;
 
-        Bezier<Scalar, 2, 2> curve;
+        using Curve = Bezier<Scalar, 2, 2>;
+        Curve curve;
         curve.set_control_points(control_pts);
         auto inflections = compute_inflections(curve);
+        REQUIRE(inflections.size() == 0);
+
+        inflections = InlfectionPoints<Curve>::compute(curve);
         REQUIRE(inflections.size() == 0);
     }
 
@@ -105,13 +131,17 @@ TEST_CASE("inflection", "[inflection]") {
                        1.0, 0.0,
                        2.0, 0.0;
 
-        Bezier<Scalar, 2, 4> curve;
+        using Curve = Bezier<Scalar, 2, 4>;
+        Curve curve;
         curve.set_control_points(control_pts);
         auto inflections = compute_inflections(curve);
         REQUIRE(inflections.size() == 1);
 
         auto curvature = curve.evaluate_curvature(inflections[0]);
         REQUIRE(curvature.norm() == Approx(0.0).margin(1e-12));
+
+        inflections = InlfectionPoints<Curve>::compute(curve);
+        REQUIRE(inflections.size() == 1);
     }
 
     SECTION("Quartic Bezier 2") {
@@ -122,7 +152,8 @@ TEST_CASE("inflection", "[inflection]") {
                        3.0, 1.0,
                        4.0, 0.0;
 
-        Bezier<Scalar, 2, 4> curve;
+        using Curve = Bezier<Scalar, 2, 4>;
+        Curve curve;
         curve.set_control_points(control_pts);
         auto inflections = compute_inflections(curve);
         REQUIRE(inflections.size() == 2);
@@ -131,10 +162,14 @@ TEST_CASE("inflection", "[inflection]") {
             auto curvature = curve.evaluate_curvature(t);
             REQUIRE(curvature.norm() == Approx(0.0).margin(1e-12));
         }
+
+        inflections = InlfectionPoints<Curve>::compute(curve);
+        REQUIRE(inflections.size() == 2);
     }
 
     SECTION("RationalBezier") {
-        RationalBezier<Scalar, 2, 3, true> curve;
+        using Curve = RationalBezier<Scalar, 2, 3, true>;
+        Curve curve;
 
         Eigen::Matrix<Scalar, 4, 2> control_pts;
         control_pts << 0.0, 0.0,
@@ -169,10 +204,14 @@ TEST_CASE("inflection", "[inflection]") {
             auto curvature = curve.evaluate_curvature(t);
             REQUIRE(curvature.norm() == Approx(0.0).margin(1e-12));
         }
+
+        inflections = InlfectionPoints<Curve>::compute(curve, 1e-12, 1.0 - 1e-12);
+        CHECK(inflections.size() == expected_num_inflections);
     }
 
     SECTION("RationalBezier quartic") {
-        RationalBezier<Scalar, 2, 4, true> curve;
+        using Curve = RationalBezier<Scalar, 2, 4, true>;
+        Curve curve;
 
         Eigen::Matrix<Scalar, 5, 2> control_pts;
         control_pts << 0.0, 0.0,
@@ -204,5 +243,10 @@ TEST_CASE("inflection", "[inflection]") {
             auto curvature = curve.evaluate_curvature(t);
             REQUIRE(curvature.norm() == Approx(0.0).margin(1e-12));
         }
+
+        inflections = InlfectionPoints<Curve>::compute(curve, 1e-12, 1.0-1e-12);
+        //duplicated inflection point
+        if (expected_num_inflections == 2)
+            CHECK(inflections.size() == expected_num_inflections-1);
     }
 }

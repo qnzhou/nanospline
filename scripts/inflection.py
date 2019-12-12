@@ -161,5 +161,5 @@ if __name__ == "__main__":
 
     code += code_template_footer
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    with open(os.path.join(dir_path, "..", "include", "nanospline", "inflection.h"), "w") as f:
+    with open(os.path.join(dir_path, "..", "include", "nanospline", "auto_inflection.h"), "w") as f:
         f.write(code)
