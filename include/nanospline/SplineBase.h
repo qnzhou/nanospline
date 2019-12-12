@@ -26,7 +26,9 @@ class SplineBase {
                 const Scalar upper=1.0,
                 const int level=3) const =0;
 
-        // virtual friend ostream &operator<<(ostream &out, const SplineBase &c) = 0;
+        virtual void write(std::ostream &out) const =0;
+
+        friend std::ostream &operator<<(std::ostream &out, const SplineBase &c) { c.wirte(out); return out; }
         virtual std::shared_ptr<SplineBase> simplify(Scalar eps) const { return nullptr; }
         // virtual std::string to_eps() const = 0;
         // virtual Scalar optimal_point_to_reduce_turning_angle(Scalar t0, Scalar t1, bool to_flip = false) const = 0;

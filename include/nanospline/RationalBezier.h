@@ -95,6 +95,11 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
                 / m_weights.array();
         }
 
+        virtual void write(std::ostream &out) const override {
+            out << "c:\n" << this->m_control_points << "\n";
+            out << "w:\n" << m_weights << "\n";
+        }
+
     private:
         void validate_initialization() const {
             const auto& ctrl_pts = m_bezier_homogeneous.get_control_points();

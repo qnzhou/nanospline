@@ -35,6 +35,7 @@ class BezierBase : public SplineBase<_Scalar, _dim> {
                     p, num_samples, lower, upper, level);
         }
 
+
     public:
         const ControlPoints& get_control_points() const {
             return m_control_points;
@@ -60,6 +61,11 @@ class BezierBase : public SplineBase<_Scalar, _dim> {
 
         Scalar get_domain_upper_bound() const {
             return 1.0;
+        }
+
+
+        virtual void write(std::ostream &out) const override {
+            out << "c:\n" << m_control_points << "\n";
         }
 
     protected:
