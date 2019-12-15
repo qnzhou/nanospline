@@ -137,15 +137,16 @@ std::vector<typename CurveType::Scalar> compute_RationalBezier_degree_4_inflecti
 }
 
 
-template<typename Scalar, int dim, int degree, bool generic>
+template<typename Scalar, int dim, int degree, bool generic,
+    template <typename, int, int, bool> class CurveType>
 std::vector<Scalar> compute_RationalBezier_inflections(
-        const BezierBase<Scalar, dim, degree, generic>& curve,
+        const CurveType<Scalar, dim, degree, generic>& curve,
         Scalar t0 = 0, Scalar t1 = 1) {
     throw not_implemented_error("Inflection computation is for 2D curves only");
 }
 
 template<typename Scalar, int _degree, bool generic,
-    template <typename, int, int, bool> class CurveType >
+    template <typename, int, int, bool> class CurveType>
 std::vector<Scalar> compute_RationalBezier_inflections(
         const CurveType<Scalar, 2, _degree, generic>& curve,
         Scalar t0 = 0, Scalar t1 = 1) {
@@ -533,16 +534,18 @@ std::vector<typename CurveType::Scalar> compute_Bezier_degree_10_inflections(
 }
 
 
-template<typename Scalar, int dim, int degree, bool generic>
+template<typename Scalar, int dim, int degree, bool generic,
+    template <typename, int, int, bool> class CurveType>
 std::vector<Scalar> compute_Bezier_inflections(
-        const BezierBase<Scalar, dim, degree, generic>& curve,
+        const CurveType<Scalar, dim, degree, generic>& curve,
         Scalar t0 = 0, Scalar t1 = 1) {
     throw not_implemented_error("Inflection computation is for 2D curves only");
 }
 
-template<typename Scalar, int _degree=3, bool generic=_degree<0 >
+template<typename Scalar, int _degree, bool generic,
+    template <typename, int, int, bool> class CurveType>
 std::vector<Scalar> compute_Bezier_inflections(
-        const BezierBase<Scalar, 2, _degree, generic>& curve,
+        const CurveType<Scalar, 2, _degree, generic>& curve,
         Scalar t0 = 0, Scalar t1 = 1) {
     switch(curve.get_degree()) {
         case 2:
