@@ -1,6 +1,9 @@
-from sympy import *
+from sympy import symbols
 from scipy.special import comb
 import numpy as np
+
+def indent(lines):
+    return ["    {}".format(l) for l in lines];
 
 def bezier(degree, t, rational, syms):
     tot = 0

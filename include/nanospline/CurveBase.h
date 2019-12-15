@@ -26,6 +26,10 @@ class CurveBase {
                 const Scalar upper=1.0,
                 const int level=3) const =0;
 
+        virtual std::vector<Scalar> compute_inflections(
+                const Scalar lower=0.0,
+                const Scalar upper=1.0) const =0;
+
         virtual void write(std::ostream &out) const =0;
 
         friend std::ostream &operator<<(std::ostream &out, const CurveBase &c) { c.wirte(out); return out; }

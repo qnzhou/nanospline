@@ -35,6 +35,12 @@ class BezierBase : public CurveBase<_Scalar, _dim> {
                     p, num_samples, lower, upper, level);
         }
 
+        virtual std::vector<Scalar> compute_inflections(
+                const Scalar lower,
+                const Scalar upper) const override {
+            throw not_implemented_error(
+                    "Inflection computation is not support for this curve type");
+        }
 
     public:
         const ControlPoints& get_control_points() const {

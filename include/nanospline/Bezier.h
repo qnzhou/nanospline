@@ -5,6 +5,7 @@
 #include <Eigen/Core>
 #include <nanospline/Exceptions.h>
 #include <nanospline/BezierBase.h>
+#include <nanospline/internal/auto_inflection.h>
 
 namespace nanospline {
 
@@ -47,6 +48,18 @@ class Bezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
                 return (control_pts.row(2) + control_pts.row(0) - 2 * control_pts.row(1))
                     * degree * (degree-1);
             }
+        }
+
+        virtual std::vector<Scalar> compute_inflections(
+                const Scalar lower,
+                const Scalar upper) const override final {
+            auto res = nanospline::internal::compute_Bezier_inflections(
+                    *this, lower, upper);
+
+            std::sort(res.begin(), res.end());
+            res.erase(std::unique(res.begin(), res.end()), res.end());
+
+            return res;
         }
 
     private:
@@ -94,6 +107,12 @@ class Bezier<_Scalar, _dim, 0, false> : public BezierBase<_Scalar, _dim, 0, fals
         Point evaluate_2nd_derivative(Scalar t) const override {
             return Point::Zero();
         }
+
+        std::vector<Scalar> compute_inflections(
+                const Scalar lower=0.0,
+                const Scalar upper=1.0) const override final {
+            return {};
+        }
 };
 
 template<typename _Scalar, int _dim>
@@ -122,6 +141,12 @@ class Bezier<_Scalar, _dim, 1, false> : public BezierBase<_Scalar, _dim, 1, fals
 
         Point evaluate_2nd_derivative(Scalar t) const override {
             return Point::Zero();
+        }
+
+        std::vector<Scalar> compute_inflections(
+                const Scalar lower=0.0,
+                const Scalar upper=1.0) const override final {
+            return {};
         }
 };
 
@@ -157,6 +182,12 @@ class Bezier<_Scalar, _dim, 2, false> : public BezierBase<_Scalar, _dim, 2, fals
         Point evaluate_2nd_derivative(Scalar t) const override {
             const auto& ctrl_pts = Base::m_control_points;
             return 2 * (ctrl_pts.row(0) + ctrl_pts.row(2) - 2 * ctrl_pts.row(1));
+        }
+
+        std::vector<Scalar> compute_inflections(
+                const Scalar lower=0.0,
+                const Scalar upper=1.0) const override final {
+            return {};
         }
 };
 
@@ -208,6 +239,18 @@ class Bezier<_Scalar, _dim, 3, false> : public BezierBase<_Scalar, _dim, 3, fals
             const Point q2 = (1.0-t) * Base::m_control_points.row(2) +
                 t * Base::m_control_points.row(3);
             return 6 * (q0+q2-2*q1);
+        }
+
+        std::vector<Scalar> compute_inflections(
+                const Scalar lower,
+                const Scalar upper) const override final {
+            auto res = nanospline::internal::compute_Bezier_degree_3_inflections(
+                    *this, lower, upper);
+
+            std::sort(res.begin(), res.end());
+            res.erase(std::unique(res.begin(), res.end()), res.end());
+
+            return res;
         }
 };
 
