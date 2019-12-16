@@ -4,6 +4,7 @@
 #include <cmath>
 #include <limits>
 #include <vector>
+#include <memory>
 
 #include <Eigen/Core>
 
