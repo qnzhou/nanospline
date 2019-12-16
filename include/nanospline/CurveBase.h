@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cmath>
 #include <limits>
+#include <vector>
 
 #include <Eigen/Core>
 
