@@ -5,6 +5,7 @@
 #include <nanospline/Exceptions.h>
 #include <nanospline/BezierBase.h>
 #include <nanospline/Bezier.h>
+#include <nanospline/internal/auto_inflection_RationalBezier.h>
 
 namespace nanospline {
 

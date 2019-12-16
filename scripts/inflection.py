@@ -75,9 +75,9 @@ if __name__ == "__main__":
     t = symbols('t')
 
     printer = C99CodePrinter()
-    code = code_template_heder
 
     for poly_name in functions:
+        code = code_template_heder
         specialized_code = "";
         lines = []
         first=True
@@ -100,9 +100,13 @@ if __name__ == "__main__":
 
             solver_lines = utils.generate_solver_code(n_coeffs, coeffs, is_rational, poly, printer)
 
+            if degree >= 5:
+                lines.append("#ifdef HIGH_DEGREE_SUPPORT");
             lines.append("case {}:".format(degree));
             lines.append("    return compute_{}_degree_{}_inflections(curve, t0, t1);".format(
                     poly_name, degree));
+            if degree >= 5:
+                lines.append("#endif // HIGH_DEGREE_SUPPORT");
 
             specialized_code += specialization_template.format(
                     type=poly_name, body="\n".join(utils.indent(solver_lines)), degree=degree);
@@ -115,7 +119,9 @@ if __name__ == "__main__":
         code += specialized_code;
         code += code_template.format(type=poly_name, body=body) + "\n\n"
 
-    code += code_template_footer
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    with open(os.path.join(dir_path, "..", "include", "nanospline", "internal", "auto_inflection.h"), "w") as f:
-        f.write(code)
+        code += code_template_footer
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        with open(os.path.join(dir_path, "..", "include", "nanospline",
+            "internal", "auto_inflection_{}.h".format(poly_name)), "w") as f:
+            f.write(code)
+

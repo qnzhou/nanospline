@@ -5,6 +5,8 @@
 #include <nanospline/split.h>
 #include <nanospline/save_svg.h>
 
+#include "forward_declaration.h"
+
 TEST_CASE("opt_turn_angle", "[opt_turn_angle]") {
     using namespace nanospline;
     using Scalar = double;

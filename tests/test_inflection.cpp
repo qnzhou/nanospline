@@ -6,6 +6,8 @@
 #include <nanospline/split.h>
 #include <nanospline/save_svg.h>
 
+#include "forward_declaration.h"
+
 TEST_CASE("inflection", "[inflection]") {
     using namespace nanospline;
     using Scalar = double;

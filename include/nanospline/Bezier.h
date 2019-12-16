@@ -5,7 +5,7 @@
 #include <Eigen/Core>
 #include <nanospline/Exceptions.h>
 #include <nanospline/BezierBase.h>
-#include <nanospline/internal/auto_inflection.h>
+#include <nanospline/internal/auto_inflection_Bezier.h>
 
 namespace nanospline {
 

@@ -5,6 +5,7 @@
 #include <nanospline/NURBS.h>
 #include <nanospline/save_svg.h>
 
+#include "forward_declaration.h"
 #include "validation_utils.h"
 
 TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
