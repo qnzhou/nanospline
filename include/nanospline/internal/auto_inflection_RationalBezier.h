@@ -14,25 +14,15 @@ namespace nanospline {
 namespace internal {
 
 
-template<typename Derived, typename Derived2>
-std::vector<typename Derived::Scalar> compute_RationalBezier_degree_2_inflections(
-        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
-        const Eigen::PlainObjectBase<Derived2>& weights,
-        typename Derived::Scalar t0 = 0,
-        typename Derived::Scalar t1 = 1) {
-    using Scalar = typename Derived::Scalar;
+template<typename Scalar>
+std::vector<Scalar> compute_RationalBezier_degree_2_inflections(
+        Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2,
+        Scalar w0, Scalar w1, Scalar w2,
+        Scalar t0 = 0,
+        Scalar t1 = 1) {
     std::vector<Scalar> result;
     constexpr Scalar tol = 1e-8;
 
-    Scalar cx0 = ctrl_pts(0, 0);
-    Scalar cy0 = ctrl_pts(0, 1);
-    Scalar w0 = weights(0);
-    Scalar cx1 = ctrl_pts(1, 0);
-    Scalar cy1 = ctrl_pts(1, 1);
-    Scalar w1 = weights(1);
-    Scalar cx2 = ctrl_pts(2, 0);
-    Scalar cy2 = ctrl_pts(2, 1);
-    Scalar w2 = weights(2);
     PolynomialRootFinder<Scalar, 4>::find_real_roots_in_interval({
         -4*cx0*cy1*pow(w0, 3)*w1*w2 + 4*cx0*cy2*pow(w0, 3)*w1*w2 + 4*cx1*cy0*pow(w0, 3)*w1*w2 - 4*cx1*cy2*pow(w0, 3)*w1*w2 - 4*cx2*cy0*pow(w0, 3)*w1*w2 + 4*cx2*cy1*pow(w0, 3)*w1*w2,
     16*cx0*cy1*pow(w0, 3)*w1*w2 - 16*cx0*cy1*pow(w0, 2)*pow(w1, 2)*w2 - 16*cx0*cy2*pow(w0, 3)*w1*w2 + 16*cx0*cy2*pow(w0, 2)*pow(w1, 2)*w2 - 16*cx1*cy0*pow(w0, 3)*w1*w2 + 16*cx1*cy0*pow(w0, 2)*pow(w1, 2)*w2 + 16*cx1*cy2*pow(w0, 3)*w1*w2 - 16*cx1*cy2*pow(w0, 2)*pow(w1, 2)*w2 + 16*cx2*cy0*pow(w0, 3)*w1*w2 - 16*cx2*cy0*pow(w0, 2)*pow(w1, 2)*w2 - 16*cx2*cy1*pow(w0, 3)*w1*w2 + 16*cx2*cy1*pow(w0, 2)*pow(w1, 2)*w2,
@@ -46,28 +36,15 @@ std::vector<typename Derived::Scalar> compute_RationalBezier_degree_2_inflection
 }
 
 
-template<typename Derived, typename Derived2>
-std::vector<typename Derived::Scalar> compute_RationalBezier_degree_3_inflections(
-        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
-        const Eigen::PlainObjectBase<Derived2>& weights,
-        typename Derived::Scalar t0 = 0,
-        typename Derived::Scalar t1 = 1) {
-    using Scalar = typename Derived::Scalar;
+template<typename Scalar>
+std::vector<Scalar> compute_RationalBezier_degree_3_inflections(
+        Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3,
+        Scalar w0, Scalar w1, Scalar w2, Scalar w3,
+        Scalar t0 = 0,
+        Scalar t1 = 1) {
     std::vector<Scalar> result;
     constexpr Scalar tol = 1e-8;
 
-    Scalar cx0 = ctrl_pts(0, 0);
-    Scalar cy0 = ctrl_pts(0, 1);
-    Scalar w0 = weights(0);
-    Scalar cx1 = ctrl_pts(1, 0);
-    Scalar cy1 = ctrl_pts(1, 1);
-    Scalar w1 = weights(1);
-    Scalar cx2 = ctrl_pts(2, 0);
-    Scalar cy2 = ctrl_pts(2, 1);
-    Scalar w2 = weights(2);
-    Scalar cx3 = ctrl_pts(3, 0);
-    Scalar cy3 = ctrl_pts(3, 1);
-    Scalar w3 = weights(3);
     PolynomialRootFinder<Scalar, 9>::find_real_roots_in_interval({
         -18*cx0*cy1*pow(w0, 3)*w1*w2 + 18*cx0*cy2*pow(w0, 3)*w1*w2 + 18*cx1*cy0*pow(w0, 3)*w1*w2 - 18*cx1*cy2*pow(w0, 3)*w1*w2 - 18*cx2*cy0*pow(w0, 3)*w1*w2 + 18*cx2*cy1*pow(w0, 3)*w1*w2,
     162*cx0*cy1*pow(w0, 3)*w1*w2 - 18*cx0*cy1*pow(w0, 3)*w1*w3 - 108*cx0*cy1*pow(w0, 2)*pow(w1, 2)*w2 - 162*cx0*cy2*pow(w0, 3)*w1*w2 + 108*cx0*cy2*pow(w0, 2)*pow(w1, 2)*w2 + 18*cx0*cy3*pow(w0, 3)*w1*w3 - 162*cx1*cy0*pow(w0, 3)*w1*w2 + 18*cx1*cy0*pow(w0, 3)*w1*w3 + 108*cx1*cy0*pow(w0, 2)*pow(w1, 2)*w2 + 162*cx1*cy2*pow(w0, 3)*w1*w2 - 108*cx1*cy2*pow(w0, 2)*pow(w1, 2)*w2 - 18*cx1*cy3*pow(w0, 3)*w1*w3 + 162*cx2*cy0*pow(w0, 3)*w1*w2 - 108*cx2*cy0*pow(w0, 2)*pow(w1, 2)*w2 - 162*cx2*cy1*pow(w0, 3)*w1*w2 + 108*cx2*cy1*pow(w0, 2)*pow(w1, 2)*w2 - 18*cx3*cy0*pow(w0, 3)*w1*w3 + 18*cx3*cy1*pow(w0, 3)*w1*w3,
@@ -86,31 +63,15 @@ std::vector<typename Derived::Scalar> compute_RationalBezier_degree_3_inflection
 }
 
 
-template<typename Derived, typename Derived2>
-std::vector<typename Derived::Scalar> compute_RationalBezier_degree_4_inflections(
-        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
-        const Eigen::PlainObjectBase<Derived2>& weights,
-        typename Derived::Scalar t0 = 0,
-        typename Derived::Scalar t1 = 1) {
-    using Scalar = typename Derived::Scalar;
+template<typename Scalar>
+std::vector<Scalar> compute_RationalBezier_degree_4_inflections(
+        Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4,
+        Scalar w0, Scalar w1, Scalar w2, Scalar w3, Scalar w4,
+        Scalar t0 = 0,
+        Scalar t1 = 1) {
     std::vector<Scalar> result;
     constexpr Scalar tol = 1e-8;
 
-    Scalar cx0 = ctrl_pts(0, 0);
-    Scalar cy0 = ctrl_pts(0, 1);
-    Scalar w0 = weights(0);
-    Scalar cx1 = ctrl_pts(1, 0);
-    Scalar cy1 = ctrl_pts(1, 1);
-    Scalar w1 = weights(1);
-    Scalar cx2 = ctrl_pts(2, 0);
-    Scalar cy2 = ctrl_pts(2, 1);
-    Scalar w2 = weights(2);
-    Scalar cx3 = ctrl_pts(3, 0);
-    Scalar cy3 = ctrl_pts(3, 1);
-    Scalar w3 = weights(3);
-    Scalar cx4 = ctrl_pts(4, 0);
-    Scalar cy4 = ctrl_pts(4, 1);
-    Scalar w4 = weights(4);
     PolynomialRootFinder<Scalar, 14>::find_real_roots_in_interval({
         -48*cx0*cy1*pow(w0, 3)*w1*w2 + 48*cx0*cy2*pow(w0, 3)*w1*w2 + 48*cx1*cy0*pow(w0, 3)*w1*w2 - 48*cx1*cy2*pow(w0, 3)*w1*w2 - 48*cx2*cy0*pow(w0, 3)*w1*w2 + 48*cx2*cy1*pow(w0, 3)*w1*w2,
     672*cx0*cy1*pow(w0, 3)*w1*w2 - 96*cx0*cy1*pow(w0, 3)*w1*w3 - 384*cx0*cy1*pow(w0, 2)*pow(w1, 2)*w2 - 672*cx0*cy2*pow(w0, 3)*w1*w2 + 384*cx0*cy2*pow(w0, 2)*pow(w1, 2)*w2 + 96*cx0*cy3*pow(w0, 3)*w1*w3 - 672*cx1*cy0*pow(w0, 3)*w1*w2 + 96*cx1*cy0*pow(w0, 3)*w1*w3 + 384*cx1*cy0*pow(w0, 2)*pow(w1, 2)*w2 + 672*cx1*cy2*pow(w0, 3)*w1*w2 - 384*cx1*cy2*pow(w0, 2)*pow(w1, 2)*w2 - 96*cx1*cy3*pow(w0, 3)*w1*w3 + 672*cx2*cy0*pow(w0, 3)*w1*w2 - 384*cx2*cy0*pow(w0, 2)*pow(w1, 2)*w2 - 672*cx2*cy1*pow(w0, 3)*w1*w2 + 384*cx2*cy1*pow(w0, 2)*pow(w1, 2)*w2 - 96*cx3*cy0*pow(w0, 3)*w1*w3 + 96*cx3*cy1*pow(w0, 3)*w1*w3,
@@ -142,11 +103,11 @@ std::vector<typename Derived::Scalar> compute_RationalBezier_inflections(
         typename Derived::Scalar t1 = 1) {
     switch(ctrl_pts.rows()-1) {
         case 2:
-            return compute_RationalBezier_degree_2_inflections(ctrl_pts, weights, t0, t1);
+            return compute_RationalBezier_degree_2_inflections(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), weights(0), weights(1), weights(2), t0, t1);
         case 3:
-            return compute_RationalBezier_degree_3_inflections(ctrl_pts, weights, t0, t1);
+            return compute_RationalBezier_degree_3_inflections(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), weights(0), weights(1), weights(2), weights(3), t0, t1);
         case 4:
-            return compute_RationalBezier_degree_4_inflections(ctrl_pts, weights, t0, t1);
+            return compute_RationalBezier_degree_4_inflections(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), weights(0), weights(1), weights(2), weights(3), weights(4), t0, t1);
         default:
             throw not_implemented_error(
                 "Inflection computation only works on RationalBezier curve with degree lower than 4");

@@ -51,12 +51,11 @@ std::vector<typename Derived::Scalar> compute_{type}_inflections(
 """
 
 specialization_template = """
-template<typename Derived>
-std::vector<typename Derived::Scalar> compute_{type}_degree_{degree}_inflections(
-        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
-        typename Derived::Scalar t0 = 0,
-        typename Derived::Scalar t1 = 1) {{
-    using Scalar = typename Derived::Scalar;
+template<typename Scalar>
+std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
+        {control_variables},
+        Scalar t0 = 0,
+        Scalar t1 = 1) {{
     std::vector<Scalar> result;
     constexpr Scalar tol = 1e-8;
 
@@ -68,13 +67,12 @@ std::vector<typename Derived::Scalar> compute_{type}_degree_{degree}_inflections
 """
 
 specialization_rational_template = """
-template<typename Derived, typename Derived2>
-std::vector<typename Derived::Scalar> compute_{type}_degree_{degree}_inflections(
-        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
-        const Eigen::PlainObjectBase<Derived2>& weights,
-        typename Derived::Scalar t0 = 0,
-        typename Derived::Scalar t1 = 1) {{
-    using Scalar = typename Derived::Scalar;
+template<typename Scalar>
+std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
+        {control_variables},
+        {weight_variables},
+        Scalar t0 = 0,
+        Scalar t1 = 1) {{
     std::vector<Scalar> result;
     constexpr Scalar tol = 1e-8;
 
@@ -121,26 +119,45 @@ if __name__ == "__main__":
             coeffs = poly.all_coeffs()
             coeffs.reverse()
 
-            solver_lines = utils.generate_solver_code(n_coeffs, coeffs, is_rational, poly, printer)
+            solver_lines = utils.generate_solver_code(coeffs, poly, printer)
+            control_variables = ", ".join(["Scalar cx{i}, Scalar cy{i}".format(i=i)
+                for i in range(n_coeffs)]);
+            weight_variables = ", ".join(["Scalar w{i}".format(i=i)
+                for i in range(n_coeffs)]);
+
+            control_variable_arguments = ", ".join([
+                "ctrl_pts({i},0), ctrl_pts({i},1)".format(i=i)
+                for i in range(n_coeffs) ]);
+            weight_variable_arguments = ", ".join([
+                "weights({i})".format(i=i)
+                for i in range(n_coeffs) ]);
 
             if degree >= 5:
                 lines.append("#ifdef HIGH_DEGREE_SUPPORT");
             lines.append("case {}:".format(degree));
             if is_rational:
-                lines.append("    return compute_{}_degree_{}_inflections(ctrl_pts, weights, t0, t1);".format(
-                        poly_name, degree));
+                lines.append("    return compute_{}_degree_{}_inflections({}, {}, t0, t1);".format(
+                        poly_name, degree, control_variable_arguments,
+                        weight_variable_arguments));
             else:
-                lines.append("    return compute_{}_degree_{}_inflections(ctrl_pts, t0, t1);".format(
-                        poly_name, degree));
+                lines.append("    return compute_{}_degree_{}_inflections({}, t0, t1);".format(
+                        poly_name, degree, control_variable_arguments));
             if degree >= 5:
                 lines.append("#endif // HIGH_DEGREE_SUPPORT");
 
             if is_rational:
                 specialized_code += specialization_rational_template.format(
-                        type=poly_name, body="\n".join(utils.indent(solver_lines)), degree=degree);
+                        type=poly_name,
+                        control_variables = control_variables,
+                        weight_variables = weight_variables,
+                        body="\n".join(utils.indent(solver_lines)),
+                        degree=degree);
             else:
                 specialized_code += specialization_template.format(
-                        type=poly_name, body="\n".join(utils.indent(solver_lines)), degree=degree);
+                        type=poly_name,
+                        control_variables = control_variables,
+                        body="\n".join(utils.indent(solver_lines)),
+                        degree=degree);
 
         lines.append("default:")
         lines.append("    throw not_implemented_error(")

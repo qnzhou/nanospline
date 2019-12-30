@@ -14,21 +14,14 @@ namespace nanospline {
 namespace internal {
 
 
-template<typename Derived>
-std::vector<typename Derived::Scalar> compute_Bezier_degree_2_inflections(
-        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
-        typename Derived::Scalar t0 = 0,
-        typename Derived::Scalar t1 = 1) {
-    using Scalar = typename Derived::Scalar;
+template<typename Scalar>
+std::vector<Scalar> compute_Bezier_degree_2_inflections(
+        Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2,
+        Scalar t0 = 0,
+        Scalar t1 = 1) {
     std::vector<Scalar> result;
     constexpr Scalar tol = 1e-8;
 
-    Scalar cx0 = ctrl_pts(0, 0);
-    Scalar cy0 = ctrl_pts(0, 1);
-    Scalar cx1 = ctrl_pts(1, 0);
-    Scalar cy1 = ctrl_pts(1, 1);
-    Scalar cx2 = ctrl_pts(2, 0);
-    Scalar cy2 = ctrl_pts(2, 1);
     PolynomialRootFinder<Scalar, 0>::find_real_roots_in_interval({
         -4*cx0*cy1 + 4*cx0*cy2 + 4*cx1*cy0 - 4*cx1*cy2 - 4*cx2*cy0 + 4*cx2*cy1
     },
@@ -38,23 +31,14 @@ std::vector<typename Derived::Scalar> compute_Bezier_degree_2_inflections(
 }
 
 
-template<typename Derived>
-std::vector<typename Derived::Scalar> compute_Bezier_degree_3_inflections(
-        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
-        typename Derived::Scalar t0 = 0,
-        typename Derived::Scalar t1 = 1) {
-    using Scalar = typename Derived::Scalar;
+template<typename Scalar>
+std::vector<Scalar> compute_Bezier_degree_3_inflections(
+        Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3,
+        Scalar t0 = 0,
+        Scalar t1 = 1) {
     std::vector<Scalar> result;
     constexpr Scalar tol = 1e-8;
 
-    Scalar cx0 = ctrl_pts(0, 0);
-    Scalar cy0 = ctrl_pts(0, 1);
-    Scalar cx1 = ctrl_pts(1, 0);
-    Scalar cy1 = ctrl_pts(1, 1);
-    Scalar cx2 = ctrl_pts(2, 0);
-    Scalar cy2 = ctrl_pts(2, 1);
-    Scalar cx3 = ctrl_pts(3, 0);
-    Scalar cy3 = ctrl_pts(3, 1);
     PolynomialRootFinder<Scalar, 2>::find_real_roots_in_interval({
         -18*cx0*cy1 + 18*cx0*cy2 + 18*cx1*cy0 - 18*cx1*cy2 - 18*cx2*cy0 + 18*cx2*cy1,
     36*cx0*cy1 - 54*cx0*cy2 + 18*cx0*cy3 - 36*cx1*cy0 + 54*cx1*cy2 - 18*cx1*cy3 + 54*cx2*cy0 - 54*cx2*cy1 - 18*cx3*cy0 + 18*cx3*cy1,
@@ -66,25 +50,14 @@ std::vector<typename Derived::Scalar> compute_Bezier_degree_3_inflections(
 }
 
 
-template<typename Derived>
-std::vector<typename Derived::Scalar> compute_Bezier_degree_4_inflections(
-        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
-        typename Derived::Scalar t0 = 0,
-        typename Derived::Scalar t1 = 1) {
-    using Scalar = typename Derived::Scalar;
+template<typename Scalar>
+std::vector<Scalar> compute_Bezier_degree_4_inflections(
+        Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4,
+        Scalar t0 = 0,
+        Scalar t1 = 1) {
     std::vector<Scalar> result;
     constexpr Scalar tol = 1e-8;
 
-    Scalar cx0 = ctrl_pts(0, 0);
-    Scalar cy0 = ctrl_pts(0, 1);
-    Scalar cx1 = ctrl_pts(1, 0);
-    Scalar cy1 = ctrl_pts(1, 1);
-    Scalar cx2 = ctrl_pts(2, 0);
-    Scalar cy2 = ctrl_pts(2, 1);
-    Scalar cx3 = ctrl_pts(3, 0);
-    Scalar cy3 = ctrl_pts(3, 1);
-    Scalar cx4 = ctrl_pts(4, 0);
-    Scalar cy4 = ctrl_pts(4, 1);
     PolynomialRootFinder<Scalar, 4>::find_real_roots_in_interval({
         -48*cx0*cy1 + 48*cx0*cy2 + 48*cx1*cy0 - 48*cx1*cy2 - 48*cx2*cy0 + 48*cx2*cy1,
     192*cx0*cy1 - 288*cx0*cy2 + 96*cx0*cy3 - 192*cx1*cy0 + 288*cx1*cy2 - 96*cx1*cy3 + 288*cx2*cy0 - 288*cx2*cy1 - 96*cx3*cy0 + 96*cx3*cy1,
@@ -98,27 +71,14 @@ std::vector<typename Derived::Scalar> compute_Bezier_degree_4_inflections(
 }
 
 
-template<typename Derived>
-std::vector<typename Derived::Scalar> compute_Bezier_degree_5_inflections(
-        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
-        typename Derived::Scalar t0 = 0,
-        typename Derived::Scalar t1 = 1) {
-    using Scalar = typename Derived::Scalar;
+template<typename Scalar>
+std::vector<Scalar> compute_Bezier_degree_5_inflections(
+        Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4, Scalar cx5, Scalar cy5,
+        Scalar t0 = 0,
+        Scalar t1 = 1) {
     std::vector<Scalar> result;
     constexpr Scalar tol = 1e-8;
 
-    Scalar cx0 = ctrl_pts(0, 0);
-    Scalar cy0 = ctrl_pts(0, 1);
-    Scalar cx1 = ctrl_pts(1, 0);
-    Scalar cy1 = ctrl_pts(1, 1);
-    Scalar cx2 = ctrl_pts(2, 0);
-    Scalar cy2 = ctrl_pts(2, 1);
-    Scalar cx3 = ctrl_pts(3, 0);
-    Scalar cy3 = ctrl_pts(3, 1);
-    Scalar cx4 = ctrl_pts(4, 0);
-    Scalar cy4 = ctrl_pts(4, 1);
-    Scalar cx5 = ctrl_pts(5, 0);
-    Scalar cy5 = ctrl_pts(5, 1);
     PolynomialRootFinder<Scalar, 6>::find_real_roots_in_interval({
         -100*cx0*cy1 + 100*cx0*cy2 + 100*cx1*cy0 - 100*cx1*cy2 - 100*cx2*cy0 + 100*cx2*cy1,
     600*cx0*cy1 - 900*cx0*cy2 + 300*cx0*cy3 - 600*cx1*cy0 + 900*cx1*cy2 - 300*cx1*cy3 + 900*cx2*cy0 - 900*cx2*cy1 - 300*cx3*cy0 + 300*cx3*cy1,
@@ -134,29 +94,14 @@ std::vector<typename Derived::Scalar> compute_Bezier_degree_5_inflections(
 }
 
 
-template<typename Derived>
-std::vector<typename Derived::Scalar> compute_Bezier_degree_6_inflections(
-        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
-        typename Derived::Scalar t0 = 0,
-        typename Derived::Scalar t1 = 1) {
-    using Scalar = typename Derived::Scalar;
+template<typename Scalar>
+std::vector<Scalar> compute_Bezier_degree_6_inflections(
+        Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4, Scalar cx5, Scalar cy5, Scalar cx6, Scalar cy6,
+        Scalar t0 = 0,
+        Scalar t1 = 1) {
     std::vector<Scalar> result;
     constexpr Scalar tol = 1e-8;
 
-    Scalar cx0 = ctrl_pts(0, 0);
-    Scalar cy0 = ctrl_pts(0, 1);
-    Scalar cx1 = ctrl_pts(1, 0);
-    Scalar cy1 = ctrl_pts(1, 1);
-    Scalar cx2 = ctrl_pts(2, 0);
-    Scalar cy2 = ctrl_pts(2, 1);
-    Scalar cx3 = ctrl_pts(3, 0);
-    Scalar cy3 = ctrl_pts(3, 1);
-    Scalar cx4 = ctrl_pts(4, 0);
-    Scalar cy4 = ctrl_pts(4, 1);
-    Scalar cx5 = ctrl_pts(5, 0);
-    Scalar cy5 = ctrl_pts(5, 1);
-    Scalar cx6 = ctrl_pts(6, 0);
-    Scalar cy6 = ctrl_pts(6, 1);
     PolynomialRootFinder<Scalar, 8>::find_real_roots_in_interval({
         -180*cx0*cy1 + 180*cx0*cy2 + 180*cx1*cy0 - 180*cx1*cy2 - 180*cx2*cy0 + 180*cx2*cy1,
     1440*cx0*cy1 - 2160*cx0*cy2 + 720*cx0*cy3 - 1440*cx1*cy0 + 2160*cx1*cy2 - 720*cx1*cy3 + 2160*cx2*cy0 - 2160*cx2*cy1 - 720*cx3*cy0 + 720*cx3*cy1,
@@ -174,31 +119,14 @@ std::vector<typename Derived::Scalar> compute_Bezier_degree_6_inflections(
 }
 
 
-template<typename Derived>
-std::vector<typename Derived::Scalar> compute_Bezier_degree_7_inflections(
-        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
-        typename Derived::Scalar t0 = 0,
-        typename Derived::Scalar t1 = 1) {
-    using Scalar = typename Derived::Scalar;
+template<typename Scalar>
+std::vector<Scalar> compute_Bezier_degree_7_inflections(
+        Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4, Scalar cx5, Scalar cy5, Scalar cx6, Scalar cy6, Scalar cx7, Scalar cy7,
+        Scalar t0 = 0,
+        Scalar t1 = 1) {
     std::vector<Scalar> result;
     constexpr Scalar tol = 1e-8;
 
-    Scalar cx0 = ctrl_pts(0, 0);
-    Scalar cy0 = ctrl_pts(0, 1);
-    Scalar cx1 = ctrl_pts(1, 0);
-    Scalar cy1 = ctrl_pts(1, 1);
-    Scalar cx2 = ctrl_pts(2, 0);
-    Scalar cy2 = ctrl_pts(2, 1);
-    Scalar cx3 = ctrl_pts(3, 0);
-    Scalar cy3 = ctrl_pts(3, 1);
-    Scalar cx4 = ctrl_pts(4, 0);
-    Scalar cy4 = ctrl_pts(4, 1);
-    Scalar cx5 = ctrl_pts(5, 0);
-    Scalar cy5 = ctrl_pts(5, 1);
-    Scalar cx6 = ctrl_pts(6, 0);
-    Scalar cy6 = ctrl_pts(6, 1);
-    Scalar cx7 = ctrl_pts(7, 0);
-    Scalar cy7 = ctrl_pts(7, 1);
     PolynomialRootFinder<Scalar, 10>::find_real_roots_in_interval({
         -294*cx0*cy1 + 294*cx0*cy2 + 294*cx1*cy0 - 294*cx1*cy2 - 294*cx2*cy0 + 294*cx2*cy1,
     2940*cx0*cy1 - 4410*cx0*cy2 + 1470*cx0*cy3 - 2940*cx1*cy0 + 4410*cx1*cy2 - 1470*cx1*cy3 + 4410*cx2*cy0 - 4410*cx2*cy1 - 1470*cx3*cy0 + 1470*cx3*cy1,
@@ -218,33 +146,14 @@ std::vector<typename Derived::Scalar> compute_Bezier_degree_7_inflections(
 }
 
 
-template<typename Derived>
-std::vector<typename Derived::Scalar> compute_Bezier_degree_8_inflections(
-        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
-        typename Derived::Scalar t0 = 0,
-        typename Derived::Scalar t1 = 1) {
-    using Scalar = typename Derived::Scalar;
+template<typename Scalar>
+std::vector<Scalar> compute_Bezier_degree_8_inflections(
+        Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4, Scalar cx5, Scalar cy5, Scalar cx6, Scalar cy6, Scalar cx7, Scalar cy7, Scalar cx8, Scalar cy8,
+        Scalar t0 = 0,
+        Scalar t1 = 1) {
     std::vector<Scalar> result;
     constexpr Scalar tol = 1e-8;
 
-    Scalar cx0 = ctrl_pts(0, 0);
-    Scalar cy0 = ctrl_pts(0, 1);
-    Scalar cx1 = ctrl_pts(1, 0);
-    Scalar cy1 = ctrl_pts(1, 1);
-    Scalar cx2 = ctrl_pts(2, 0);
-    Scalar cy2 = ctrl_pts(2, 1);
-    Scalar cx3 = ctrl_pts(3, 0);
-    Scalar cy3 = ctrl_pts(3, 1);
-    Scalar cx4 = ctrl_pts(4, 0);
-    Scalar cy4 = ctrl_pts(4, 1);
-    Scalar cx5 = ctrl_pts(5, 0);
-    Scalar cy5 = ctrl_pts(5, 1);
-    Scalar cx6 = ctrl_pts(6, 0);
-    Scalar cy6 = ctrl_pts(6, 1);
-    Scalar cx7 = ctrl_pts(7, 0);
-    Scalar cy7 = ctrl_pts(7, 1);
-    Scalar cx8 = ctrl_pts(8, 0);
-    Scalar cy8 = ctrl_pts(8, 1);
     PolynomialRootFinder<Scalar, 12>::find_real_roots_in_interval({
         -448*cx0*cy1 + 448*cx0*cy2 + 448*cx1*cy0 - 448*cx1*cy2 - 448*cx2*cy0 + 448*cx2*cy1,
     5376*cx0*cy1 - 8064*cx0*cy2 + 2688*cx0*cy3 - 5376*cx1*cy0 + 8064*cx1*cy2 - 2688*cx1*cy3 + 8064*cx2*cy0 - 8064*cx2*cy1 - 2688*cx3*cy0 + 2688*cx3*cy1,
@@ -266,35 +175,14 @@ std::vector<typename Derived::Scalar> compute_Bezier_degree_8_inflections(
 }
 
 
-template<typename Derived>
-std::vector<typename Derived::Scalar> compute_Bezier_degree_9_inflections(
-        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
-        typename Derived::Scalar t0 = 0,
-        typename Derived::Scalar t1 = 1) {
-    using Scalar = typename Derived::Scalar;
+template<typename Scalar>
+std::vector<Scalar> compute_Bezier_degree_9_inflections(
+        Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4, Scalar cx5, Scalar cy5, Scalar cx6, Scalar cy6, Scalar cx7, Scalar cy7, Scalar cx8, Scalar cy8, Scalar cx9, Scalar cy9,
+        Scalar t0 = 0,
+        Scalar t1 = 1) {
     std::vector<Scalar> result;
     constexpr Scalar tol = 1e-8;
 
-    Scalar cx0 = ctrl_pts(0, 0);
-    Scalar cy0 = ctrl_pts(0, 1);
-    Scalar cx1 = ctrl_pts(1, 0);
-    Scalar cy1 = ctrl_pts(1, 1);
-    Scalar cx2 = ctrl_pts(2, 0);
-    Scalar cy2 = ctrl_pts(2, 1);
-    Scalar cx3 = ctrl_pts(3, 0);
-    Scalar cy3 = ctrl_pts(3, 1);
-    Scalar cx4 = ctrl_pts(4, 0);
-    Scalar cy4 = ctrl_pts(4, 1);
-    Scalar cx5 = ctrl_pts(5, 0);
-    Scalar cy5 = ctrl_pts(5, 1);
-    Scalar cx6 = ctrl_pts(6, 0);
-    Scalar cy6 = ctrl_pts(6, 1);
-    Scalar cx7 = ctrl_pts(7, 0);
-    Scalar cy7 = ctrl_pts(7, 1);
-    Scalar cx8 = ctrl_pts(8, 0);
-    Scalar cy8 = ctrl_pts(8, 1);
-    Scalar cx9 = ctrl_pts(9, 0);
-    Scalar cy9 = ctrl_pts(9, 1);
     PolynomialRootFinder<Scalar, 14>::find_real_roots_in_interval({
         -648*cx0*cy1 + 648*cx0*cy2 + 648*cx1*cy0 - 648*cx1*cy2 - 648*cx2*cy0 + 648*cx2*cy1,
     9072*cx0*cy1 - 13608*cx0*cy2 + 4536*cx0*cy3 - 9072*cx1*cy0 + 13608*cx1*cy2 - 4536*cx1*cy3 + 13608*cx2*cy0 - 13608*cx2*cy1 - 4536*cx3*cy0 + 4536*cx3*cy1,
@@ -318,37 +206,14 @@ std::vector<typename Derived::Scalar> compute_Bezier_degree_9_inflections(
 }
 
 
-template<typename Derived>
-std::vector<typename Derived::Scalar> compute_Bezier_degree_10_inflections(
-        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
-        typename Derived::Scalar t0 = 0,
-        typename Derived::Scalar t1 = 1) {
-    using Scalar = typename Derived::Scalar;
+template<typename Scalar>
+std::vector<Scalar> compute_Bezier_degree_10_inflections(
+        Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4, Scalar cx5, Scalar cy5, Scalar cx6, Scalar cy6, Scalar cx7, Scalar cy7, Scalar cx8, Scalar cy8, Scalar cx9, Scalar cy9, Scalar cx10, Scalar cy10,
+        Scalar t0 = 0,
+        Scalar t1 = 1) {
     std::vector<Scalar> result;
     constexpr Scalar tol = 1e-8;
 
-    Scalar cx0 = ctrl_pts(0, 0);
-    Scalar cy0 = ctrl_pts(0, 1);
-    Scalar cx1 = ctrl_pts(1, 0);
-    Scalar cy1 = ctrl_pts(1, 1);
-    Scalar cx2 = ctrl_pts(2, 0);
-    Scalar cy2 = ctrl_pts(2, 1);
-    Scalar cx3 = ctrl_pts(3, 0);
-    Scalar cy3 = ctrl_pts(3, 1);
-    Scalar cx4 = ctrl_pts(4, 0);
-    Scalar cy4 = ctrl_pts(4, 1);
-    Scalar cx5 = ctrl_pts(5, 0);
-    Scalar cy5 = ctrl_pts(5, 1);
-    Scalar cx6 = ctrl_pts(6, 0);
-    Scalar cy6 = ctrl_pts(6, 1);
-    Scalar cx7 = ctrl_pts(7, 0);
-    Scalar cy7 = ctrl_pts(7, 1);
-    Scalar cx8 = ctrl_pts(8, 0);
-    Scalar cy8 = ctrl_pts(8, 1);
-    Scalar cx9 = ctrl_pts(9, 0);
-    Scalar cy9 = ctrl_pts(9, 1);
-    Scalar cx10 = ctrl_pts(10, 0);
-    Scalar cy10 = ctrl_pts(10, 1);
     PolynomialRootFinder<Scalar, 16>::find_real_roots_in_interval({
         -900*cx0*cy1 + 900*cx0*cy2 + 900*cx1*cy0 - 900*cx1*cy2 - 900*cx2*cy0 + 900*cx2*cy1,
     14400*cx0*cy1 - 21600*cx0*cy2 + 7200*cx0*cy3 - 14400*cx1*cy0 + 21600*cx1*cy2 - 7200*cx1*cy3 + 21600*cx2*cy0 - 21600*cx2*cy1 - 7200*cx3*cy0 + 7200*cx3*cy1,
@@ -381,34 +246,34 @@ std::vector<typename Derived::Scalar> compute_Bezier_inflections(
         typename Derived::Scalar t1 = 1) {
     switch(ctrl_pts.rows()-1) {
         case 2:
-            return compute_Bezier_degree_2_inflections(ctrl_pts, t0, t1);
+            return compute_Bezier_degree_2_inflections(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), t0, t1);
         case 3:
-            return compute_Bezier_degree_3_inflections(ctrl_pts, t0, t1);
+            return compute_Bezier_degree_3_inflections(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), t0, t1);
         case 4:
-            return compute_Bezier_degree_4_inflections(ctrl_pts, t0, t1);
+            return compute_Bezier_degree_4_inflections(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), t0, t1);
         #ifdef HIGH_DEGREE_SUPPORT
         case 5:
-            return compute_Bezier_degree_5_inflections(ctrl_pts, t0, t1);
+            return compute_Bezier_degree_5_inflections(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), ctrl_pts(5,0), ctrl_pts(5,1), t0, t1);
         #endif // HIGH_DEGREE_SUPPORT
         #ifdef HIGH_DEGREE_SUPPORT
         case 6:
-            return compute_Bezier_degree_6_inflections(ctrl_pts, t0, t1);
+            return compute_Bezier_degree_6_inflections(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), ctrl_pts(5,0), ctrl_pts(5,1), ctrl_pts(6,0), ctrl_pts(6,1), t0, t1);
         #endif // HIGH_DEGREE_SUPPORT
         #ifdef HIGH_DEGREE_SUPPORT
         case 7:
-            return compute_Bezier_degree_7_inflections(ctrl_pts, t0, t1);
+            return compute_Bezier_degree_7_inflections(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), ctrl_pts(5,0), ctrl_pts(5,1), ctrl_pts(6,0), ctrl_pts(6,1), ctrl_pts(7,0), ctrl_pts(7,1), t0, t1);
         #endif // HIGH_DEGREE_SUPPORT
         #ifdef HIGH_DEGREE_SUPPORT
         case 8:
-            return compute_Bezier_degree_8_inflections(ctrl_pts, t0, t1);
+            return compute_Bezier_degree_8_inflections(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), ctrl_pts(5,0), ctrl_pts(5,1), ctrl_pts(6,0), ctrl_pts(6,1), ctrl_pts(7,0), ctrl_pts(7,1), ctrl_pts(8,0), ctrl_pts(8,1), t0, t1);
         #endif // HIGH_DEGREE_SUPPORT
         #ifdef HIGH_DEGREE_SUPPORT
         case 9:
-            return compute_Bezier_degree_9_inflections(ctrl_pts, t0, t1);
+            return compute_Bezier_degree_9_inflections(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), ctrl_pts(5,0), ctrl_pts(5,1), ctrl_pts(6,0), ctrl_pts(6,1), ctrl_pts(7,0), ctrl_pts(7,1), ctrl_pts(8,0), ctrl_pts(8,1), ctrl_pts(9,0), ctrl_pts(9,1), t0, t1);
         #endif // HIGH_DEGREE_SUPPORT
         #ifdef HIGH_DEGREE_SUPPORT
         case 10:
-            return compute_Bezier_degree_10_inflections(ctrl_pts, t0, t1);
+            return compute_Bezier_degree_10_inflections(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), ctrl_pts(5,0), ctrl_pts(5,1), ctrl_pts(6,0), ctrl_pts(6,1), ctrl_pts(7,0), ctrl_pts(7,1), ctrl_pts(8,0), ctrl_pts(8,1), ctrl_pts(9,0), ctrl_pts(9,1), ctrl_pts(10,0), ctrl_pts(10,1), t0, t1);
         #endif // HIGH_DEGREE_SUPPORT
         default:
             throw not_implemented_error(

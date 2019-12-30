@@ -59,14 +59,8 @@ def create_coeff_symbols(n_coeffs):
     return syms
 
 
-def generate_solver_code(n_coeffs, coeffs, is_rational, poly, printer):
+def generate_solver_code(coeffs, poly, printer):
     lines = []
-
-    for i in range(n_coeffs):
-        lines.append("Scalar cx{0} = ctrl_pts({0}, 0);".format(i))
-        lines.append("Scalar cy{0} = ctrl_pts({0}, 1);".format(i))
-        if is_rational:
-            lines.append("Scalar w{0} = weights({0});".format(i))
 
     lines.append(
         "PolynomialRootFinder<Scalar, {}>::find_real_roots_in_interval({{".format(poly.degree()))
