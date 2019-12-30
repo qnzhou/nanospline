@@ -56,12 +56,12 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
         {control_variables},
         Scalar t0 = 0,
         Scalar t1 = 1) {{
-    std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    std::vector<Scalar> result
+    constexpr Scalar tol = 1e-8
 
 {body}
 
-    return result;
+    return result
 }}
 
 """
@@ -73,12 +73,12 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
         {weight_variables},
         Scalar t0 = 0,
         Scalar t1 = 1) {{
-    std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    std::vector<Scalar> result
+    constexpr Scalar tol = 1e-8
 
 {body}
 
-    return result;
+    return result
 }}
 
 """
@@ -99,7 +99,7 @@ if __name__ == "__main__":
 
     for poly_name in functions:
         code = code_template_heder
-        specialized_code = "";
+        specialized_code = ""
         lines = []
         first=True
         for n_coeffs, degree, is_rational, curve in functions[poly_name]:
@@ -121,29 +121,29 @@ if __name__ == "__main__":
 
             solver_lines = utils.generate_solver_code(coeffs, poly, printer)
             control_variables = ", ".join(["Scalar cx{i}, Scalar cy{i}".format(i=i)
-                for i in range(n_coeffs)]);
+                for i in range(n_coeffs)])
             weight_variables = ", ".join(["Scalar w{i}".format(i=i)
-                for i in range(n_coeffs)]);
+                for i in range(n_coeffs)])
 
             control_variable_arguments = ", ".join([
                 "ctrl_pts({i},0), ctrl_pts({i},1)".format(i=i)
-                for i in range(n_coeffs) ]);
+                for i in range(n_coeffs) ])
             weight_variable_arguments = ", ".join([
                 "weights({i})".format(i=i)
-                for i in range(n_coeffs) ]);
+                for i in range(n_coeffs) ])
 
             if degree >= 5:
-                lines.append("#ifdef HIGH_DEGREE_SUPPORT");
-            lines.append("case {}:".format(degree));
+                lines.append("#ifdef HIGH_DEGREE_SUPPORT")
+            lines.append("case {}:".format(degree))
             if is_rational:
                 lines.append("    return compute_{}_degree_{}_inflections({}, {}, t0, t1);".format(
                         poly_name, degree, control_variable_arguments,
-                        weight_variable_arguments));
+                        weight_variable_arguments))
             else:
                 lines.append("    return compute_{}_degree_{}_inflections({}, t0, t1);".format(
-                        poly_name, degree, control_variable_arguments));
+                        poly_name, degree, control_variable_arguments))
             if degree >= 5:
-                lines.append("#endif // HIGH_DEGREE_SUPPORT");
+                lines.append("#endif // HIGH_DEGREE_SUPPORT")
 
             if is_rational:
                 specialized_code += specialization_rational_template.format(
@@ -151,20 +151,20 @@ if __name__ == "__main__":
                         control_variables = control_variables,
                         weight_variables = weight_variables,
                         body="\n".join(utils.indent(solver_lines)),
-                        degree=degree);
+                        degree=degree)
             else:
                 specialized_code += specialization_template.format(
                         type=poly_name,
                         control_variables = control_variables,
                         body="\n".join(utils.indent(solver_lines)),
-                        degree=degree);
+                        degree=degree)
 
         lines.append("default:")
         lines.append("    throw not_implemented_error(")
         lines.append("        \"Inflection computation only works on {} curve with degree lower than {}\");".format(poly_name, degree))
 
         body = "\n".join(utils.indent(utils.indent(lines)))
-        code += specialized_code;
+        code += specialized_code
         if poly_name == "Bezier":
             code += code_template.format(type=poly_name, body=body) + "\n\n"
         else:
