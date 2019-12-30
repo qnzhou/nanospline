@@ -54,7 +54,7 @@ class Bezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
                 const Scalar lower,
                 const Scalar upper) const override final {
             auto res = nanospline::internal::compute_Bezier_inflections(
-                    *this, lower, upper);
+                    Base::m_control_points, lower, upper);
 
             std::sort(res.begin(), res.end());
             res.erase(std::unique(res.begin(), res.end()), res.end());
@@ -245,7 +245,7 @@ class Bezier<_Scalar, _dim, 3, false> : public BezierBase<_Scalar, _dim, 3, fals
                 const Scalar lower,
                 const Scalar upper) const override final {
             auto res = nanospline::internal::compute_Bezier_degree_3_inflections(
-                    *this, lower, upper);
+                    Base::m_control_points, lower, upper);
 
             std::sort(res.begin(), res.end());
             res.erase(std::unique(res.begin(), res.end()), res.end());

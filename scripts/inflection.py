@@ -26,32 +26,55 @@ namespace internal {
 """
 
 code_template = """
-template<typename Scalar, int dim, int degree, bool generic,
-    template <typename, int, int, bool> class CurveType>
-std::vector<Scalar> compute_{type}_inflections(
-        const CurveType<Scalar, dim, degree, generic>& curve,
-        Scalar t0 = 0, Scalar t1 = 1) {{
-    throw not_implemented_error("Inflection computation is for 2D curves only");
+template<typename Derived>
+std::vector<typename Derived::Scalar> compute_{type}_inflections(
+        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
+        typename Derived::Scalar t0 = 0,
+        typename Derived::Scalar t1 = 1) {{
+    switch(ctrl_pts.rows()-1) {{
+{body}
+    }}
 }}
+"""
 
-template<typename Scalar, int _degree, bool generic,
-    template <typename, int, int, bool> class CurveType>
-std::vector<Scalar> compute_{type}_inflections(
-        const CurveType<Scalar, 2, _degree, generic>& curve,
-        Scalar t0 = 0, Scalar t1 = 1) {{
-    switch(curve.get_degree()) {{
+code_rational_template = """
+template<typename Derived, typename Derived2>
+std::vector<typename Derived::Scalar> compute_{type}_inflections(
+        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
+        const Eigen::PlainObjectBase<Derived2>& weights,
+        typename Derived::Scalar t0 = 0,
+        typename Derived::Scalar t1 = 1) {{
+    switch(ctrl_pts.rows()-1) {{
 {body}
     }}
 }}
 """
 
 specialization_template = """
-template<typename CurveType>
-std::vector<typename CurveType::Scalar> compute_{type}_degree_{degree}_inflections(
-        const CurveType& curve,
-        typename CurveType::Scalar t0 = 0,
-        typename CurveType::Scalar t1 = 1) {{
-    using Scalar = typename CurveType::Scalar;
+template<typename Derived>
+std::vector<typename Derived::Scalar> compute_{type}_degree_{degree}_inflections(
+        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
+        typename Derived::Scalar t0 = 0,
+        typename Derived::Scalar t1 = 1) {{
+    using Scalar = typename Derived::Scalar;
+    std::vector<Scalar> result;
+    constexpr Scalar tol = 1e-8;
+
+{body}
+
+    return result;
+}}
+
+"""
+
+specialization_rational_template = """
+template<typename Derived, typename Derived2>
+std::vector<typename Derived::Scalar> compute_{type}_degree_{degree}_inflections(
+        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
+        const Eigen::PlainObjectBase<Derived2>& weights,
+        typename Derived::Scalar t0 = 0,
+        typename Derived::Scalar t1 = 1) {{
+    using Scalar = typename Derived::Scalar;
     std::vector<Scalar> result;
     constexpr Scalar tol = 1e-8;
 
@@ -103,13 +126,21 @@ if __name__ == "__main__":
             if degree >= 5:
                 lines.append("#ifdef HIGH_DEGREE_SUPPORT");
             lines.append("case {}:".format(degree));
-            lines.append("    return compute_{}_degree_{}_inflections(curve, t0, t1);".format(
-                    poly_name, degree));
+            if is_rational:
+                lines.append("    return compute_{}_degree_{}_inflections(ctrl_pts, weights, t0, t1);".format(
+                        poly_name, degree));
+            else:
+                lines.append("    return compute_{}_degree_{}_inflections(ctrl_pts, t0, t1);".format(
+                        poly_name, degree));
             if degree >= 5:
                 lines.append("#endif // HIGH_DEGREE_SUPPORT");
 
-            specialized_code += specialization_template.format(
-                    type=poly_name, body="\n".join(utils.indent(solver_lines)), degree=degree);
+            if is_rational:
+                specialized_code += specialization_rational_template.format(
+                        type=poly_name, body="\n".join(utils.indent(solver_lines)), degree=degree);
+            else:
+                specialized_code += specialization_template.format(
+                        type=poly_name, body="\n".join(utils.indent(solver_lines)), degree=degree);
 
         lines.append("default:")
         lines.append("    throw not_implemented_error(")
@@ -117,7 +148,10 @@ if __name__ == "__main__":
 
         body = "\n".join(utils.indent(utils.indent(lines)))
         code += specialized_code;
-        code += code_template.format(type=poly_name, body=body) + "\n\n"
+        if poly_name == "Bezier":
+            code += code_template.format(type=poly_name, body=body) + "\n\n"
+        else:
+            code += code_rational_template.format(type=poly_name, body=body) + "\n\n"
 
         code += code_template_footer
         dir_path = os.path.dirname(os.path.realpath(__file__))

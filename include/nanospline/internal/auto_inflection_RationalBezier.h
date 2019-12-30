@@ -14,17 +14,16 @@ namespace nanospline {
 namespace internal {
 
 
-template<typename CurveType>
-std::vector<typename CurveType::Scalar> compute_RationalBezier_degree_2_inflections(
-        const CurveType& curve,
-        typename CurveType::Scalar t0 = 0,
-        typename CurveType::Scalar t1 = 1) {
-    using Scalar = typename CurveType::Scalar;
+template<typename Derived, typename Derived2>
+std::vector<typename Derived::Scalar> compute_RationalBezier_degree_2_inflections(
+        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
+        const Eigen::PlainObjectBase<Derived2>& weights,
+        typename Derived::Scalar t0 = 0,
+        typename Derived::Scalar t1 = 1) {
+    using Scalar = typename Derived::Scalar;
     std::vector<Scalar> result;
     constexpr Scalar tol = 1e-8;
 
-    const auto& ctrl_pts = curve.get_control_points();
-    const auto& weights = curve.get_weights();
     Scalar cx0 = ctrl_pts(0, 0);
     Scalar cy0 = ctrl_pts(0, 1);
     Scalar w0 = weights(0);
@@ -47,17 +46,16 @@ std::vector<typename CurveType::Scalar> compute_RationalBezier_degree_2_inflecti
 }
 
 
-template<typename CurveType>
-std::vector<typename CurveType::Scalar> compute_RationalBezier_degree_3_inflections(
-        const CurveType& curve,
-        typename CurveType::Scalar t0 = 0,
-        typename CurveType::Scalar t1 = 1) {
-    using Scalar = typename CurveType::Scalar;
+template<typename Derived, typename Derived2>
+std::vector<typename Derived::Scalar> compute_RationalBezier_degree_3_inflections(
+        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
+        const Eigen::PlainObjectBase<Derived2>& weights,
+        typename Derived::Scalar t0 = 0,
+        typename Derived::Scalar t1 = 1) {
+    using Scalar = typename Derived::Scalar;
     std::vector<Scalar> result;
     constexpr Scalar tol = 1e-8;
 
-    const auto& ctrl_pts = curve.get_control_points();
-    const auto& weights = curve.get_weights();
     Scalar cx0 = ctrl_pts(0, 0);
     Scalar cy0 = ctrl_pts(0, 1);
     Scalar w0 = weights(0);
@@ -88,17 +86,16 @@ std::vector<typename CurveType::Scalar> compute_RationalBezier_degree_3_inflecti
 }
 
 
-template<typename CurveType>
-std::vector<typename CurveType::Scalar> compute_RationalBezier_degree_4_inflections(
-        const CurveType& curve,
-        typename CurveType::Scalar t0 = 0,
-        typename CurveType::Scalar t1 = 1) {
-    using Scalar = typename CurveType::Scalar;
+template<typename Derived, typename Derived2>
+std::vector<typename Derived::Scalar> compute_RationalBezier_degree_4_inflections(
+        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
+        const Eigen::PlainObjectBase<Derived2>& weights,
+        typename Derived::Scalar t0 = 0,
+        typename Derived::Scalar t1 = 1) {
+    using Scalar = typename Derived::Scalar;
     std::vector<Scalar> result;
     constexpr Scalar tol = 1e-8;
 
-    const auto& ctrl_pts = curve.get_control_points();
-    const auto& weights = curve.get_weights();
     Scalar cx0 = ctrl_pts(0, 0);
     Scalar cy0 = ctrl_pts(0, 1);
     Scalar w0 = weights(0);
@@ -137,26 +134,19 @@ std::vector<typename CurveType::Scalar> compute_RationalBezier_degree_4_inflecti
 }
 
 
-template<typename Scalar, int dim, int degree, bool generic,
-    template <typename, int, int, bool> class CurveType>
-std::vector<Scalar> compute_RationalBezier_inflections(
-        const CurveType<Scalar, dim, degree, generic>& curve,
-        Scalar t0 = 0, Scalar t1 = 1) {
-    throw not_implemented_error("Inflection computation is for 2D curves only");
-}
-
-template<typename Scalar, int _degree, bool generic,
-    template <typename, int, int, bool> class CurveType>
-std::vector<Scalar> compute_RationalBezier_inflections(
-        const CurveType<Scalar, 2, _degree, generic>& curve,
-        Scalar t0 = 0, Scalar t1 = 1) {
-    switch(curve.get_degree()) {
+template<typename Derived, typename Derived2>
+std::vector<typename Derived::Scalar> compute_RationalBezier_inflections(
+        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
+        const Eigen::PlainObjectBase<Derived2>& weights,
+        typename Derived::Scalar t0 = 0,
+        typename Derived::Scalar t1 = 1) {
+    switch(ctrl_pts.rows()-1) {
         case 2:
-            return compute_RationalBezier_degree_2_inflections(curve, t0, t1);
+            return compute_RationalBezier_degree_2_inflections(ctrl_pts, weights, t0, t1);
         case 3:
-            return compute_RationalBezier_degree_3_inflections(curve, t0, t1);
+            return compute_RationalBezier_degree_3_inflections(ctrl_pts, weights, t0, t1);
         case 4:
-            return compute_RationalBezier_degree_4_inflections(curve, t0, t1);
+            return compute_RationalBezier_degree_4_inflections(ctrl_pts, weights, t0, t1);
         default:
             throw not_implemented_error(
                 "Inflection computation only works on RationalBezier curve with degree lower than 4");

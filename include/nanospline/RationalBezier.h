@@ -62,7 +62,7 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
                 const Scalar lower,
                 const Scalar upper) const override final {
             auto res = internal::compute_RationalBezier_inflections(
-                    *this, lower, upper);
+                    Base::m_control_points, m_weights, lower, upper);
 
             std::sort(res.begin(), res.end());
             res.erase(std::unique(res.begin(), res.end()), res.end());

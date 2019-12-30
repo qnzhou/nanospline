@@ -61,10 +61,6 @@ def create_coeff_symbols(n_coeffs):
 
 def generate_solver_code(n_coeffs, coeffs, is_rational, poly, printer):
     lines = []
-    lines.append("const auto& ctrl_pts = curve.get_control_points();")
-
-    if is_rational:
-        lines.append("const auto& weights = curve.get_weights();")
 
     for i in range(n_coeffs):
         lines.append("Scalar cx{0} = ctrl_pts({0}, 0);".format(i))
