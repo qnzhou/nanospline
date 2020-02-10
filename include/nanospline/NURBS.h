@@ -109,6 +109,12 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             validate_initialization();
         }
 
+        virtual void write(std::ostream &out) const override {
+            out << "c:\n" << this->m_control_points << "\n";
+            out << "k:\n" << this->m_knots << "\n";
+            out << "w:\n" << m_weights << "\n";
+        }
+
     private:
         void validate_initialization() const {
             Base::validate_curve();

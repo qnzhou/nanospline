@@ -2,18 +2,18 @@
 
 #include <Eigen/Core>
 
-#include <nanospline/SplineBase.h>
+#include <nanospline/CurveBase.h>
 
 namespace nanospline {
 
 template<typename _Scalar, int _dim, int _degree, bool _generic>
-class BezierBase : public SplineBase<_Scalar, _dim> {
+class BezierBase : public CurveBase<_Scalar, _dim> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         static_assert(_dim > 0, "Dimension must be positive.");
         static_assert(_degree>=0 || _generic,
                 "Invalid degree for non-generic Bezier setting");
-        using Base = SplineBase<_Scalar, _dim>;
+        using Base = CurveBase<_Scalar, _dim>;
         using Scalar = _Scalar;
         using Point = Eigen::Matrix<Scalar, 1, _dim>;
         using ControlPoints = Eigen::Matrix<Scalar, _generic?Eigen::Dynamic:_degree+1, _dim>;
@@ -33,6 +33,13 @@ class BezierBase : public SplineBase<_Scalar, _dim> {
 
             return Base::approximate_inverse_evaluate(
                     p, num_samples, lower, upper, level);
+        }
+
+        virtual std::vector<Scalar> compute_inflections(
+                const Scalar lower,
+                const Scalar upper) const override {
+            throw not_implemented_error(
+                    "Inflection computation is not support for this curve type");
         }
 
     public:
@@ -60,6 +67,11 @@ class BezierBase : public SplineBase<_Scalar, _dim> {
 
         Scalar get_domain_upper_bound() const {
             return 1.0;
+        }
+
+
+        virtual void write(std::ostream &out) const override {
+            out << "c:\n" << m_control_points << "\n";
         }
 
     protected:

@@ -1,9 +1,12 @@
 #include <catch2/catch.hpp>
 #include <iostream>
 
-#include <nanospline/inflection.h>
+#include <nanospline/Bezier.h>
+#include <nanospline/RationalBezier.h>
 #include <nanospline/split.h>
 #include <nanospline/save_svg.h>
+
+#include "forward_declaration.h"
 
 TEST_CASE("inflection", "[inflection]") {
     using namespace nanospline;
@@ -16,9 +19,10 @@ TEST_CASE("inflection", "[inflection]") {
                        1.0, 1.0,
                        1.0, 0.0;
 
-        Bezier<Scalar, 2, 3> curve;
+        using Curve = Bezier<Scalar, 2, 3>;
+        Curve curve;
         curve.set_control_points(control_pts);
-        auto inflections = compute_inflections(curve);
+        auto inflections = curve.compute_inflections(0.0, 1.0);
 
         REQUIRE(inflections.size() == 0);
     }
@@ -30,9 +34,10 @@ TEST_CASE("inflection", "[inflection]") {
                        1.0,-1.0,
                        1.0, 0.0;
 
-        Bezier<Scalar, 2, 3> curve;
+        using Curve = Bezier<Scalar, 2, 3>;
+        Curve curve;
         curve.set_control_points(control_pts);
-        auto inflections = compute_inflections(curve);
+        auto inflections = curve.compute_inflections(0.0, 1.0);
 
         REQUIRE(inflections.size() == 1);
         REQUIRE(inflections[0] == Approx(0.5));
@@ -45,9 +50,10 @@ TEST_CASE("inflection", "[inflection]") {
                        0.99,-1.0,
                        1.0, 0.0;
 
-        Bezier<Scalar, 2, 3> curve;
+        using Curve = Bezier<Scalar, 2, 3>;
+        Curve curve;
         curve.set_control_points(control_pts);
-        auto inflections = compute_inflections(curve);
+        auto inflections = curve.compute_inflections(0.0, 1.0);
         REQUIRE(inflections.size() == 1);
         REQUIRE(inflections[0] == Approx(0.49874999));
         REQUIRE(inflections[0] < 0.5);
@@ -63,9 +69,10 @@ TEST_CASE("inflection", "[inflection]") {
                        0.0, 2.0,
                        1.0, 0.0;
 
-        Bezier<Scalar, 2, 3> curve;
+        using Curve = Bezier<Scalar, 2, 3>;
+        Curve curve;
         curve.set_control_points(control_pts);
-        auto inflections = compute_inflections(curve);
+        auto inflections = curve.compute_inflections(0.0, 1.0);
         REQUIRE(inflections.size() == 1);
         REQUIRE(inflections[0] == Approx(0.0));
 
@@ -80,9 +87,10 @@ TEST_CASE("inflection", "[inflection]") {
                        0.0, 2.0,
                        0.0, 3.0;
 
-        Bezier<Scalar, 2, 3> curve;
+        using Curve = Bezier<Scalar, 2, 3>;
+        Curve curve;
         curve.set_control_points(control_pts);
-        REQUIRE_THROWS(compute_inflections(curve));
+        REQUIRE_THROWS(curve.compute_inflections(0.0, 1.0));
     }
 
     SECTION("Quadratic Bezier") {
@@ -91,9 +99,10 @@ TEST_CASE("inflection", "[inflection]") {
                        1.0, 1.0,
                        0.0, 2.0;
 
-        Bezier<Scalar, 2, 2> curve;
+        using Curve = Bezier<Scalar, 2, 2>;
+        Curve curve;
         curve.set_control_points(control_pts);
-        auto inflections = compute_inflections(curve);
+        auto inflections = curve.compute_inflections(0.0, 1.0);
         REQUIRE(inflections.size() == 0);
     }
 
@@ -105,9 +114,10 @@ TEST_CASE("inflection", "[inflection]") {
                        1.0, 0.0,
                        2.0, 0.0;
 
-        Bezier<Scalar, 2, 4> curve;
+        using Curve = Bezier<Scalar, 2, 4>;
+        Curve curve;
         curve.set_control_points(control_pts);
-        auto inflections = compute_inflections(curve);
+        auto inflections = curve.compute_inflections(0.0, 1.0);
         REQUIRE(inflections.size() == 1);
 
         auto curvature = curve.evaluate_curvature(inflections[0]);
@@ -122,9 +132,10 @@ TEST_CASE("inflection", "[inflection]") {
                        3.0, 1.0,
                        4.0, 0.0;
 
-        Bezier<Scalar, 2, 4> curve;
+        using Curve = Bezier<Scalar, 2, 4>;
+        Curve curve;
         curve.set_control_points(control_pts);
-        auto inflections = compute_inflections(curve);
+        auto inflections = curve.compute_inflections(0.0, 1.0);
         REQUIRE(inflections.size() == 2);
 
         for (auto t : inflections) {
@@ -134,7 +145,8 @@ TEST_CASE("inflection", "[inflection]") {
     }
 
     SECTION("RationalBezier") {
-        RationalBezier<Scalar, 2, 3, true> curve;
+        using Curve = RationalBezier<Scalar, 2, 3, true>;
+        Curve curve;
 
         Eigen::Matrix<Scalar, 4, 2> control_pts;
         control_pts << 0.0, 0.0,
@@ -162,7 +174,7 @@ TEST_CASE("inflection", "[inflection]") {
         curve.set_weights(weights);
         curve.initialize();
         REQUIRE(curve.get_degree() == 3);
-        auto inflections = compute_inflections(curve, 1e-12, 1.0-1e-12);
+        auto inflections = curve.compute_inflections(1e-12, 1.0-1e-12);
 
         CHECK(inflections.size() == expected_num_inflections);
         for (auto t : inflections) {
@@ -172,7 +184,8 @@ TEST_CASE("inflection", "[inflection]") {
     }
 
     SECTION("RationalBezier quartic") {
-        RationalBezier<Scalar, 2, 4, true> curve;
+        using Curve = RationalBezier<Scalar, 2, 4, true>;
+        Curve curve;
 
         Eigen::Matrix<Scalar, 5, 2> control_pts;
         control_pts << 0.0, 0.0,
@@ -191,13 +204,13 @@ TEST_CASE("inflection", "[inflection]") {
         }
         SECTION("Non-uniform weights") {
             weights << 1.0, 10.0, 1.0, 10.0, 1.0;
-            expected_num_inflections = 2;
+            expected_num_inflections = 1;
         }
 
         curve.set_weights(weights);
         curve.initialize();
         REQUIRE(curve.get_degree() == 4);
-        auto inflections = compute_inflections(curve, 1e-12, 1.0-1e-12);
+        auto inflections = curve.compute_inflections(1e-12, 1.0-1e-12);
 
         CHECK(inflections.size() == expected_num_inflections);
         for (auto t : inflections) {

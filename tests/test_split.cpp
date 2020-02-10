@@ -2,6 +2,7 @@
 
 #include <nanospline/split.h>
 #include <nanospline/save_svg.h>
+#include "forward_declaration.h"
 #include "validation_utils.h"
 
 TEST_CASE("split", "[split]") {
@@ -178,7 +179,7 @@ TEST_CASE("split", "[split]") {
         curve.set_knots(knots);
         curve.set_weights(weights);
         curve.initialize();
-        //save_svg("test.svg", curve);
+        // save_svg("test.svg", curve);
 
         Scalar split_location = 0.0;
         SECTION("Beginning") {

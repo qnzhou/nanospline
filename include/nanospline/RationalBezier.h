@@ -5,6 +5,7 @@
 #include <nanospline/Exceptions.h>
 #include <nanospline/BezierBase.h>
 #include <nanospline/Bezier.h>
+#include <nanospline/internal/auto_inflection_RationalBezier.h>
 
 namespace nanospline {
 
@@ -57,6 +58,18 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
                     - d2[_dim] * c0 - 2 * d1[_dim] * c1) / p0[_dim];
         }
 
+        virtual std::vector<Scalar> compute_inflections(
+                const Scalar lower,
+                const Scalar upper) const override final {
+            auto res = internal::compute_RationalBezier_inflections(
+                    Base::m_control_points, m_weights, lower, upper);
+
+            std::sort(res.begin(), res.end());
+            res.erase(std::unique(res.begin(), res.end()), res.end());
+
+            return res;
+        }
+
     public:
         void initialize() {
             typename BezierHomogeneous::ControlPoints ctrl_pts(
@@ -93,6 +106,11 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
             Base::m_control_points =
                 ctrl_pts.template leftCols<_dim>().array().colwise()
                 / m_weights.array();
+        }
+
+        virtual void write(std::ostream &out) const override {
+            out << "c:\n" << this->m_control_points << "\n";
+            out << "w:\n" << m_weights << "\n";
         }
 
     private:

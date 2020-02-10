@@ -3,6 +3,8 @@ SET(CMAKE_CXX_STANDARD 14)
 
 PROJECT(nanospline)
 
+OPTION(HIGH_DEGREE_SUPPORT, "With high degree polynomial solver support" OFF)
+
 FIND_PACKAGE(Eigen3)
 IF (NOT TARGET Eigen3::Eigen)
     ADD_LIBRARY(Eigen3::Eigen INTERFACE IMPORTED)
@@ -18,6 +20,12 @@ ADD_EXECUTABLE(nanospline_test ${SRC_FILES} ${INC_FILES})
 TARGET_LINK_LIBRARIES(nanospline_test Catch2::Catch2 Eigen3::Eigen)
 TARGET_INCLUDE_DIRECTORIES(nanospline_test PRIVATE
     ${PROJECT_SOURCE_DIR}/include)
+
+IF (HIGH_DEGREE_SUPPORT)
+    TARGET_COMPILE_DEFINITIONS(nanospline_test PRIVATE
+        -DHIGH_DEGREE_SUPPORT)
+ENDIF()
+
 IF(NOT MSVC)
     TARGET_COMPILE_OPTIONS(nanospline_test PRIVATE
         -Wconversion -Wall -Werror)

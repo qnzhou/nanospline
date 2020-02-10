@@ -3,18 +3,18 @@
 #include <Eigen/Core>
 #include <iostream>
 
-#include <nanospline/SplineBase.h>
+#include <nanospline/CurveBase.h>
 
 namespace nanospline {
 
 template<typename _Scalar, int _dim, int _degree, bool _generic>
-class BSplineBase : public SplineBase<_Scalar, _dim> {
+class BSplineBase : public CurveBase<_Scalar, _dim> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         static_assert(_dim > 0, "Dimension must be positive.");
         static_assert(_degree>=0 || _generic,
                 "Invalid degree for non-generic B-spline setting");
-        using Base = SplineBase<_Scalar, _dim>;
+        using Base = CurveBase<_Scalar, _dim>;
         using Scalar = _Scalar;
         using Point = Eigen::Matrix<Scalar, 1, _dim>;
         using ControlPoints = Eigen::Matrix<Scalar, Eigen::Dynamic, _dim>;
@@ -74,6 +74,13 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
                         std::min(upper, min_t+min_delta),
                         level-1);
             }
+        }
+
+        virtual std::vector<Scalar> compute_inflections(
+                const Scalar lower=0.0,
+                const Scalar upper=1.0) const override {
+            throw not_implemented_error(
+                    "Inflection computation is not support for this curve type");
         }
 
         virtual void insert_knot(Scalar t, int num_copies=1) {
@@ -231,6 +238,11 @@ class BSplineBase : public SplineBase<_Scalar, _dim> {
             const int p = get_degree();
             const int num_knots = static_cast<int>(m_knots.rows());
             return m_knots[num_knots-p-1];
+        }
+
+        virtual void write(std::ostream &out) const override {
+            out << "c:\n" << m_control_points << "\n";
+            out << "k:\n" << m_knots << "\n";
         }
 
     protected:
