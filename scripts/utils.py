@@ -1,6 +1,9 @@
-from sympy import *
+from sympy import symbols
 from scipy.special import comb
 import numpy as np
+
+def indent(lines):
+    return ["    {}".format(l) for l in lines];
 
 def bezier(degree, t, rational, syms):
     tot = 0
@@ -56,18 +59,8 @@ def create_coeff_symbols(n_coeffs):
     return syms
 
 
-def generate_solver_code(n_coeffs, coeffs, is_rational, poly, printer):
+def generate_solver_code(coeffs, poly, printer):
     lines = []
-    lines.append("const auto& ctrl_pts = curve.get_control_points();")
-
-    if is_rational:
-        lines.append("const auto& weights = curve.get_weights();")
-
-    for i in range(n_coeffs):
-        lines.append("Scalar cx{0} = ctrl_pts({0}, 0);".format(i))
-        lines.append("Scalar cy{0} = ctrl_pts({0}, 1);".format(i))
-        if is_rational:
-            lines.append("Scalar w{0} = weights({0});".format(i))
 
     lines.append(
         "PolynomialRootFinder<Scalar, {}>::find_real_roots_in_interval({{".format(poly.degree()))

@@ -3,19 +3,21 @@
 #include <cassert>
 #include <cmath>
 #include <limits>
+#include <vector>
+#include <memory>
 
 #include <Eigen/Core>
 
 namespace nanospline {
 
 template<typename _Scalar, int _dim>
-class SplineBase {
+class CurveBase {
     public:
         using Scalar = _Scalar;
         using Point = Eigen::Matrix<Scalar, 1, _dim>;
 
     public:
-        virtual ~SplineBase()=default;
+        virtual ~CurveBase()=default;
         virtual Point evaluate(Scalar t) const =0;
         virtual Scalar inverse_evaluate(const Point& p) const =0;
         virtual Point evaluate_derivative(Scalar t) const =0;
@@ -26,10 +28,14 @@ class SplineBase {
                 const Scalar upper=1.0,
                 const int level=3) const =0;
 
+        virtual std::vector<Scalar> compute_inflections(
+                const Scalar lower=0.0,
+                const Scalar upper=1.0) const =0;
+
         virtual void write(std::ostream &out) const =0;
 
-        friend std::ostream &operator<<(std::ostream &out, const SplineBase &c) { c.wirte(out); return out; }
-        virtual std::shared_ptr<SplineBase> simplify(Scalar eps) const { return nullptr; }
+        friend std::ostream &operator<<(std::ostream &out, const CurveBase &c) { c.wirte(out); return out; }
+        virtual std::shared_ptr<CurveBase> simplify(Scalar eps) const { return nullptr; }
         // virtual bool is_point() const = 0;
 
         Scalar get_turning_angle(Scalar t0, Scalar t1) const
