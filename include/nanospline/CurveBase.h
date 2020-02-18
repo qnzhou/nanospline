@@ -38,25 +38,7 @@ class CurveBase {
         virtual std::shared_ptr<CurveBase> simplify(Scalar eps) const { return nullptr; }
         // virtual bool is_point() const = 0;
 
-        Scalar get_turning_angle(Scalar t0, Scalar t1) const
-        {
-            using std::acos;
 
-            Point n0 = evaluate_derivative(t0);
-            n0.normalize();
-            Point n1 = eval_first_derivative(t1);
-            n1.normalize();
-
-            Scalar cos_a = n0.dot(n1);
-            if (cos_a > 1)
-                cos_a = 1;
-            if (cos_a < -1)
-                cos_a = -1;
-
-            const Scalar angle = acos(cos_a);
-
-            return angle;
-        }
 
     public:
         Point evaluate_curvature(Scalar t) const {
@@ -69,6 +51,26 @@ class CurveBase {
             } else {
                 return (d2 - d1 * (d1.dot(d2)) / sq_speed) / sq_speed;
             }
+        }
+
+        Scalar get_turning_angle(Scalar t0, Scalar t1) const
+        {
+            using std::acos;
+
+            Point n0 = evaluate_derivative(t0);
+            n0.normalize();
+            Point n1 = evaluate_derivative(t1);
+            n1.normalize();
+
+            Scalar cos_a = n0.dot(n1);
+            if (cos_a > 1)
+                cos_a = 1;
+            if (cos_a < -1)
+                cos_a = -1;
+
+            const Scalar angle = acos(cos_a);
+
+            return angle;
         }
 
     protected:
