@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include <nanospline/RationalBezier.h>
+#include <nanospline/save_svg.h>
 #include "forward_declaration.h"
 #include "validation_utils.h"
 
@@ -184,7 +185,7 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             control_pts << 0.5 * sqrt(3) * R, 1.5*R,
                            0.0, 3*R,
                           -0.5 * sqrt(3) * R, 1.5*R;
-                            
+
             curve.set_control_points(control_pts);
 
             Eigen::Matrix<Scalar, 3, 1> weights;
