@@ -11,7 +11,7 @@
 namespace nanospline {
 
 template<typename Scalar, int dim, int degree, bool generic>
-auto split(const Bezier<Scalar, dim, degree, generic>& curve, Scalar t) {
+std::vector<Bezier<Scalar, dim, degree, generic>> split(const Bezier<Scalar, dim, degree, generic>& curve, Scalar t) {
     using CurveType = Bezier<Scalar, dim, degree, generic>;
     auto ctrl_pts = curve.get_control_points();
     const auto d = curve.get_degree();
@@ -35,7 +35,7 @@ auto split(const Bezier<Scalar, dim, degree, generic>& curve, Scalar t) {
 }
 
 template<typename Scalar, int dim, int degree, bool generic>
-auto split(const RationalBezier<Scalar, dim, degree, generic>& curve, Scalar t) {
+std::vector<RationalBezier<Scalar, dim, degree, generic>> split(const RationalBezier<Scalar, dim, degree, generic>& curve, Scalar t) {
     using CurveType = RationalBezier<Scalar, dim, degree, generic>;
     const auto homogeneous = curve.get_homogeneous();
     const auto parts = split(homogeneous, t);
@@ -47,7 +47,7 @@ auto split(const RationalBezier<Scalar, dim, degree, generic>& curve, Scalar t) 
 
 
 template<typename Scalar, int dim, int degree, bool generic>
-auto split(BSpline<Scalar, dim, degree, generic> curve, Scalar t) {
+std::vector<BSpline<Scalar, dim, degree, generic>> split(BSpline<Scalar, dim, degree, generic> curve, Scalar t) {
     using CurveType = BSpline<Scalar, dim, degree, generic>;
     if(!curve.in_domain(t)) {
         throw invalid_setting_error("Parameter not inside of the domain.");
@@ -100,7 +100,7 @@ auto split(BSpline<Scalar, dim, degree, generic> curve, Scalar t) {
 }
 
 template<typename Scalar, int dim, int degree, bool generic>
-auto split(NURBS<Scalar, dim, degree, generic> curve, Scalar t) {
+std::vector<NURBS<Scalar, dim, degree, generic>> split(NURBS<Scalar, dim, degree, generic> curve, Scalar t) {
     using CurveType = NURBS<Scalar, dim, degree, generic>;
     const auto& homogeneous = curve.get_homogeneous();
     const auto parts = split(homogeneous, t);
