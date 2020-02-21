@@ -6,6 +6,7 @@
 #include <nanospline/Exceptions.h>
 #include <nanospline/BSplineBase.h>
 #include <nanospline/BSpline.h>
+#include <nanospline/RationalBezier.h>
 
 namespace nanospline {
 
@@ -66,6 +67,30 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             m_weights = ctrl_pts.col(_dim);
             Base::m_control_points = ctrl_pts.leftCols(_dim).array().colwise() / m_weights.array();
             Base::m_knots = m_bspline_homogeneous.get_knots();
+        }
+
+        std::tuple<std::vector<RationalBezier<Scalar, _dim, _degree, _generic>>, std::vector<Scalar>>
+        convert_to_RationalBezier() const {
+            const auto& homogeneous_bspline = get_homogeneous();
+            const auto out =
+                homogeneous_bspline.convert_to_Bezier();
+            const auto& homogeneous_beziers = std::get<0>(out);
+            const auto& parameter_bounds = std::get<1>(out);
+
+            const auto num_segments = homogeneous_beziers.size();
+
+            using CurveType = RationalBezier<Scalar, _dim, _degree, _generic>;
+            std::vector<CurveType> segments;
+            segments.reserve(num_segments);
+
+            for (size_t i=0; i<num_segments; i++) {
+                const auto& homogeneous_segment = homogeneous_beziers[i];
+                CurveType segment;
+                segment.set_homogeneous(homogeneous_segment);
+                segments.push_back(segment);
+            }
+
+            return {segments, parameter_bounds};
         }
 
     public:

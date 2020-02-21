@@ -53,6 +53,12 @@ RationalBezier<Scalar, dim, degree, generic> convert_to_RationalBezier(
     return out_curve;
 }
 
+template<typename Scalar, int dim, int degree, bool generic>
+std::vector<RationalBezier<Scalar, dim, degree, generic>> convert_to_RationalBezier(
+        const NURBS<Scalar, dim, degree, generic>& curve) {
+    return std::get<0>(curve.convert_to_RationalBezier());
+}
+
 /**
  * Convert Rational Bézier curve to Bézier curve if possible.
  */
