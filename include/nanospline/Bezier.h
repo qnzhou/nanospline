@@ -50,7 +50,7 @@ class Bezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
             }
         }
 
-        virtual std::vector<Scalar> compute_inflections(
+        std::vector<Scalar> compute_inflections (
                 const Scalar lower,
                 const Scalar upper) const override final {
             auto res = nanospline::internal::compute_Bezier_inflections(

@@ -58,7 +58,7 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
                     - d2[_dim] * c0 - 2 * d1[_dim] * c1) / p0[_dim];
         }
 
-        virtual std::vector<Scalar> compute_inflections(
+        std::vector<Scalar> compute_inflections (
                 const Scalar lower,
                 const Scalar upper) const override final {
             auto res = internal::compute_RationalBezier_inflections(
