@@ -662,4 +662,75 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
         }
 
     }
+
+    SECTION("Inflection") {
+        SECTION("Compare with Bezier") {
+            Eigen::Matrix<Scalar, 4, 2> ctrl_pts;
+            ctrl_pts << 0.0, 0.0,
+                        1.0, 1.0,
+                        2.0,-1.0,
+                        3.0, 0.0;
+            Eigen::Matrix<Scalar, 8, 1> knots;
+            knots << 0, 0, 0, 0, 2, 2, 2, 2;
+
+            BSpline<Scalar, 2, 3> curve;
+            curve.set_control_points(ctrl_pts);
+            curve.set_knots(knots);
+
+            auto k = curve.evaluate_curvature(1.0).norm();
+            REQUIRE(k == Approx(0).margin(1e-6));
+
+            SECTION("Simple") {
+                auto inflections = curve.compute_inflections(0, 2);
+                REQUIRE(inflections.size() == 1);
+                REQUIRE(inflections[0] == Approx(1.0));
+            }
+
+            SECTION("Inflection at knot value") {
+                // Add a knot at the inflection point should not change anything.
+                curve.insert_knot(1.0);
+                auto inflections = curve.compute_inflections(0, 2);
+                REQUIRE(inflections.size() == 1);
+                REQUIRE(inflections[0] == Approx(1.0));
+            }
+
+            SECTION("Narrower range") {
+                auto inflections = curve.compute_inflections(0.9, 1.1);
+                REQUIRE(inflections.size() == 1);
+                REQUIRE(inflections[0] == Approx(1.0));
+            }
+
+            SECTION("Inflection at boundary of the range") {
+                auto inflections = curve.compute_inflections(0.0, 1.0);
+                REQUIRE(inflections.size() == 1);
+                REQUIRE(inflections[0] == Approx(1.0));
+
+                inflections = curve.compute_inflections(1.0, 2.0);
+                REQUIRE(inflections.size() == 1);
+                REQUIRE(inflections[0] == Approx(1.0));
+            }
+        }
+
+        SECTION("Closed curve") {
+            Eigen::Matrix<Scalar, 14, 2> ctrl_pts;
+            ctrl_pts << 1, 4, .5, 6, 5, 4, 3, 12, 11, 14, 8, 4, 12, 3, 11, 9, 15, 10, 17, 8,
+                     1, 4, .5, 6, 5, 4, 3, 12 ;
+            Eigen::Matrix<Scalar, 18, 1> knots;
+            knots << 0.0/17, 1.0/17, 2.0/17, 3.0/17, 4.0/17, 5.0/17, 6.0/17, 7.0/17,
+                  8.0/17, 9.0/17, 10.0/17, 11.0/17, 12.0/17, 13.0/17, 14.0/17, 15.0/17,
+                  16.0/17, 17.0/17;
+
+            BSpline<Scalar, 2, 3, true> curve;
+            curve.set_control_points(ctrl_pts);
+            curve.set_knots(knots);
+
+            auto inflections = curve.compute_inflections(
+                    knots.minCoeff(), knots.maxCoeff());
+            for (auto t : inflections) {
+                auto k = curve.evaluate_curvature(t).norm();
+                REQUIRE(k == Approx(0).margin(1e-6));
+            }
+        }
+
+    }
 }

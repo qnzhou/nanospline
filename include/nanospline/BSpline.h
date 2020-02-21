@@ -114,7 +114,8 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             return ctrl_pts.row(p-2);
         }
 
-        std::vector<Bezier<Scalar, _dim, _degree, _generic>> convert_to_Bezier() const {
+        std::tuple<std::vector<Bezier<Scalar, _dim, _degree, _generic>>, std::vector<Scalar>>
+        convert_to_Bezier() const {
             const int d = Base::get_degree();
             const auto t_min = Base::get_domain_lower_bound();
             const auto t_max = Base::get_domain_upper_bound();
@@ -158,6 +159,9 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             const auto& knots = curve.get_knots();
             const auto m = knots.size();
             Scalar curr_t = t_min;
+            std::vector<Scalar> parameter_bounds;
+            parameter_bounds.reserve(static_cast<size_t>(m+1));
+            parameter_bounds.push_back(t_min);
             for (int i=0; i<m; i++) {
                 if (knots[i] <= curr_t) continue;
                 if (knots[i] > t_max) break;
@@ -168,15 +172,49 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
                 CurveType segment;
                 segment.set_control_points(std::move(local_ctrl_pts));
                 segments.push_back(segment);
+                parameter_bounds.push_back(curr_t);
             }
 
-            return segments;
+            return {segments, parameter_bounds};
         }
 
         std::vector<Scalar> compute_inflections (
                 const Scalar lower,
                 const Scalar upper) const override {
-            return {};
+            using CurveType = Bezier<Scalar, _dim, _degree, _generic>;
+            std::vector<CurveType> beziers;
+            std::vector<Scalar> parameter_bounds;
+            std::tie(beziers, parameter_bounds) = convert_to_Bezier();
+            assert(parameter_bounds.size() == beziers.size() + 1);
+
+            std::vector<Scalar> res;
+            res.reserve(static_cast<size_t>(Base::get_degree()));
+
+            const size_t num_beziers = beziers.size();
+            for (size_t idx=0; idx < num_beziers; idx++) {
+                const auto t_min = parameter_bounds[idx];
+                const auto t_max = parameter_bounds[idx+1];
+                if (t_max < lower || t_min > upper) {
+                    continue;
+                }
+
+                Scalar normalized_lower = (lower - t_min) / (t_max - t_min);
+                Scalar normalized_upper = (upper - t_min) / (t_max - t_min);
+                normalized_lower = std::max<Scalar>(normalized_lower, 0);
+                normalized_upper = std::min<Scalar>(normalized_upper, 1);
+
+                const auto& curve = beziers[idx];
+                auto inflections = curve.compute_inflections(
+                        normalized_lower, normalized_upper);
+                for (auto t : inflections) {
+                    res.push_back(t * (t_max-t_min) + t_min);
+                }
+            }
+
+            std::sort(res.begin(), res.end());
+            res.erase(std::unique(res.begin(), res.end()), res.end());
+
+            return res;
         }
 
     private:

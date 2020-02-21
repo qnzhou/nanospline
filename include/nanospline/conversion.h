@@ -14,7 +14,7 @@ namespace nanospline {
 template <typename Scalar, int dim, int degree, bool generic>
 std::vector<Bezier<Scalar, dim, degree, generic>> convert_to_Bezier(
         BSpline<Scalar, dim, degree, generic>& curve) {
-    return curve.convert_to_Bezier();
+    return std::get<0>(curve.convert_to_Bezier());
 }
 
 /**
