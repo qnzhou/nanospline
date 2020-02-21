@@ -214,5 +214,56 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
                 REQUIRE(k.norm() == Approx(1.0/R));
             }
         }
+
+        SECTION("Debug for Yixin") {
+            Eigen::Matrix<Scalar, 3, 2> ctrl_pts[4];
+            ctrl_pts[0] << 251.49155000000002, 185.0696,
+                        272.02322999999996, 188.40176,
+                        275.35539, 167.87008;
+
+            ctrl_pts[1] << 275.35539, 167.87008,
+                        278.68754999999993, 147.3384,
+                        258.15587, 144.00624000000002;
+
+            ctrl_pts[2] << 258.15587, 144.00624000000002,
+                        237.62418973609834, 140.6740795131014,
+                        234.29202964246906, 161.20575991329454;
+
+            ctrl_pts[3] << 234.29202964246906, 161.20575991329454,
+                        230.95986954883978, 181.73744031348764,
+                        251.49155000000002, 185.0696;
+            Eigen::Matrix<Scalar, 3, 1> weights;
+            weights << 1.0, 0.7071067742171676, 1.0;
+
+            std::vector<RationalBezier<Scalar, 2, 2>> arcs(4);
+            arcs[0].set_control_points(ctrl_pts[0]);
+            arcs[1].set_control_points(ctrl_pts[1]);
+            arcs[2].set_control_points(ctrl_pts[2]);
+            arcs[3].set_control_points(ctrl_pts[3]);
+
+            arcs[0].set_weights(weights);
+            arcs[1].set_weights(weights);
+            arcs[2].set_weights(weights);
+            arcs[3].set_weights(weights);
+
+            arcs[0].initialize();
+            arcs[1].initialize();
+            arcs[2].initialize();
+            arcs[3].initialize();
+
+            Scalar last = 0;
+            Eigen::Matrix<Scalar, 2, 1> center;
+            for (const auto& curve : arcs) {
+                auto k = curve.evaluate_curvature(0.5);
+                if (last == 0) {
+                    last = k.norm();
+                    center = curve.evaluate(0.5) + k / k.squaredNorm();
+                } else {
+                    REQUIRE(last == Approx(k.norm()));
+                    Eigen::Matrix<Scalar, 2, 1> c = curve.evaluate(0.5) + k / k.squaredNorm();
+                    REQUIRE((c-center).norm() == Approx(0).margin(1e-6));
+                }
+            }
+        }
     }
 }
