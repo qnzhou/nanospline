@@ -13,62 +13,8 @@ namespace nanospline {
  */
 template <typename Scalar, int dim, int degree, bool generic>
 std::vector<Bezier<Scalar, dim, degree, generic>> convert_to_Bezier(
-        BSpline<Scalar, dim, degree, generic> curve) {
-    const int d = curve.get_degree();
-    const auto t_min = curve.get_domain_lower_bound();
-    const auto t_max = curve.get_domain_upper_bound();
-
-    {
-        // Insert more knots such that all internal knots has multiplicity d.
-        const auto knots = curve.get_knots(); // Copy on purpose
-        const auto m = knots.size();
-
-        {
-            // Add multiplicity in end points first.
-            // This ensures BSpline loops are handled correctly.
-            const auto k_start = curve.locate_span(t_min);
-            const auto k_end = curve.locate_span(t_max);
-            const auto s_start = curve.get_multiplicity(k_start);
-            const auto s_end = curve.get_multiplicity(k_end+1);
-            if (d > s_start) {
-                curve.insert_knot(t_min, d-s_start);
-            }
-            if (d > s_end) {
-                curve.insert_knot(t_max, d-s_end);
-            }
-        }
-
-        for (int i=0; i<m; i++) {
-            if (knots[i] <= t_min) continue;
-            if (knots[i] >= t_max) break;
-
-            const int k = curve.locate_span(knots[i]);
-            const int s = curve.get_multiplicity(k);
-            if (d > s) {
-                curve.insert_knot(knots[i], d-s);
-            }
-        }
-    }
-
-    using CurveType = Bezier<Scalar, dim, degree, generic>;
-    std::vector<CurveType> segments;
-    const auto& ctrl_pts = curve.get_control_points();
-    const auto& knots = curve.get_knots();
-    const auto m = knots.size();
-    Scalar curr_t = t_min;
-    for (int i=0; i<m; i++) {
-        if (knots[i] <= curr_t) continue;
-        if (knots[i] > t_max) break;
-        curr_t = knots[i];
-
-        typename CurveType::ControlPoints local_ctrl_pts(d+1, dim);
-        local_ctrl_pts = ctrl_pts.block(i-d-1, 0, d+1, dim);
-        CurveType segment;
-        segment.set_control_points(std::move(local_ctrl_pts));
-        segments.push_back(segment);
-    }
-
-    return segments;
+        BSpline<Scalar, dim, degree, generic>& curve) {
+    return std::get<0>(curve.convert_to_Bezier());
 }
 
 /**
@@ -105,6 +51,12 @@ RationalBezier<Scalar, dim, degree, generic> convert_to_RationalBezier(
     out_curve.initialize();
 
     return out_curve;
+}
+
+template<typename Scalar, int dim, int degree, bool generic>
+std::vector<RationalBezier<Scalar, dim, degree, generic>> convert_to_RationalBezier(
+        const NURBS<Scalar, dim, degree, generic>& curve) {
+    return std::get<0>(curve.convert_to_RationalBezier());
 }
 
 /**

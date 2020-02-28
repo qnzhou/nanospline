@@ -6,6 +6,7 @@
 #include <nanospline/Exceptions.h>
 #include <nanospline/BSplineBase.h>
 #include <nanospline/BSpline.h>
+#include <nanospline/RationalBezier.h>
 
 namespace nanospline {
 
@@ -66,6 +67,68 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             m_weights = ctrl_pts.col(_dim);
             Base::m_control_points = ctrl_pts.leftCols(_dim).array().colwise() / m_weights.array();
             Base::m_knots = m_bspline_homogeneous.get_knots();
+        }
+
+        std::tuple<std::vector<RationalBezier<Scalar, _dim, _degree, _generic>>, std::vector<Scalar>>
+        convert_to_RationalBezier() const {
+            const auto& homogeneous_bspline = get_homogeneous();
+            const auto out =
+                homogeneous_bspline.convert_to_Bezier();
+            const auto& homogeneous_beziers = std::get<0>(out);
+            const auto& parameter_bounds = std::get<1>(out);
+
+            const auto num_segments = homogeneous_beziers.size();
+
+            using CurveType = RationalBezier<Scalar, _dim, _degree, _generic>;
+            std::vector<CurveType> segments;
+            segments.reserve(num_segments);
+
+            for (size_t i=0; i<num_segments; i++) {
+                const auto& homogeneous_segment = homogeneous_beziers[i];
+                CurveType segment;
+                segment.set_homogeneous(homogeneous_segment);
+                segments.push_back(segment);
+            }
+
+            return {segments, parameter_bounds};
+        }
+
+        std::vector<Scalar> compute_inflections (
+                const Scalar lower,
+                const Scalar upper) const override final {
+            std::vector<RationalBezier<Scalar, _dim, _degree, _generic>> segments;
+            std::vector<Scalar> parameter_bounds;
+            std::tie(segments, parameter_bounds) = convert_to_RationalBezier();
+            assert(segments.size()+1 == parameter_bounds.size());
+
+            std::vector<Scalar> res;
+            res.reserve(static_cast<size_t>(Base::get_degree()));
+
+            const size_t num_segments = segments.size();
+            for (size_t idx=0; idx<num_segments; idx++) {
+                const auto t_min = parameter_bounds[idx];
+                const auto t_max = parameter_bounds[idx+1];
+                if (t_max < lower || t_min > upper) {
+                    continue;
+                }
+
+                Scalar normalized_lower = (lower - t_min) / (t_max - t_min);
+                Scalar normalized_upper = (upper - t_min) / (t_max - t_min);
+                normalized_lower = std::max<Scalar>(normalized_lower, 0);
+                normalized_upper = std::min<Scalar>(normalized_upper, 1);
+
+                const auto& curve = segments[idx];
+                auto inflections = curve.compute_inflections(
+                        normalized_lower, normalized_upper);
+                for (auto t : inflections) {
+                    res.push_back(t * (t_max-t_min) + t_min);
+                }
+            }
+
+            std::sort(res.begin(), res.end());
+            res.erase(std::unique(res.begin(), res.end()), res.end());
+
+            return res;
         }
 
     public:

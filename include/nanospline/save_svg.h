@@ -54,7 +54,6 @@ void save_svg(const std::string& filename,
     for (const auto& curve : curves) {
         const auto& control_points = curve.get_control_points();
         assert(control_points.cols() == 2);
-        const auto num_control_points = control_points.rows();
         const auto curr_bbox_min = control_points.colwise().minCoeff().eval();
         const auto curr_bbox_max = control_points.colwise().maxCoeff().eval();
         bbox_min = bbox_min.array().min(curr_bbox_min.array());

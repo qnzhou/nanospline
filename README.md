@@ -245,7 +245,7 @@ auto halves = nanospline::split(curve, t);
 
 ### Inflection
 
-Nanospline also supports computing 2D Bézier and rational Bézier inflection
+Nanospline also supports computing 2D curve inflection
 points, i.e. points with zero curvature.
 
 ```c++
@@ -292,6 +292,14 @@ To convert a BSpline into NURBS curve:
 #include <nanospline/conversion.h>
 
 auto nurbs = nanospline::convert_to_nurbs(bspline);
+```
+
+To convert a NURBS curve into a number of rational Bézier curves:
+
+```c++
+#include <nanospline/conversion.h>
+
+auto rationa_beizers = nanospline::convert_to_RationalBezier(nurbs);
 ```
 
 It is sometimes possible to convert a rational Bézier curve into a plane Bézier

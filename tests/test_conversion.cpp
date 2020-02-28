@@ -92,4 +92,32 @@ TEST_CASE("conversion", "[conversion]") {
         auto bspline = convert_to_BSpline(bezier);
         assert_same(curve, bspline, 10);
     }
+
+    SECTION("NURBS to RationalBezier") {
+        Eigen::Matrix<Scalar, 4, 2> ctrl_pts;
+        ctrl_pts << 0.0, 0.0,
+                    1.0, 1.0,
+                    2.0,-1.0,
+                    3.0, 0.0;
+        Eigen::Matrix<Scalar, 8, 1> knots;
+        knots << 0.0, 0.0, 0.0, 0.0, 2.0, 3.0, 4.0, 5.0;
+        Eigen::Matrix<Scalar, 4, 1> weights;
+        weights << 1.0, 1.0, 2.0, 1.0;
+
+        NURBS<Scalar, 2, 3> curve;
+        curve.set_control_points(ctrl_pts);
+        curve.set_knots(knots);
+        curve.set_weights(weights);
+        curve.initialize();
+
+        auto r = curve.convert_to_RationalBezier();
+        const auto& rational_beziers = std::get<0>(r);
+        const auto& parameter_bounds = std::get<1>(r);
+        const auto num_segments = rational_beziers.size();
+
+        for (size_t i=0; i<num_segments; i++) {
+            assert_same(curve, rational_beziers[i], 10,
+                    parameter_bounds[i], parameter_bounds[i+1], 0, 1);
+        }
+    }
 }

@@ -1,9 +1,12 @@
 #pragma once
 
+#include <vector>
+
 #include <Eigen/Core>
 
 #include <nanospline/Exceptions.h>
 #include <nanospline/BSplineBase.h>
+#include <nanospline/Bezier.h>
 
 namespace nanospline {
 
@@ -109,6 +112,109 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
 
             deBoor(t, p-2, k, ctrl_pts);
             return ctrl_pts.row(p-2);
+        }
+
+        std::tuple<std::vector<Bezier<Scalar, _dim, _degree, _generic>>, std::vector<Scalar>>
+        convert_to_Bezier() const {
+            const int d = Base::get_degree();
+            const auto t_min = Base::get_domain_lower_bound();
+            const auto t_max = Base::get_domain_upper_bound();
+
+            BSpline<Scalar, _dim, _degree, _generic> curve = *this;
+            {
+                // Insert more knots such that all internal knots has multiplicity d.
+                const auto& knots = Base::get_knots();
+                const auto m = knots.size();
+
+                {
+                    // Add multiplicity in end points first.
+                    // This ensures BSpline loops are handled correctly.
+                    const auto k_start = curve.locate_span(t_min);
+                    const auto k_end = curve.locate_span(t_max);
+                    const auto s_start = curve.get_multiplicity(k_start);
+                    const auto s_end = curve.get_multiplicity(k_end+1);
+                    if (d > s_start) {
+                        curve.insert_knot(t_min, d-s_start);
+                    }
+                    if (d > s_end) {
+                        curve.insert_knot(t_max, d-s_end);
+                    }
+                }
+
+                for (int i=0; i<m; i++) {
+                    if (knots[i] <= t_min) continue;
+                    if (knots[i] >= t_max) break;
+
+                    const int k = curve.locate_span(knots[i]);
+                    const int s = curve.get_multiplicity(k);
+                    if (d > s) {
+                        curve.insert_knot(knots[i], d-s);
+                    }
+                }
+            }
+
+            using CurveType = Bezier<Scalar, _dim, _degree, _generic>;
+            std::vector<CurveType> segments;
+            const auto& ctrl_pts = curve.get_control_points();
+            const auto& knots = curve.get_knots();
+            const auto m = knots.size();
+            Scalar curr_t = t_min;
+            std::vector<Scalar> parameter_bounds;
+            parameter_bounds.reserve(static_cast<size_t>(m+1));
+            parameter_bounds.push_back(t_min);
+            for (int i=0; i<m; i++) {
+                if (knots[i] <= curr_t) continue;
+                if (knots[i] > t_max) break;
+                curr_t = knots[i];
+
+                typename CurveType::ControlPoints local_ctrl_pts(d+1, _dim);
+                local_ctrl_pts = ctrl_pts.block(i-d-1, 0, d+1, _dim);
+                CurveType segment;
+                segment.set_control_points(std::move(local_ctrl_pts));
+                segments.push_back(segment);
+                parameter_bounds.push_back(curr_t);
+            }
+
+            return {segments, parameter_bounds};
+        }
+
+        std::vector<Scalar> compute_inflections (
+                const Scalar lower,
+                const Scalar upper) const override {
+            using CurveType = Bezier<Scalar, _dim, _degree, _generic>;
+            std::vector<CurveType> beziers;
+            std::vector<Scalar> parameter_bounds;
+            std::tie(beziers, parameter_bounds) = convert_to_Bezier();
+            assert(parameter_bounds.size() == beziers.size() + 1);
+
+            std::vector<Scalar> res;
+            res.reserve(static_cast<size_t>(Base::get_degree()));
+
+            const size_t num_beziers = beziers.size();
+            for (size_t idx=0; idx < num_beziers; idx++) {
+                const auto t_min = parameter_bounds[idx];
+                const auto t_max = parameter_bounds[idx+1];
+                if (t_max < lower || t_min > upper) {
+                    continue;
+                }
+
+                Scalar normalized_lower = (lower - t_min) / (t_max - t_min);
+                Scalar normalized_upper = (upper - t_min) / (t_max - t_min);
+                normalized_lower = std::max<Scalar>(normalized_lower, 0);
+                normalized_upper = std::min<Scalar>(normalized_upper, 1);
+
+                const auto& curve = beziers[idx];
+                auto inflections = curve.compute_inflections(
+                        normalized_lower, normalized_upper);
+                for (auto t : inflections) {
+                    res.push_back(t * (t_max-t_min) + t_min);
+                }
+            }
+
+            std::sort(res.begin(), res.end());
+            res.erase(std::unique(res.begin(), res.end()), res.end());
+
+            return res;
         }
 
     private:

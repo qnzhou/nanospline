@@ -98,6 +98,11 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
                 k = curve.evaluate_curvature(1.0);
                 REQUIRE(k.norm() == Approx(1.0/R));
             }
+
+            SECTION("Inflections") {
+                auto inflections = curve.compute_inflections(0, 1);
+                REQUIRE(inflections.size() == 0);
+            }
         }
 
         SECTION("4-way split") {
@@ -168,6 +173,58 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
                 k = curve.evaluate_curvature(1.0);
                 REQUIRE(k.norm() == Approx(1.0/R));
             }
+
+            SECTION("Inflections") {
+                auto inflections = curve.compute_inflections(0, 1);
+                REQUIRE(inflections.size() == 0);
+            }
+        }
+    }
+
+    SECTION("Inflection points") {
+        Eigen::Matrix<Scalar, 4, 2> ctrl_pts;
+        ctrl_pts << 0.0, 0.0,
+                    1.0, 1.0,
+                    2.0,-1.0,
+                    3.0, 0.0;
+        Eigen::Matrix<Scalar, 8, 1> knots;
+        knots << 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0;
+        Eigen::Matrix<Scalar, 4, 1> weights;
+        weights << 2.0, 2.0, 2.0, 2.0;
+
+        NURBS<Scalar, 2, 3> curve;
+        curve.set_control_points(ctrl_pts);
+        curve.set_knots(knots);
+        curve.set_weights(weights);
+        curve.initialize();
+
+        auto inflections = curve.compute_inflections(0, 1);
+        REQUIRE(inflections.size() == 1);
+        REQUIRE(inflections[0] == Approx(0.5));
+    }
+
+    SECTION("Inflection points of closed NURBS curve") {
+        Eigen::Matrix<Scalar, 14, 2> ctrl_pts;
+        ctrl_pts << 1, 4, .5, 6, 5, 4, 3, 12, 11, 14, 8, 4, 12, 3, 11, 9, 15, 10, 17, 8,
+                 1, 4, .5, 6, 5, 4, 3, 12 ;
+        Eigen::Matrix<Scalar, 18, 1> knots;
+        knots << 0.0/17, 1.0/17, 2.0/17, 3.0/17, 4.0/17, 5.0/17, 6.0/17, 7.0/17,
+              8.0/17, 9.0/17, 10.0/17, 11.0/17, 12.0/17, 13.0/17, 14.0/17, 15.0/17,
+              16.0/17, 17.0/17;
+        Eigen::Matrix<Scalar, 14, 1> weights;
+        weights.setConstant(1.2);
+
+        NURBS<Scalar, 2, 3, true> curve;
+        curve.set_control_points(ctrl_pts);
+        curve.set_knots(knots);
+        curve.set_weights(weights);
+        curve.initialize();
+
+        auto inflections = curve.compute_inflections(
+                knots.minCoeff(), knots.maxCoeff());
+        for (auto t : inflections) {
+            auto k = curve.evaluate_curvature(t).norm();
+            REQUIRE(k == Approx(0).margin(1e-6));
         }
     }
 }
