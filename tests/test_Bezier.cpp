@@ -283,6 +283,18 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
             validate_derivatives(curve, 10);
             validate_2nd_derivatives(curve, 10);
         }
+
+        SECTION("Turning angle") {
+            const auto total_turning_angle = curve.get_turning_angle(0, 1);
+            REQUIRE(total_turning_angle == Approx(M_PI/2).margin(1e-6));
+            const auto split_pts = curve.reduce_turning_angle(0, 1);
+            REQUIRE(split_pts.size() == 1);
+            REQUIRE(split_pts[0] == Approx(0.5));
+            const auto turning_angle_1 = curve.get_turning_angle(0, split_pts[0]);
+            const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
+            REQUIRE(turning_angle_1 == Approx(M_PI/4));
+            REQUIRE(turning_angle_2 == Approx(M_PI/4));
+        }
     }
 
     SECTION("Specialized degree 3") {
@@ -314,6 +326,18 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
             validate_2nd_derivatives(curve, 10);
+        }
+
+        SECTION("Turning angle") {
+            const auto total_turning_angle = curve.get_turning_angle(0, 1);
+            REQUIRE(total_turning_angle == Approx(M_PI/2).margin(1e-6));
+            const auto split_pts = curve.reduce_turning_angle(0, 1);
+            REQUIRE(split_pts.size() == 1);
+            REQUIRE(split_pts[0] == Approx(0.5));
+            const auto turning_angle_1 = curve.get_turning_angle(0, split_pts[0]);
+            const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
+            REQUIRE(turning_angle_1 == Approx(M_PI/4));
+            REQUIRE(turning_angle_2 == Approx(M_PI/4));
         }
     }
 
