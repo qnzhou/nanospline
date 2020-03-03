@@ -68,6 +68,12 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             auto k = curve.evaluate_curvature(0.4);
             REQUIRE(k.norm() == Approx(0.0));
         }
+        SECTION("Turning angle") {
+            const auto total_turning_angle = curve.get_turning_angle(0, 1);
+            REQUIRE(total_turning_angle == Approx(0));
+            const auto split_pts = curve.reduce_turning_angle(0, 1);
+            REQUIRE(split_pts.size() == 0);
+        }
     }
 
     SECTION("Generic degree 2") {
@@ -97,6 +103,15 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             assert_same(curve, regular_bezier, 10);
             validate_derivatives(curve, 10);
             validate_2nd_derivatives(curve, 10);
+
+            const auto total_turning_angle = curve.get_turning_angle(0, 1);
+            REQUIRE(total_turning_angle == Approx(M_PI/2));
+            const auto split_pts = curve.reduce_turning_angle(0, 1);
+            REQUIRE(split_pts.size() == 1);
+            const auto turning_angle_1 = curve.get_turning_angle(0, split_pts[0]);
+            const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
+            REQUIRE(turning_angle_1 == Approx(M_PI/4));
+            REQUIRE(turning_angle_2 == Approx(M_PI/4));
         }
 
         SECTION("Non-uniform weights") {
@@ -132,6 +147,7 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             REQUIRE((end-control_pts.row(2)).norm() == Approx(0.0));
             validate_derivatives(curve, 10, 1e-5);
             validate_2nd_derivatives(curve, 10);
+
         }
     }
 
@@ -174,6 +190,16 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
                 k = curve.evaluate_curvature(1.0);
                 REQUIRE(k.norm() == Approx(1.0/R));
             }
+            SECTION("Turning angle") {
+                const auto total_turning_angle = curve.get_turning_angle(0, 1);
+                REQUIRE(total_turning_angle == Approx(M_PI/2));
+                const auto split_pts = curve.reduce_turning_angle(0, 1);
+                REQUIRE(split_pts.size() == 1);
+                const auto turning_angle_1 = curve.get_turning_angle(0, split_pts[0]);
+                const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
+                REQUIRE(turning_angle_1 == Approx(M_PI/4));
+                REQUIRE(turning_angle_2 == Approx(M_PI/4));
+            }
         }
 
         SECTION("One third circle") {
@@ -212,6 +238,16 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
                 REQUIRE(k.norm() == Approx(1.0/R));
                 k = curve.evaluate_curvature(1.0);
                 REQUIRE(k.norm() == Approx(1.0/R));
+            }
+            SECTION("Turning angle") {
+                const auto total_turning_angle = curve.get_turning_angle(0, 1);
+                REQUIRE(total_turning_angle == Approx(2*M_PI/3));
+                const auto split_pts = curve.reduce_turning_angle(0, 1);
+                REQUIRE(split_pts.size() == 1);
+                const auto turning_angle_1 = curve.get_turning_angle(0, split_pts[0]);
+                const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
+                REQUIRE(turning_angle_1 == Approx(2*M_PI/6));
+                REQUIRE(turning_angle_2 == Approx(2*M_PI/6));
             }
         }
 

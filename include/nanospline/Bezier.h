@@ -58,6 +58,10 @@ class Bezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
                 throw std::runtime_error(
                         "Inflection computation is for 2D curves only");
             }
+            const auto degree = Base::get_degree();
+            if (degree <= 2) {
+                return {};
+            }
             auto res = nanospline::internal::compute_Bezier_inflections(
                     Base::m_control_points, lower, upper);
 
@@ -74,6 +78,10 @@ class Bezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
             if (_dim != 2) {
                 throw std::runtime_error(
                         "Turning angle reduction is for 2D curves only");
+            }
+            const auto degree = Base::get_degree();
+            if (degree < 2) {
+                return {};
             }
 
             auto tan0 = evaluate_derivative(lower);
@@ -92,7 +100,6 @@ class Bezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
                     -(tan0[1]+tan1[1])/2,
                     (tan0[0]+tan1[0])/2);
 
-            const auto degree = Base::get_degree();
             auto res = nanospline::internal::match_tangent_bezier(
                     Base::m_control_points, degree, ave_tangent, lower, upper);
 

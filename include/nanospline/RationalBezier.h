@@ -6,6 +6,7 @@
 #include <nanospline/BezierBase.h>
 #include <nanospline/Bezier.h>
 #include <nanospline/internal/auto_inflection_RationalBezier.h>
+#include <nanospline/internal/auto_match_tangent_RationalBezier.h>
 
 namespace nanospline {
 
@@ -61,8 +62,55 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
         std::vector<Scalar> compute_inflections (
                 const Scalar lower,
                 const Scalar upper) const override final {
+            if (_dim != 2) {
+                throw std::runtime_error(
+                        "Inflection computation is for 2D curves only");
+            }
+            const auto degree = Base::get_degree();
+            if (degree <= 2) {
+                return {};
+            }
             auto res = internal::compute_RationalBezier_inflections(
                     Base::m_control_points, m_weights, lower, upper);
+
+            std::sort(res.begin(), res.end());
+            res.erase(std::unique(res.begin(), res.end()), res.end());
+
+            return res;
+        }
+
+        std::vector<Scalar> reduce_turning_angle(
+                const Scalar lower,
+                const Scalar upper) const override final {
+            constexpr Scalar tol = static_cast<Scalar>(1e-8);
+            if (_dim != 2) {
+                throw std::runtime_error(
+                        "Turning angle reduction is for 2D curves only");
+            }
+            const auto degree = Base::get_degree();
+            if (degree < 2) {
+                return {};
+            }
+
+            auto tan0 = evaluate_derivative(lower);
+            auto tan1 = evaluate_derivative(upper);
+
+            if (tan0.norm() < tol || tan1.norm() < tol){
+                std::vector<Scalar> res;
+                res.push_back((lower + upper) / 2);
+                return res;
+            }
+
+            tan0 = tan0 / tan0.norm();
+            tan1 = tan1 / tan1.norm();
+
+            const Eigen::Matrix<Scalar, 2, 1> ave_tangent(
+                    -(tan0[1]+tan1[1])/2,
+                    (tan0[0]+tan1[0])/2);
+
+            auto res = nanospline::internal::match_tangent_rational_bezier(
+                    Base::m_control_points, m_weights,
+                    degree, ave_tangent, lower, upper);
 
             std::sort(res.begin(), res.end());
             res.erase(std::unique(res.begin(), res.end()), res.end());

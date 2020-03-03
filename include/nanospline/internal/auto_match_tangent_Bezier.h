@@ -21,7 +21,7 @@ std::vector<Scalar> match_tangent_Bezier_degree_2(
         Scalar t0 = 0,
         Scalar t1 = 1) {
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     const Scalar tcutxp = tangent[0];
     const Scalar tcutyp = tangent[1];
@@ -43,7 +43,7 @@ std::vector<Scalar> match_tangent_Bezier_degree_3(
         Scalar t0 = 0,
         Scalar t1 = 1) {
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     const Scalar tcutxp = tangent[0];
     const Scalar tcutyp = tangent[1];
@@ -66,7 +66,7 @@ std::vector<Scalar> match_tangent_Bezier_degree_4(
         Scalar t0 = 0,
         Scalar t1 = 1) {
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     const Scalar tcutxp = tangent[0];
     const Scalar tcutyp = tangent[1];
@@ -90,7 +90,7 @@ std::vector<Scalar> match_tangent_Bezier_degree_5(
         Scalar t0 = 0,
         Scalar t1 = 1) {
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     const Scalar tcutxp = tangent[0];
     const Scalar tcutyp = tangent[1];
@@ -115,7 +115,7 @@ std::vector<Scalar> match_tangent_Bezier_degree_6(
         Scalar t0 = 0,
         Scalar t1 = 1) {
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     const Scalar tcutxp = tangent[0];
     const Scalar tcutyp = tangent[1];
@@ -141,7 +141,7 @@ std::vector<Scalar> match_tangent_Bezier_degree_7(
         Scalar t0 = 0,
         Scalar t1 = 1) {
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     const Scalar tcutxp = tangent[0];
     const Scalar tcutyp = tangent[1];
@@ -168,7 +168,7 @@ std::vector<Scalar> match_tangent_Bezier_degree_8(
         Scalar t0 = 0,
         Scalar t1 = 1) {
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     const Scalar tcutxp = tangent[0];
     const Scalar tcutyp = tangent[1];
@@ -196,7 +196,7 @@ std::vector<Scalar> match_tangent_Bezier_degree_9(
         Scalar t0 = 0,
         Scalar t1 = 1) {
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     const Scalar tcutxp = tangent[0];
     const Scalar tcutyp = tangent[1];
@@ -225,7 +225,7 @@ std::vector<Scalar> match_tangent_Bezier_degree_10(
         Scalar t0 = 0,
         Scalar t1 = 1) {
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     const Scalar tcutxp = tangent[0];
     const Scalar tcutyp = tangent[1];
@@ -287,7 +287,7 @@ std::vector<Scalar> match_tangent_bezier(
         #endif // HIGH_DEGREE_SUPPORT
         default:
             throw not_implemented_error(
-                "Inflection computation only works on Bezier curve with degree lower than 10");
+                "Turning angle reduction only works on Bezier curve with degree lower than 10");
     }
 }
 

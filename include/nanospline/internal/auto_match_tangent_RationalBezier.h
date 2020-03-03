@@ -22,7 +22,7 @@ std::vector<Scalar> match_tangent_RationalBezier_degree_2(
         Scalar t0 = 0,
         Scalar t1 = 1) {
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     const Scalar tcutxp = tangent[0];
     const Scalar tcutyp = tangent[1];
@@ -45,7 +45,7 @@ std::vector<Scalar> match_tangent_RationalBezier_degree_3(
         Scalar t0 = 0,
         Scalar t1 = 1) {
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     const Scalar tcutxp = tangent[0];
     const Scalar tcutyp = tangent[1];
@@ -69,7 +69,7 @@ std::vector<Scalar> match_tangent_RationalBezier_degree_4(
         Scalar t0 = 0,
         Scalar t1 = 1) {
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     const Scalar tcutxp = tangent[0];
     const Scalar tcutyp = tangent[1];
@@ -84,6 +84,28 @@ std::vector<Scalar> match_tangent_RationalBezier_degree_4(
 
     return result;
 }
+
+
+template<typename Scalar, typename Derived, typename Derived2>
+std::vector<Scalar> match_tangent_rational_bezier(
+        const Eigen::PlainObjectBase<Derived>& ctrl_pts,
+        const Eigen::PlainObjectBase<Derived2>& weights,
+        const int degree,
+        const Eigen::Matrix<Scalar, 2, 1>& tangent,
+        Scalar t0 = 0, Scalar t1 = 1) {
+    switch(degree) {
+        case 2:
+            return match_tangent_RationalBezier_degree_2(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), weights(0), weights(1), weights(2), tangent, t0, t1);
+        case 3:
+            return match_tangent_RationalBezier_degree_3(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), weights(0), weights(1), weights(2), weights(3), tangent, t0, t1);
+        case 4:
+            return match_tangent_RationalBezier_degree_4(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), weights(0), weights(1), weights(2), weights(3), weights(4), tangent, t0, t1);
+        default:
+            throw not_implemented_error(
+                "Turning angle reduction only works on RationalBezier curve with degree lower than 4");
+    }
+}
+
 
 
 } // End internal namespace

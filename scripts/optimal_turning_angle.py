@@ -59,7 +59,7 @@ std::vector<Scalar> match_tangent_{type}_degree_{degree}(
         Scalar t0 = 0,
         Scalar t1 = 1) {{
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     const Scalar tcutxp = tangent[0];
     const Scalar tcutyp = tangent[1];
@@ -80,7 +80,7 @@ std::vector<Scalar> match_tangent_{type}_degree_{degree}(
         Scalar t0 = 0,
         Scalar t1 = 1) {{
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     const Scalar tcutxp = tangent[0];
     const Scalar tcutyp = tangent[1];
@@ -314,7 +314,7 @@ def generate_code_for_RationalBezier(degree, printer):
             degree=degree)
 
     invocation = "return match_tangent_{}_degree_{}({}, {}, tangent, t0, t1);".format(
-                        "Bezier", degree,
+                        "RationalBezier", degree,
                         control_variable_arguments,
                         weight_variable_arguments)
 
@@ -368,15 +368,14 @@ if __name__ == "__main__":
 
         lines.append("default:")
         lines.append("    throw not_implemented_error(")
-        lines.append("        \"Inflection computation only works on {} curve with degree lower than {}\");".format(poly_name, degree))
+        lines.append("        \"Turning angle reduction only works on {} curve with degree lower than {}\");".format(poly_name, degree))
 
         body = "\n".join(utils.indent(utils.indent(lines)))
         code += specialized_code
         if poly_name == "Bezier":
             code += code_template.format(type=poly_name, body=body) + "\n\n"
         else:
-            pass;
-            #code += code_rational_template.format(type=poly_name, body=body) + "\n\n"
+            code += code_rational_template.format(type=poly_name, body=body) + "\n\n"
 
         code += code_template_footer
         dir_path = os.path.dirname(os.path.realpath(__file__))
