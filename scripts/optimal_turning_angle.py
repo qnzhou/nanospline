@@ -93,7 +93,7 @@ std::vector<Scalar> match_tangent_{type}_degree_{degree}(
 """
 
 specialization_extern_declaration_template = """
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || {degree} < 5
 #define Scalar double
 extern template
 std::vector<Scalar> match_tangent_{type}_degree_{degree}(
@@ -115,7 +115,7 @@ std::vector<Scalar> match_tangent_{type}_degree_{degree}(
 """
 
 specialization_rational_extern_declaration_template = """
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || {degree} < 5
 #define Scalar double
 extern template
 std::vector<Scalar> match_tangent_{type}_degree_{degree}(
@@ -139,7 +139,7 @@ std::vector<Scalar> match_tangent_{type}_degree_{degree}(
 """
 
 specialization_extern_definition_template = """
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || {degree} < 5
 #define Scalar double
 template
 std::vector<Scalar> match_tangent_{type}_degree_{degree}(
@@ -161,7 +161,7 @@ std::vector<Scalar> match_tangent_{type}_degree_{degree}(
 """
 
 specialization_rational_extern_definition_template = """
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || {degree} < 5
 #define Scalar double
 template
 std::vector<Scalar> match_tangent_{type}_degree_{degree}(

@@ -11,7 +11,7 @@ namespace nanospline {
 namespace internal {
 
 
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || 2 < 5
 #define Scalar double
 template
 std::vector<Scalar> match_tangent_RationalBezier_degree_2(
@@ -34,7 +34,7 @@ std::vector<Scalar> match_tangent_RationalBezier_degree_2(
 #endif
 
 
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || 3 < 5
 #define Scalar double
 template
 std::vector<Scalar> match_tangent_RationalBezier_degree_3(
@@ -57,7 +57,7 @@ std::vector<Scalar> match_tangent_RationalBezier_degree_3(
 #endif
 
 
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || 4 < 5
 #define Scalar double
 template
 std::vector<Scalar> match_tangent_RationalBezier_degree_4(
@@ -80,7 +80,7 @@ std::vector<Scalar> match_tangent_RationalBezier_degree_4(
 #endif
 
 
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || 2 < 5
 #define Scalar double
 template
 std::vector<Scalar> match_tangent_Bezier_degree_2(
@@ -101,7 +101,7 @@ std::vector<Scalar> match_tangent_Bezier_degree_2(
 #endif
 
 
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || 3 < 5
 #define Scalar double
 template
 std::vector<Scalar> match_tangent_Bezier_degree_3(
@@ -122,7 +122,7 @@ std::vector<Scalar> match_tangent_Bezier_degree_3(
 #endif
 
 
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || 4 < 5
 #define Scalar double
 template
 std::vector<Scalar> match_tangent_Bezier_degree_4(
@@ -143,7 +143,7 @@ std::vector<Scalar> match_tangent_Bezier_degree_4(
 #endif
 
 
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || 5 < 5
 #define Scalar double
 template
 std::vector<Scalar> match_tangent_Bezier_degree_5(
@@ -164,7 +164,7 @@ std::vector<Scalar> match_tangent_Bezier_degree_5(
 #endif
 
 
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || 6 < 5
 #define Scalar double
 template
 std::vector<Scalar> match_tangent_Bezier_degree_6(
@@ -185,7 +185,7 @@ std::vector<Scalar> match_tangent_Bezier_degree_6(
 #endif
 
 
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || 7 < 5
 #define Scalar double
 template
 std::vector<Scalar> match_tangent_Bezier_degree_7(
@@ -206,7 +206,7 @@ std::vector<Scalar> match_tangent_Bezier_degree_7(
 #endif
 
 
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || 8 < 5
 #define Scalar double
 template
 std::vector<Scalar> match_tangent_Bezier_degree_8(
@@ -227,7 +227,7 @@ std::vector<Scalar> match_tangent_Bezier_degree_8(
 #endif
 
 
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || 9 < 5
 #define Scalar double
 template
 std::vector<Scalar> match_tangent_Bezier_degree_9(
@@ -248,7 +248,7 @@ std::vector<Scalar> match_tangent_Bezier_degree_9(
 #endif
 
 
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || 10 < 5
 #define Scalar double
 template
 std::vector<Scalar> match_tangent_Bezier_degree_10(
