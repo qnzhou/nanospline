@@ -84,7 +84,7 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
 """
 
 specialization_extern_declaration_template = """
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || {degree} < 5
 #define Scalar double
 extern template
 std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
@@ -93,6 +93,7 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
         Scalar t1);
 #undef Scalar
 
+#if {degree} < 10
 #define Scalar float
 extern template
 std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
@@ -100,11 +101,12 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
         Scalar t0,
         Scalar t1);
 #undef Scalar
+#endif
 #endif
 """
 
 specialization_rational_extern_declaration_template = """
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || {degree} < 5
 #define Scalar double
 extern template
 std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
@@ -114,7 +116,6 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
         Scalar t1);
 #undef Scalar
 
-#if degree < 10
 #define Scalar float
 extern template
 std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
@@ -123,12 +124,11 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
         Scalar t0,
         Scalar t1);
 #undef Scalar
-#endif
 #endif
 """
 
 specialization_extern_definition_template = """
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || {degree} < 5
 #define Scalar double
 template
 std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
@@ -137,7 +137,7 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
         Scalar t1);
 #undef Scalar
 
-#if degree < 10
+#if {degree} < 10
 #define Scalar float
 template
 std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
@@ -150,7 +150,7 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
 """
 
 specialization_rational_extern_definition_template = """
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || {degree} < 5
 #define Scalar double
 template
 std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
