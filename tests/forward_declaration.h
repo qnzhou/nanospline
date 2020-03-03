@@ -23,6 +23,7 @@ std::vector<Scalar> compute_RationalBezier_degree_2_inflections(
         Scalar t1);
 #undef Scalar
 
+#if degree < 10
 #define Scalar float
 extern template
 std::vector<Scalar> compute_RationalBezier_degree_2_inflections(
@@ -32,6 +33,7 @@ std::vector<Scalar> compute_RationalBezier_degree_2_inflections(
         Scalar t1);
 #undef Scalar
 #endif
+#endif
 
 
 #if defined(HIGH_DEGREE_SUPPORT) || degree < 5
@@ -44,6 +46,7 @@ std::vector<Scalar> compute_RationalBezier_degree_3_inflections(
         Scalar t1);
 #undef Scalar
 
+#if degree < 10
 #define Scalar float
 extern template
 std::vector<Scalar> compute_RationalBezier_degree_3_inflections(
@@ -52,6 +55,7 @@ std::vector<Scalar> compute_RationalBezier_degree_3_inflections(
         Scalar t0,
         Scalar t1);
 #undef Scalar
+#endif
 #endif
 
 
@@ -65,6 +69,7 @@ std::vector<Scalar> compute_RationalBezier_degree_4_inflections(
         Scalar t1);
 #undef Scalar
 
+#if degree < 10
 #define Scalar float
 extern template
 std::vector<Scalar> compute_RationalBezier_degree_4_inflections(
@@ -73,6 +78,7 @@ std::vector<Scalar> compute_RationalBezier_degree_4_inflections(
         Scalar t0,
         Scalar t1);
 #undef Scalar
+#endif
 #endif
 
 

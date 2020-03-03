@@ -114,6 +114,7 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
         Scalar t1);
 #undef Scalar
 
+#if degree < 10
 #define Scalar float
 extern template
 std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
@@ -122,6 +123,7 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
         Scalar t0,
         Scalar t1);
 #undef Scalar
+#endif
 #endif
 """
 
@@ -135,6 +137,7 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
         Scalar t1);
 #undef Scalar
 
+#if degree < 10
 #define Scalar float
 template
 std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
@@ -142,6 +145,7 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
         Scalar t0,
         Scalar t1);
 #undef Scalar
+#endif
 #endif
 """
 
