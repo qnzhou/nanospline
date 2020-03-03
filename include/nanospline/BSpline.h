@@ -171,7 +171,7 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
                 local_ctrl_pts = ctrl_pts.block(i-d-1, 0, d+1, _dim);
                 CurveType segment;
                 segment.set_control_points(std::move(local_ctrl_pts));
-                segments.push_back(segment);
+                segments.push_back(std::move(segment));
                 parameter_bounds.push_back(curr_t);
             }
 
