@@ -20,7 +20,7 @@ std::vector<Scalar> compute_Bezier_degree_2_inflections(
         Scalar t0 = 0,
         Scalar t1 = 1) {
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     PolynomialRootFinder<Scalar, 0>::find_real_roots_in_interval({
         -4*cx0*cy1 + 4*cx0*cy2 + 4*cx1*cy0 - 4*cx1*cy2 - 4*cx2*cy0 + 4*cx2*cy1
@@ -37,7 +37,7 @@ std::vector<Scalar> compute_Bezier_degree_3_inflections(
         Scalar t0 = 0,
         Scalar t1 = 1) {
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     PolynomialRootFinder<Scalar, 2>::find_real_roots_in_interval({
         -18*cx0*cy1 + 18*cx0*cy2 + 18*cx1*cy0 - 18*cx1*cy2 - 18*cx2*cy0 + 18*cx2*cy1,
@@ -56,7 +56,7 @@ std::vector<Scalar> compute_Bezier_degree_4_inflections(
         Scalar t0 = 0,
         Scalar t1 = 1) {
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     PolynomialRootFinder<Scalar, 4>::find_real_roots_in_interval({
         -48*cx0*cy1 + 48*cx0*cy2 + 48*cx1*cy0 - 48*cx1*cy2 - 48*cx2*cy0 + 48*cx2*cy1,
@@ -77,7 +77,7 @@ std::vector<Scalar> compute_Bezier_degree_5_inflections(
         Scalar t0 = 0,
         Scalar t1 = 1) {
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     PolynomialRootFinder<Scalar, 6>::find_real_roots_in_interval({
         -100*cx0*cy1 + 100*cx0*cy2 + 100*cx1*cy0 - 100*cx1*cy2 - 100*cx2*cy0 + 100*cx2*cy1,
@@ -100,7 +100,7 @@ std::vector<Scalar> compute_Bezier_degree_6_inflections(
         Scalar t0 = 0,
         Scalar t1 = 1) {
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     PolynomialRootFinder<Scalar, 8>::find_real_roots_in_interval({
         -180*cx0*cy1 + 180*cx0*cy2 + 180*cx1*cy0 - 180*cx1*cy2 - 180*cx2*cy0 + 180*cx2*cy1,
@@ -125,7 +125,7 @@ std::vector<Scalar> compute_Bezier_degree_7_inflections(
         Scalar t0 = 0,
         Scalar t1 = 1) {
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     PolynomialRootFinder<Scalar, 10>::find_real_roots_in_interval({
         -294*cx0*cy1 + 294*cx0*cy2 + 294*cx1*cy0 - 294*cx1*cy2 - 294*cx2*cy0 + 294*cx2*cy1,
@@ -152,7 +152,7 @@ std::vector<Scalar> compute_Bezier_degree_8_inflections(
         Scalar t0 = 0,
         Scalar t1 = 1) {
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     PolynomialRootFinder<Scalar, 12>::find_real_roots_in_interval({
         -448*cx0*cy1 + 448*cx0*cy2 + 448*cx1*cy0 - 448*cx1*cy2 - 448*cx2*cy0 + 448*cx2*cy1,
@@ -181,7 +181,7 @@ std::vector<Scalar> compute_Bezier_degree_9_inflections(
         Scalar t0 = 0,
         Scalar t1 = 1) {
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     PolynomialRootFinder<Scalar, 14>::find_real_roots_in_interval({
         -648*cx0*cy1 + 648*cx0*cy2 + 648*cx1*cy0 - 648*cx1*cy2 - 648*cx2*cy0 + 648*cx2*cy1,
@@ -212,7 +212,7 @@ std::vector<Scalar> compute_Bezier_degree_10_inflections(
         Scalar t0 = 0,
         Scalar t1 = 1) {
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
     PolynomialRootFinder<Scalar, 16>::find_real_roots_in_interval({
         -900*cx0*cy1 + 900*cx0*cy2 + 900*cx1*cy0 - 900*cx1*cy2 - 900*cx2*cy0 + 900*cx2*cy1,

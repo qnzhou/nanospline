@@ -84,7 +84,7 @@ std::vector<Scalar> compute_Bezier_degree_2_inflections(
 #undef Scalar
 
 #define Scalar float
-extern template
+template
 std::vector<Scalar> compute_Bezier_degree_2_inflections(
         Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2,
         Scalar t0,
@@ -103,7 +103,7 @@ std::vector<Scalar> compute_Bezier_degree_3_inflections(
 #undef Scalar
 
 #define Scalar float
-extern template
+template
 std::vector<Scalar> compute_Bezier_degree_3_inflections(
         Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3,
         Scalar t0,
@@ -122,7 +122,7 @@ std::vector<Scalar> compute_Bezier_degree_4_inflections(
 #undef Scalar
 
 #define Scalar float
-extern template
+template
 std::vector<Scalar> compute_Bezier_degree_4_inflections(
         Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4,
         Scalar t0,
@@ -141,7 +141,7 @@ std::vector<Scalar> compute_Bezier_degree_5_inflections(
 #undef Scalar
 
 #define Scalar float
-extern template
+template
 std::vector<Scalar> compute_Bezier_degree_5_inflections(
         Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4, Scalar cx5, Scalar cy5,
         Scalar t0,
@@ -160,7 +160,7 @@ std::vector<Scalar> compute_Bezier_degree_6_inflections(
 #undef Scalar
 
 #define Scalar float
-extern template
+template
 std::vector<Scalar> compute_Bezier_degree_6_inflections(
         Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4, Scalar cx5, Scalar cy5, Scalar cx6, Scalar cy6,
         Scalar t0,
@@ -179,7 +179,7 @@ std::vector<Scalar> compute_Bezier_degree_7_inflections(
 #undef Scalar
 
 #define Scalar float
-extern template
+template
 std::vector<Scalar> compute_Bezier_degree_7_inflections(
         Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4, Scalar cx5, Scalar cy5, Scalar cx6, Scalar cy6, Scalar cx7, Scalar cy7,
         Scalar t0,
@@ -198,7 +198,7 @@ std::vector<Scalar> compute_Bezier_degree_8_inflections(
 #undef Scalar
 
 #define Scalar float
-extern template
+template
 std::vector<Scalar> compute_Bezier_degree_8_inflections(
         Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4, Scalar cx5, Scalar cy5, Scalar cx6, Scalar cy6, Scalar cx7, Scalar cy7, Scalar cx8, Scalar cy8,
         Scalar t0,
@@ -217,7 +217,7 @@ std::vector<Scalar> compute_Bezier_degree_9_inflections(
 #undef Scalar
 
 #define Scalar float
-extern template
+template
 std::vector<Scalar> compute_Bezier_degree_9_inflections(
         Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4, Scalar cx5, Scalar cy5, Scalar cx6, Scalar cy6, Scalar cx7, Scalar cy7, Scalar cx8, Scalar cy8, Scalar cx9, Scalar cy9,
         Scalar t0,
@@ -236,7 +236,7 @@ std::vector<Scalar> compute_Bezier_degree_10_inflections(
 #undef Scalar
 
 #define Scalar float
-extern template
+template
 std::vector<Scalar> compute_Bezier_degree_10_inflections(
         Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4, Scalar cx5, Scalar cy5, Scalar cx6, Scalar cy6, Scalar cx7, Scalar cy7, Scalar cx8, Scalar cy8, Scalar cx9, Scalar cy9, Scalar cx10, Scalar cy10,
         Scalar t0,

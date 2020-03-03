@@ -50,7 +50,7 @@ class PolynomialRootFinder
         for (int i = 0; i < vals.size(); ++i)
         {
             const auto lambda = vals(i);
-            const double current_t = lambda.real();
+            const Scalar current_t = lambda.real();
 
             if (abs(abs(lambda) - abs(current_t)) > eps)
                 continue;

@@ -57,7 +57,7 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
         Scalar t0 = 0,
         Scalar t1 = 1) {{
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
 {body}
 
@@ -74,7 +74,7 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
         Scalar t0 = 0,
         Scalar t1 = 1) {{
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
 {body}
 
@@ -136,7 +136,7 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
 #undef Scalar
 
 #define Scalar float
-extern template
+template
 std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
         {control_variables},
         Scalar t0,
@@ -331,7 +331,6 @@ if __name__ == "__main__":
         code = code_template_header
         specialized_code = ""
         lines = []
-        first=True
         for n_coeffs, degree, is_rational, curve in functions[poly_name]:
             if is_rational:
                 template_function, invocation, extern_declaration, extern_definition = \
