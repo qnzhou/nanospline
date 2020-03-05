@@ -95,7 +95,7 @@ class PolynomialRootFinder<Scalar, 2>
             return;
         }
 
-        const Scalar sqrt_discr = sqrt(discr);
+        const Scalar sqrt_discr = std::sqrt(discr);
         Scalar root = (-b - sqrt_discr) / (2 * a);
         if (root >= t0 && root <= t1)
             roots.push_back(root);
