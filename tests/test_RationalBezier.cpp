@@ -131,14 +131,6 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
                 const auto mid = curve.evaluate(0.5);
                 REQUIRE(mid[1] == Approx(0.0));
             }
-            SECTION("Negative weight") {
-                weights << 1.0, -1.0, 1.0;
-                curve.set_weights(weights);
-                curve.initialize();
-
-                const auto mid = curve.evaluate(0.5);
-                REQUIRE(mid[1] < 0.0);
-            }
 
             auto start = curve.evaluate(0);
             auto end = curve.evaluate(1);

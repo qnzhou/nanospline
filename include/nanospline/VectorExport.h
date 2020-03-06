@@ -8,7 +8,7 @@ namespace nanospline
 template <typename SplineType, typename Matrix>
 void to_svg(std::ostream &out, SplineType &curve, const Matrix &offset, typename SplineType::Scalar scaling = 1,
             bool export_ctrl = true,
-            const std::string &color = "red", typename SplineType::Scalar line_width = 0.2,
+            const std::string &color = "red", typename SplineType::Scalar line_width = 2.0,
             const std::string &ctrl_color = "888888", typename SplineType::Scalar ctrl_radius = 0.2,
             int num_samples = 1e3)
 {
@@ -36,7 +36,7 @@ void to_svg(std::ostream &out, SplineType &curve, const Matrix &offset, typename
         }
     }
     out << "\" fill=\"none\" stroke=\""<<color<<"\" stroke-width=\""
-         << line_width*scaling << "\"/>" << std::endl;
+         << line_width << "\"/>" << std::endl;
 
     if(!export_ctrl)
         return;
