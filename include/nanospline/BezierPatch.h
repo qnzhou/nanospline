@@ -91,6 +91,22 @@ class BezierPatch : PatchBase<_Scalar, _dim> {
             return iso_curve_v;
         }
 
+        Scalar get_u_lower_bound() const {
+            return 0.0;
+        }
+
+        Scalar get_v_lower_bound() const {
+            return 0.0;
+        }
+
+        Scalar get_u_upper_bound() const {
+            return 1.0;
+        }
+
+        Scalar get_v_upper_bound() const {
+            return 1.0;
+        }
+
     protected:
         Point get_control_point(int ui, int vj) const {
             return m_control_grid.row(vj*(_degree_u+1) + ui);

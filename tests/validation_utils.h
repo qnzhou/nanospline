@@ -101,6 +101,44 @@ void validate_derivatives(const CurveType& curve, int num_samples,
     }
 }
 
+template<typename PatchType>
+void validate_derivative(const PatchType& patch, int u_samples, int v_samples,
+        const typename PatchType::Scalar tol=1e-6) {
+    const auto u_min = patch.get_u_lower_bound();
+    const auto u_max = patch.get_u_upper_bound();
+    const auto v_min = patch.get_v_lower_bound();
+    const auto v_max = patch.get_v_upper_bound();
+
+    const auto delta_u = (u_max-u_min) * 1e-6;
+    const auto delta_v = (v_max-v_min) * 1e-6;
+
+    for (int i=0; i<=u_samples; i++) {
+        const auto u = i * (u_max-u_min) / u_samples + u_min;
+        for (int j=0; j<=v_samples; j++) {
+            const auto v = j * (v_max-v_min) / v_samples + v_min;
+
+            auto du = patch.evaluate_derivative_u(u, v);
+            auto dv = patch.evaluate_derivative_v(u, v);
+
+            // Center difference.
+            const auto u_prev = std::max(u-delta_u, u_min);
+            const auto u_next = std::min(u+delta_u, u_max);
+            const auto v_prev = std::max(v-delta_v, v_min);
+            const auto v_next = std::min(v+delta_v, v_max);
+
+            const auto p_u_prev = patch.evaluate(u_prev, v);
+            const auto p_u_next = patch.evaluate(u_next, v);
+            const auto p_v_prev = patch.evaluate(u, v_prev);
+            const auto p_v_next = patch.evaluate(u, v_next);
+
+            REQUIRE(du[0]*(u_next-u_prev) == Approx(p_u_next[0]-p_u_prev[0]).margin(tol));
+            REQUIRE(du[1]*(u_next-u_prev) == Approx(p_u_next[1]-p_u_prev[1]).margin(tol));
+            REQUIRE(dv[0]*(v_next-v_prev) == Approx(p_v_next[0]-p_v_prev[0]).margin(tol));
+            REQUIRE(dv[1]*(v_next-v_prev) == Approx(p_v_next[1]-p_v_prev[1]).margin(tol));
+        }
+    }
+}
+
 /**
  * Validate 2nd derivative computation using finite difference.
  */
