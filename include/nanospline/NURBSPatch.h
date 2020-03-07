@@ -1,14 +1,13 @@
 #pragma once
 
 #include <nanospline/PatchBase.h>
-#include <nanospline/RationalBezier.h>
-#include <nanospline/BezierPatch.h>
+#include <nanospline/BSplinePatch.h>
 
 namespace nanospline {
 
 template<typename _Scalar, int _dim=3,
     int _degree_u=3, int _degree_v=3>
-class RationalBezierPatch : PatchBase<_Scalar, _dim> {
+class NURBSPatch : PatchBase<_Scalar, _dim> {
     public:
         static_assert(_dim > 0, "Dimension must be positive.");
         static_assert(_degree_u > 0, "Degree in u must be positive.");
@@ -19,7 +18,8 @@ class RationalBezierPatch : PatchBase<_Scalar, _dim> {
         using Point = typename Base::Point;
         using ControlGrid = Eigen::Matrix<Scalar, (_degree_u+1)*(_degree_v+1), _dim>;
         using Weights = Eigen::Matrix<Scalar, (_degree_u+1)*(_degree_v+1), 1>;
-        using BezierPatchHomogeneous = BezierPatch<Scalar, _dim+1, _degree_u, _degree_v>;
+        using KnotVector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+        using BSplinePatchHomogeneous = BSplinePatch<Scalar, _dim+1, _degree_u, _degree_v>;
 
     public:
         Point evaluate(Scalar u, Scalar v) const override final {
@@ -87,50 +87,80 @@ class RationalBezierPatch : PatchBase<_Scalar, _dim> {
             m_weights.swap(weights);
         }
 
+        const KnotVector& get_knots_u() const {
+            return m_knots_u;
+        }
+
+        const KnotVector& get_knots_v() const {
+            return m_knots_v;
+        }
+
+        template<typename Derived>
+        void set_knots_u(const Eigen::PlainObjectBase<Derived>& knots) {
+            m_knots_u = knots;
+        }
+
+        template<typename Derived>
+        void set_knots_v(const Eigen::PlainObjectBase<Derived>& knots) {
+            m_knots_v = knots;
+        }
+
+        template<typename Derived>
+        void set_knots_u(Eigen::PlainObjectBase<Derived>&& knots) {
+            m_knots_u.swap(knots);
+        }
+
+        template<typename Derived>
+        void set_knots_v(Eigen::PlainObjectBase<Derived>&& knots) {
+            m_knots_v.swap(knots);
+        }
+
         void initialize() {
-            typename BezierPatchHomogeneous::ControlGrid ctrl_pts(
+            typename BSplinePatchHomogeneous::ControlGrid ctrl_pts(
                     m_control_grid.rows(), _dim+1);
             ctrl_pts.template leftCols<_dim>() =
                 m_control_grid.array().colwise() * m_weights.array();
             ctrl_pts.template rightCols<1>() = m_weights;
 
             m_homogeneous.set_control_grid(std::move(ctrl_pts));
+            m_homogeneous.set_knots_u(m_knots_u);
+            m_homogeneous.set_knots_v(m_knots_v);
         }
 
         Scalar get_u_lower_bound() const {
-            return 0.0;
+            return m_knots_u[_degree_u];
         }
 
         Scalar get_v_lower_bound() const {
-            return 0.0;
+            return m_knots_v[_degree_v];
         }
 
         Scalar get_u_upper_bound() const {
-            return 1.0;
+            const auto num_knots = static_cast<int>(m_knots_u.rows());
+            return m_knots_u[num_knots-_degree_u-1];
         }
 
         Scalar get_v_upper_bound() const {
-            return 1.0;
+            const auto num_knots = static_cast<int>(m_knots_v.rows());
+            return m_knots_v[num_knots-_degree_v-1];
         }
 
-    protected:
-        std::tuple<Point, Scalar> get_control_point_and_weight(int ui, int vj) const {
-            int index = vj*(_degree_u+1) + ui;
-            return std::make_tuple(m_control_grid.row(index), m_weights[index]);
-        }
-
+    private:
         void validate_initialization() const {
             const auto& ctrl_pts = m_homogeneous.get_control_grid();
             if (ctrl_pts.rows() != m_control_grid.rows() ||
                 ctrl_pts.rows() != m_weights.rows() ) {
-                throw invalid_setting_error("Rational Bezier patch is not initialized.");
+                throw invalid_setting_error("NURBS patch is not initialized.");
             }
         }
 
     protected:
         ControlGrid m_control_grid;
         Weights m_weights;
-        BezierPatchHomogeneous m_homogeneous;
+        BSplinePatchHomogeneous m_homogeneous;
+        KnotVector m_knots_u;
+        KnotVector m_knots_v;
+
 };
 
 }
