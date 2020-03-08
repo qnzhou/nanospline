@@ -20,6 +20,8 @@ class RationalBezierPatch : PatchBase<_Scalar, _dim> {
         using ControlGrid = Eigen::Matrix<Scalar, (_degree_u+1)*(_degree_v+1), _dim>;
         using Weights = Eigen::Matrix<Scalar, (_degree_u+1)*(_degree_v+1), 1>;
         using BezierPatchHomogeneous = BezierPatch<Scalar, _dim+1, _degree_u, _degree_v>;
+        using IsoCurveU = RationalBezier<Scalar, _dim, _degree_u>;
+        using IsoCurveV = RationalBezier<Scalar, _dim, _degree_v>;
 
     public:
         Point evaluate(Scalar u, Scalar v) const override final {
@@ -111,6 +113,24 @@ class RationalBezierPatch : PatchBase<_Scalar, _dim> {
 
         Scalar get_v_upper_bound() const {
             return 1.0;
+        }
+
+        IsoCurveU compute_iso_curve_u(Scalar v) const {
+            auto curve = m_homogeneous.compute_iso_curve_u(v);
+            IsoCurveU iso_curve;
+            iso_curve.set_homogeneous(curve);
+            return iso_curve;
+        }
+
+        IsoCurveV compute_iso_curve_v(Scalar u) const {
+            auto curve = m_homogeneous.compute_iso_curve_v(u);
+            IsoCurveV iso_curve;
+            iso_curve.set_homogeneous(curve);
+            return iso_curve;
+        }
+
+        const BezierPatchHomogeneous& get_homogeneous() const {
+            return m_homogeneous;
         }
 
     protected:
