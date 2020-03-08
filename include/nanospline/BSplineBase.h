@@ -83,6 +83,13 @@ class BSplineBase : public CurveBase<_Scalar, _dim> {
                     "Inflection computation is not support for this curve type");
         }
 
+        virtual std::vector<Scalar> reduce_turning_angle(
+                const Scalar lower,
+                const Scalar upper) const override {
+            throw not_implemented_error(
+                    "Turning angle reduction is not support for this curve type");
+        }
+
         virtual void insert_knot(Scalar t, int num_copies=1) {
             assert(num_copies >= 1);
             assert(in_domain(t));

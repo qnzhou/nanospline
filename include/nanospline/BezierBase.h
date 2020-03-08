@@ -42,6 +42,13 @@ class BezierBase : public CurveBase<_Scalar, _dim> {
                     "Inflection computation is not support for this curve type");
         }
 
+        virtual std::vector<Scalar> reduce_turning_angle(
+                const Scalar lower,
+                const Scalar upper) const override {
+            throw not_implemented_error(
+                    "Turning angle reduction is not support for this curve type");
+        }
+
     public:
         const ControlPoints& get_control_points() const {
             return m_control_points;

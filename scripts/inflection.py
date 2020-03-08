@@ -57,7 +57,7 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
         Scalar t0 = 0,
         Scalar t1 = 1) {{
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
 {body}
 
@@ -74,7 +74,7 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
         Scalar t0 = 0,
         Scalar t1 = 1) {{
     std::vector<Scalar> result;
-    constexpr Scalar tol = 1e-8;
+    constexpr Scalar tol = static_cast<Scalar>(1e-8);
 
 {body}
 
@@ -84,7 +84,7 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
 """
 
 specialization_extern_declaration_template = """
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || {degree} < 5
 #define Scalar double
 extern template
 std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
@@ -93,6 +93,7 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
         Scalar t1);
 #undef Scalar
 
+#if {degree} < 10
 #define Scalar float
 extern template
 std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
@@ -101,10 +102,11 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
         Scalar t1);
 #undef Scalar
 #endif
+#endif
 """
 
 specialization_rational_extern_declaration_template = """
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || {degree} < 5
 #define Scalar double
 extern template
 std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
@@ -126,7 +128,7 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
 """
 
 specialization_extern_definition_template = """
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || {degree} < 5
 #define Scalar double
 template
 std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
@@ -135,18 +137,20 @@ std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
         Scalar t1);
 #undef Scalar
 
+#if {degree} < 10
 #define Scalar float
-extern template
+template
 std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
         {control_variables},
         Scalar t0,
         Scalar t1);
 #undef Scalar
 #endif
+#endif
 """
 
 specialization_rational_extern_definition_template = """
-#if defined(HIGH_DEGREE_SUPPORT) || degree < 5
+#if defined(HIGH_DEGREE_SUPPORT) || {degree} < 5
 #define Scalar double
 template
 std::vector<Scalar> compute_{type}_degree_{degree}_inflections(
@@ -331,7 +335,6 @@ if __name__ == "__main__":
         code = code_template_header
         specialized_code = ""
         lines = []
-        first=True
         for n_coeffs, degree, is_rational, curve in functions[poly_name]:
             if is_rational:
                 template_function, invocation, extern_declaration, extern_definition = \

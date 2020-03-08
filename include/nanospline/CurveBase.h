@@ -32,6 +32,10 @@ class CurveBase {
                 const Scalar lower=0.0,
                 const Scalar upper=1.0) const =0;
 
+        virtual std::vector<Scalar> reduce_turning_angle(
+                const Scalar lower=0.0,
+                const Scalar upper=1.0) const =0;
+
         virtual void write(std::ostream &out) const =0;
 
         friend std::ostream &operator<<(std::ostream &out, const CurveBase &c) { c.wirte(out); return out; }
@@ -55,12 +59,15 @@ class CurveBase {
 
         Scalar get_turning_angle(Scalar t0, Scalar t1) const
         {
-            using std::acos;
-
+            // TODO: This method does not work if derivative is exact 0 at t0 or
+            // t1.
             Point n0 = evaluate_derivative(t0);
-            n0.normalize();
+            const auto l0 = n0.norm();
+            if (l0 > 0) n0 /= l0;
+
             Point n1 = evaluate_derivative(t1);
-            n1.normalize();
+            const auto l1 = n1.norm();
+            if (l1 > 0) n1 /= l1;
 
             Scalar cos_a = n0.dot(n1);
             if (cos_a > 1)
@@ -68,9 +75,7 @@ class CurveBase {
             if (cos_a < -1)
                 cos_a = -1;
 
-            const Scalar angle = acos(cos_a);
-
-            return angle;
+            return std::acos(cos_a);
         }
 
     protected:

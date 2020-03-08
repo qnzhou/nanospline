@@ -50,7 +50,7 @@ class PolynomialRootFinder
         for (int i = 0; i < vals.size(); ++i)
         {
             const auto lambda = vals(i);
-            const double current_t = lambda.real();
+            const Scalar current_t = lambda.real();
 
             if (abs(abs(lambda) - abs(current_t)) > eps)
                 continue;
@@ -95,7 +95,7 @@ class PolynomialRootFinder<Scalar, 2>
             return;
         }
 
-        const Scalar sqrt_discr = sqrt(discr);
+        const Scalar sqrt_discr = std::sqrt(discr);
         Scalar root = (-b - sqrt_discr) / (2 * a);
         if (root >= t0 && root <= t1)
             roots.push_back(root);

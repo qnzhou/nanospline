@@ -29,6 +29,9 @@ ENDIF()
 IF(NOT MSVC)
     TARGET_COMPILE_OPTIONS(nanospline_test PRIVATE
         -Wconversion -Wall -Werror)
+ELSE()
+    TARGET_COMPILE_OPTIONS(nanospline_test PRIVATE
+        -D_USE_MATH_DEFINES)
 ENDIF()
 
 ADD_CUSTOM_TARGET(run_unit_tests
