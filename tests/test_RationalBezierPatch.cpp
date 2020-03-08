@@ -77,28 +77,8 @@ TEST_CASE("RationalBeizerPatch", "[rational][rational_bezier_patch]") {
         REQUIRE((corner_01 - control_grid.row(12)).norm() == Approx(0.0));
         REQUIRE((corner_11 - control_grid.row(15)).norm() == Approx(0.0));
 
-        const auto u_min = patch.get_u_lower_bound();
-        const auto u_max = patch.get_u_upper_bound();
-        const auto v_min = patch.get_v_lower_bound();
-        const auto v_max = patch.get_v_upper_bound();
-
-        SECTION("Isocurves") {
-            for (int i=0; i<=10; i++) {
-                for (int j=0; j<=10; j++) {
-                    const Scalar u = 0.1 * i * (u_max-u_min) + u_min;
-                    const Scalar v = 0.1 * j * (v_max-v_min) + v_min;
-                    auto u_curve = patch.compute_iso_curve_u(v);
-                    auto v_curve = patch.compute_iso_curve_v(u);
-                    auto p = patch.evaluate(u, v);
-                    auto p1 = u_curve.evaluate(u);
-                    auto p2 = v_curve.evaluate(v);
-                    REQUIRE((p-p1).norm() == Approx(0.0).margin(1e-6));
-                    REQUIRE((p-p2).norm() == Approx(0.0).margin(1e-6));
-                }
-            }
-        }
-
         validate_derivative(patch, 10, 10);
+        validate_iso_curves(patch, 10);
     }
 
 }
