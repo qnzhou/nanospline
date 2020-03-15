@@ -1,6 +1,8 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
+#include <cmath>
 
 #include <Eigen/Core>
 #include <nanospline/Exceptions.h>
@@ -11,9 +13,10 @@
 namespace nanospline {
 
 template<typename _Scalar, int _dim=2, int _degree=3, bool _generic=_degree<0 >
-class Bezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
+class Bezier final : public BezierBase<_Scalar, _dim, _degree, _generic> {
     public:
         using Base = BezierBase<_Scalar, _dim, _degree, _generic>;
+        using ThisType = Bezier<_Scalar, _dim, _degree, _generic>;
         using Scalar = typename Base::Scalar;
         using Point = typename Base::Point;
         using ControlPoints = typename Base::ControlPoints;
@@ -53,7 +56,7 @@ class Bezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
 
         std::vector<Scalar> compute_inflections (
                 const Scalar lower,
-                const Scalar upper) const override final {
+                const Scalar upper) const override {
             if (_dim != 2) {
                 throw std::runtime_error(
                         "Inflection computation is for 2D curves only");
@@ -78,9 +81,28 @@ class Bezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
             return res;
         }
 
+        Scalar get_turning_angle(Scalar t0, Scalar t1) const override {
+            if (_dim != 2) {
+                throw invalid_setting_error(
+                        "Turning angle is for 2D only");
+            }
+            auto segment = subcurve(t0, t1);
+            const auto& ctrl_pts = segment.get_control_points();
+            const auto num_ctrl_pts = ctrl_pts.rows();
+            Scalar theta = 0;
+            for (int i=1; i+1<num_ctrl_pts; i++) {
+                const Point v0 = ctrl_pts.row(i) - ctrl_pts.row(i-1);
+                const Point v1 = ctrl_pts.row(i+1) - ctrl_pts.row(i);
+                theta += std::atan2(
+                        v0[0]*v1[1] - v0[1]*v1[0],
+                        v0[0]*v1[0] + v0[1]*v1[1]);
+            }
+            return theta;
+        }
+
         std::vector<Scalar> reduce_turning_angle(
                 const Scalar lower,
-                const Scalar upper) const override final {
+                const Scalar upper) const override {
             constexpr Scalar tol = static_cast<Scalar>(1e-8);
             if (_dim != 2) {
                 throw std::runtime_error(
@@ -107,13 +129,59 @@ class Bezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
                     -(tan0[1]+tan1[1])/2,
                     (tan0[0]+tan1[0])/2);
 
-            auto res = nanospline::internal::match_tangent_bezier(
-                    Base::m_control_points, degree, ave_tangent, lower, upper);
+            std::vector<Scalar> res;
+            try {
+                res = nanospline::internal::match_tangent_bezier(
+                        Base::m_control_points, degree, ave_tangent, lower, upper);
+            } catch (infinite_root_error) {
+                res.clear();
+            }
 
             std::sort(res.begin(), res.end());
             res.erase(std::unique(res.begin(), res.end()), res.end());
 
             return res;
+        }
+
+        /**
+         * Split a curve in halves at t.
+         */
+        std::array<ThisType, 2> split(Scalar t) const {
+            assert(t >= 0);
+            assert(t <= 1);
+            // Copy intentionally.
+            auto ctrl_pts = Base::get_control_points();
+            const auto d = Base::get_degree();
+
+            ControlPoints ctrl_pts_1(d+1, _dim);
+            ControlPoints ctrl_pts_2(d+1, _dim);
+
+            for (int i=0; i<=d; i++) {
+                ctrl_pts_1.row(i) = ctrl_pts.row(0);
+                ctrl_pts_2.row(d-i) = ctrl_pts.row(d-i);
+                for (int j=0; j<d-i; j++) {
+                    ctrl_pts.row(j) = (1.0-t) * ctrl_pts.row(j) + t * ctrl_pts.row(j+1);
+                }
+            }
+
+            std::array<ThisType, 2> results;
+            results[0].set_control_points(std::move(ctrl_pts_1));
+            results[1].set_control_points(std::move(ctrl_pts_2));
+
+            return results;
+        }
+
+        /**
+         * Extract a subcurve in range [t0, t1].
+         */
+        ThisType subcurve(Scalar t0, Scalar t1) const {
+            if (t0 > t1) {
+                throw invalid_setting_error("t0 must be smaller than t1");
+            }
+            if (t0 < 0 || t0 > 1 || t1 < 0 || t1 > 1) {
+                throw invalid_setting_error("Invalid range");
+            }
+            return split(t0)[1].split(t1)[0];
         }
 
     private:
@@ -138,7 +206,7 @@ class Bezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
 };
 
 template<typename _Scalar, int _dim>
-class Bezier<_Scalar, _dim, 0, false> : public BezierBase<_Scalar, _dim, 0, false> {
+class Bezier<_Scalar, _dim, 0, false> final : public BezierBase<_Scalar, _dim, 0, false> {
     public:
         using Base = BezierBase<_Scalar, _dim, 0, false>;
         using Scalar = typename Base::Scalar;
@@ -164,19 +232,19 @@ class Bezier<_Scalar, _dim, 0, false> : public BezierBase<_Scalar, _dim, 0, fals
 
         std::vector<Scalar> compute_inflections(
                 const Scalar lower=0.0,
-                const Scalar upper=1.0) const override final {
+                const Scalar upper=1.0) const override {
             return {};
         }
 
         std::vector<Scalar> reduce_turning_angle(
                 const Scalar lower,
-                const Scalar upper) const override final {
+                const Scalar upper) const override {
             return {};
         }
 };
 
 template<typename _Scalar, int _dim>
-class Bezier<_Scalar, _dim, 1, false> : public BezierBase<_Scalar, _dim, 1, false> {
+class Bezier<_Scalar, _dim, 1, false> final : public BezierBase<_Scalar, _dim, 1, false> {
     public:
         using Base = BezierBase<_Scalar, _dim, 1, false>;
         using Scalar = typename Base::Scalar;
@@ -205,19 +273,19 @@ class Bezier<_Scalar, _dim, 1, false> : public BezierBase<_Scalar, _dim, 1, fals
 
         std::vector<Scalar> compute_inflections(
                 const Scalar lower=0.0,
-                const Scalar upper=1.0) const override final {
+                const Scalar upper=1.0) const override {
             return {};
         }
 
         std::vector<Scalar> reduce_turning_angle(
                 const Scalar lower,
-                const Scalar upper) const override final {
+                const Scalar upper) const override {
             return {};
         }
 };
 
 template<typename _Scalar, int _dim>
-class Bezier<_Scalar, _dim, 2, false> : public BezierBase<_Scalar, _dim, 2, false> {
+class Bezier<_Scalar, _dim, 2, false> final : public BezierBase<_Scalar, _dim, 2, false> {
     public:
         using Base = BezierBase<_Scalar, _dim, 2, false>;
         using Scalar = typename Base::Scalar;
@@ -252,13 +320,13 @@ class Bezier<_Scalar, _dim, 2, false> : public BezierBase<_Scalar, _dim, 2, fals
 
         std::vector<Scalar> compute_inflections(
                 const Scalar lower=0.0,
-                const Scalar upper=1.0) const override final {
+                const Scalar upper=1.0) const override {
             return {};
         }
 
         std::vector<Scalar> reduce_turning_angle(
                 const Scalar lower,
-                const Scalar upper) const override final {
+                const Scalar upper) const override {
             constexpr Scalar tol = static_cast<Scalar>(1e-8);
             if (_dim != 2) {
                 throw std::runtime_error(
@@ -281,14 +349,19 @@ class Bezier<_Scalar, _dim, 2, false> : public BezierBase<_Scalar, _dim, 2, fals
                     -(tan0[1]+tan1[1])/2,
                     (tan0[0]+tan1[0])/2);
 
-            auto res = nanospline::internal::match_tangent_Bezier_degree_2(
-                    Base::m_control_points(0, 0),
-                    Base::m_control_points(0, 1),
-                    Base::m_control_points(1, 0),
-                    Base::m_control_points(1, 1),
-                    Base::m_control_points(2, 0),
-                    Base::m_control_points(2, 1),
-                    ave_tangent, lower, upper);
+            std::vector<Scalar> res;
+            try {
+                res = nanospline::internal::match_tangent_Bezier_degree_2(
+                        Base::m_control_points(0, 0),
+                        Base::m_control_points(0, 1),
+                        Base::m_control_points(1, 0),
+                        Base::m_control_points(1, 1),
+                        Base::m_control_points(2, 0),
+                        Base::m_control_points(2, 1),
+                        ave_tangent, lower, upper);
+            } catch (infinite_root_error) {
+                res.clear();
+            }
 
             std::sort(res.begin(), res.end());
             res.erase(std::unique(res.begin(), res.end()), res.end());
@@ -298,7 +371,7 @@ class Bezier<_Scalar, _dim, 2, false> : public BezierBase<_Scalar, _dim, 2, fals
 };
 
 template<typename _Scalar, int _dim>
-class Bezier<_Scalar, _dim, 3, false> : public BezierBase<_Scalar, _dim, 3, false> {
+class Bezier<_Scalar, _dim, 3, false> final : public BezierBase<_Scalar, _dim, 3, false> {
     public:
         using Base = BezierBase<_Scalar, _dim, 3, false>;
         using Scalar = typename Base::Scalar;
@@ -349,7 +422,7 @@ class Bezier<_Scalar, _dim, 3, false> : public BezierBase<_Scalar, _dim, 3, fals
 
         std::vector<Scalar> compute_inflections(
                 const Scalar lower,
-                const Scalar upper) const override final {
+                const Scalar upper) const override {
             std::vector<Scalar> res;
             try {
                 res = nanospline::internal::compute_Bezier_degree_3_inflections(
@@ -362,7 +435,7 @@ class Bezier<_Scalar, _dim, 3, false> : public BezierBase<_Scalar, _dim, 3, fals
                         Base::m_control_points(3, 0),
                         Base::m_control_points(3, 1),
                         lower, upper);
-            } catch (infinite_root_error e) {
+            } catch (infinite_root_error) {
                 res.clear();
             }
 
@@ -374,7 +447,7 @@ class Bezier<_Scalar, _dim, 3, false> : public BezierBase<_Scalar, _dim, 3, fals
 
         std::vector<Scalar> reduce_turning_angle(
                 const Scalar lower,
-                const Scalar upper) const override final {
+                const Scalar upper) const override {
             constexpr Scalar tol = static_cast<Scalar>(1e-8);
             if (_dim != 2) {
                 throw std::runtime_error(
@@ -397,16 +470,21 @@ class Bezier<_Scalar, _dim, 3, false> : public BezierBase<_Scalar, _dim, 3, fals
                     -(tan0[1]+tan1[1])/2,
                     (tan0[0]+tan1[0])/2);
 
-            auto res = nanospline::internal::match_tangent_Bezier_degree_3(
-                    Base::m_control_points(0, 0),
-                    Base::m_control_points(0, 1),
-                    Base::m_control_points(1, 0),
-                    Base::m_control_points(1, 1),
-                    Base::m_control_points(2, 0),
-                    Base::m_control_points(2, 1),
-                    Base::m_control_points(3, 0),
-                    Base::m_control_points(3, 1),
-                    ave_tangent, lower, upper);
+            std::vector<Scalar> res;
+            try {
+                res = nanospline::internal::match_tangent_Bezier_degree_3(
+                        Base::m_control_points(0, 0),
+                        Base::m_control_points(0, 1),
+                        Base::m_control_points(1, 0),
+                        Base::m_control_points(1, 1),
+                        Base::m_control_points(2, 0),
+                        Base::m_control_points(2, 1),
+                        Base::m_control_points(3, 0),
+                        Base::m_control_points(3, 1),
+                        ave_tangent, lower, upper);
+            } catch (infinite_root_error) {
+                res.clear();
+            }
 
             std::sort(res.begin(), res.end());
             res.erase(std::unique(res.begin(), res.end()), res.end());

@@ -140,6 +140,15 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             validate_derivatives(curve, 10, 1e-5);
             validate_2nd_derivatives(curve, 10);
 
+            const auto split_pts = curve.reduce_turning_angle(0, 1);
+            if (weights[1] > 0) {
+                REQUIRE(split_pts.size() == 1);
+                const auto total_turning_angle = curve.get_turning_angle(0, 1);
+                const auto turning_angle_1 = curve.get_turning_angle(0, split_pts[0]);
+                const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
+                REQUIRE(turning_angle_1 == Approx(0.5 * total_turning_angle));
+                REQUIRE(turning_angle_2 == Approx(0.5 * total_turning_angle));
+            }
         }
     }
 

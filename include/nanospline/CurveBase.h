@@ -13,6 +13,7 @@ namespace nanospline {
 template<typename _Scalar, int _dim>
 class CurveBase {
     public:
+        static_assert(_dim >= 0, "Negative degree is not allowed");
         using Scalar = _Scalar;
         using Point = Eigen::Matrix<Scalar, 1, _dim>;
 
@@ -42,22 +43,7 @@ class CurveBase {
         virtual std::shared_ptr<CurveBase> simplify(Scalar eps) const { return nullptr; }
         // virtual bool is_point() const = 0;
 
-
-
-    public:
-        Point evaluate_curvature(Scalar t) const {
-            const auto d1 = evaluate_derivative(t);
-            const auto d2 = evaluate_2nd_derivative(t);
-
-            const auto sq_speed = d1.squaredNorm();
-            if (sq_speed == 0) {
-                return Point::Zero();
-            } else {
-                return (d2 - d1 * (d1.dot(d2)) / sq_speed) / sq_speed;
-            }
-        }
-
-        Scalar get_turning_angle(Scalar t0, Scalar t1) const
+        virtual Scalar get_turning_angle(Scalar t0, Scalar t1) const
         {
             // TODO: This method does not work if derivative is exact 0 at t0 or
             // t1.
@@ -76,6 +62,19 @@ class CurveBase {
                 cos_a = -1;
 
             return std::acos(cos_a);
+        }
+
+    public:
+        Point evaluate_curvature(Scalar t) const {
+            const auto d1 = evaluate_derivative(t);
+            const auto d2 = evaluate_2nd_derivative(t);
+
+            const auto sq_speed = d1.squaredNorm();
+            if (sq_speed == 0) {
+                return Point::Zero();
+            } else {
+                return (d2 - d1 * (d1.dot(d2)) / sq_speed) / sq_speed;
+            }
         }
 
     protected:
