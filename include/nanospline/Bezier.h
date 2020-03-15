@@ -62,8 +62,15 @@ class Bezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
             if (degree <= 2) {
                 return {};
             }
-            auto res = nanospline::internal::compute_Bezier_inflections(
-                    Base::m_control_points, lower, upper);
+            std::vector<Scalar> res;
+
+            try {
+                res = nanospline::internal::compute_Bezier_inflections(
+                        Base::m_control_points, lower, upper);
+            } catch (infinite_root_error e) {
+                // Infinitely many inflections.
+                res.clear();
+            }
 
             std::sort(res.begin(), res.end());
             res.erase(std::unique(res.begin(), res.end()), res.end());
@@ -343,16 +350,21 @@ class Bezier<_Scalar, _dim, 3, false> : public BezierBase<_Scalar, _dim, 3, fals
         std::vector<Scalar> compute_inflections(
                 const Scalar lower,
                 const Scalar upper) const override final {
-            auto res = nanospline::internal::compute_Bezier_degree_3_inflections(
-                    Base::m_control_points(0, 0),
-                    Base::m_control_points(0, 1),
-                    Base::m_control_points(1, 0),
-                    Base::m_control_points(1, 1),
-                    Base::m_control_points(2, 0),
-                    Base::m_control_points(2, 1),
-                    Base::m_control_points(3, 0),
-                    Base::m_control_points(3, 1),
-                    lower, upper);
+            std::vector<Scalar> res;
+            try {
+                res = nanospline::internal::compute_Bezier_degree_3_inflections(
+                        Base::m_control_points(0, 0),
+                        Base::m_control_points(0, 1),
+                        Base::m_control_points(1, 0),
+                        Base::m_control_points(1, 1),
+                        Base::m_control_points(2, 0),
+                        Base::m_control_points(2, 1),
+                        Base::m_control_points(3, 0),
+                        Base::m_control_points(3, 1),
+                        lower, upper);
+            } catch (infinite_root_error e) {
+                res.clear();
+            }
 
             std::sort(res.begin(), res.end());
             res.erase(std::unique(res.begin(), res.end()), res.end());

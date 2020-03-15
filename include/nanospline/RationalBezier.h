@@ -70,8 +70,14 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
             if (degree <= 2) {
                 return {};
             }
-            auto res = internal::compute_RationalBezier_inflections(
-                    Base::m_control_points, m_weights, lower, upper);
+
+            std::vector<Scalar> res;
+            try {
+                res = internal::compute_RationalBezier_inflections(
+                        Base::m_control_points, m_weights, lower, upper);
+            } catch (infinite_root_error e) {
+                res.clear();
+            }
 
             std::sort(res.begin(), res.end());
             res.erase(std::unique(res.begin(), res.end()), res.end());

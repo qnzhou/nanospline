@@ -90,7 +90,8 @@ TEST_CASE("inflection", "[inflection]") {
         using Curve = Bezier<Scalar, 2, 3>;
         Curve curve;
         curve.set_control_points(control_pts);
-        REQUIRE_THROWS(curve.compute_inflections(0.0, 1.0));
+        auto inflections = curve.compute_inflections(0.0, 1.0);
+        REQUIRE(inflections.empty());
     }
 
     SECTION("Quadratic Bezier") {
