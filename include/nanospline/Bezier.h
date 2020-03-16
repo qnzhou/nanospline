@@ -236,6 +236,10 @@ class Bezier<_Scalar, _dim, 0, false> final : public BezierBase<_Scalar, _dim, 0
             return {};
         }
 
+        Scalar get_turning_angle(Scalar t0, Scalar t1) const override {
+            return 0;
+        }
+
         std::vector<Scalar> reduce_turning_angle(
                 const Scalar lower,
                 const Scalar upper) const override {
@@ -275,6 +279,10 @@ class Bezier<_Scalar, _dim, 1, false> final : public BezierBase<_Scalar, _dim, 1
                 const Scalar lower=0.0,
                 const Scalar upper=1.0) const override {
             return {};
+        }
+
+        Scalar get_turning_angle(Scalar t0, Scalar t1) const override {
+            return 0;
         }
 
         std::vector<Scalar> reduce_turning_angle(
@@ -322,6 +330,19 @@ class Bezier<_Scalar, _dim, 2, false> final : public BezierBase<_Scalar, _dim, 2
                 const Scalar lower=0.0,
                 const Scalar upper=1.0) const override {
             return {};
+        }
+
+        Scalar get_turning_angle(Scalar t0, Scalar t1) const override {
+            if (_dim != 2) {
+                throw invalid_setting_error(
+                        "Turning angle is for 2D only");
+            }
+
+            const Point v0 = evaluate_derivative(t0);
+            const Point v1 = evaluate_derivative(t1);
+            return std::atan2(
+                    v0[0]*v1[1] - v0[1]*v1[0],
+                    v0[0]*v1[0] + v0[1]*v1[1]);
         }
 
         std::vector<Scalar> reduce_turning_angle(
@@ -374,6 +395,7 @@ template<typename _Scalar, int _dim>
 class Bezier<_Scalar, _dim, 3, false> final : public BezierBase<_Scalar, _dim, 3, false> {
     public:
         using Base = BezierBase<_Scalar, _dim, 3, false>;
+        using ThisType = Bezier<_Scalar, _dim, 3, false>;
         using Scalar = typename Base::Scalar;
         using Point = typename Base::Point;
         using ControlPoints = typename Base::ControlPoints;
@@ -445,6 +467,27 @@ class Bezier<_Scalar, _dim, 3, false> final : public BezierBase<_Scalar, _dim, 3
             return res;
         }
 
+        Scalar get_turning_angle(Scalar t0, Scalar t1) const override {
+            if (_dim != 2) {
+                throw invalid_setting_error(
+                        "Turning angle is for 2D only");
+            }
+
+            const auto piece = subcurve(t0, t1);
+            const auto& ctrl_pts = piece.get_control_points();
+
+            const Point v0 = ctrl_pts.row(1) - ctrl_pts.row(0);
+            const Point v1 = ctrl_pts.row(2) - ctrl_pts.row(1);
+            const Point v2 = ctrl_pts.row(3) - ctrl_pts.row(2);
+
+            return std::atan2(
+                    v0[0]*v1[1] - v0[1]*v1[0],
+                    v0[0]*v1[0] + v0[1]*v1[1]) +
+                std::atan2(
+                    v1[0]*v2[1] - v1[1]*v2[0],
+                    v1[0]*v2[0] + v1[1]*v2[1]);
+        }
+
         std::vector<Scalar> reduce_turning_angle(
                 const Scalar lower,
                 const Scalar upper) const override {
@@ -491,6 +534,45 @@ class Bezier<_Scalar, _dim, 3, false> final : public BezierBase<_Scalar, _dim, 3
 
             return res;
         }
+
+    public:
+        std::array<ThisType, 2> split(Scalar t) const {
+            assert(t >= 0);
+            assert(t <= 1);
+            // Copy intentionally.
+            auto ctrl_pts = Base::get_control_points();
+
+            ControlPoints ctrl_pts_1(4, _dim);
+            ControlPoints ctrl_pts_2(4, _dim);
+
+            for (int i=0; i<=3; i++) {
+                ctrl_pts_1.row(i) = ctrl_pts.row(0);
+                ctrl_pts_2.row(3-i) = ctrl_pts.row(3-i);
+                for (int j=0; j<3-i; j++) {
+                    ctrl_pts.row(j) = (1.0-t) * ctrl_pts.row(j) + t * ctrl_pts.row(j+1);
+                }
+            }
+
+            std::array<ThisType, 2> results;
+            results[0].set_control_points(std::move(ctrl_pts_1));
+            results[1].set_control_points(std::move(ctrl_pts_2));
+
+            return results;
+        }
+
+        /**
+         * Extract a subcurve in range [t0, t1].
+         */
+        ThisType subcurve(Scalar t0, Scalar t1) const {
+            if (t0 > t1) {
+                throw invalid_setting_error("t0 must be smaller than t1");
+            }
+            if (t0 < 0 || t0 > 1 || t1 < 0 || t1 > 1) {
+                throw invalid_setting_error("Invalid range");
+            }
+            return split(t0)[1].split(t1)[0];
+        }
+
 };
 
 

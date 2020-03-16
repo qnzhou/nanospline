@@ -11,7 +11,7 @@
 namespace nanospline {
 
 template<typename _Scalar, int _dim=2, int _degree=3, bool _generic=_degree<0>
-class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
+class RationalBezier final : public BezierBase<_Scalar, _dim, _degree, _generic> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         using Base = BezierBase<_Scalar, _dim, _degree, _generic>;
@@ -61,7 +61,7 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
 
         std::vector<Scalar> compute_inflections (
                 const Scalar lower,
-                const Scalar upper) const override final {
+                const Scalar upper) const override {
             if (_dim != 2) {
                 throw std::runtime_error(
                         "Inflection computation is for 2D curves only");
@@ -87,7 +87,7 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
 
         std::vector<Scalar> reduce_turning_angle(
                 const Scalar lower,
-                const Scalar upper) const override final {
+                const Scalar upper) const override {
             constexpr Scalar tol = static_cast<Scalar>(1e-8);
             if (_dim != 2) {
                 throw std::runtime_error(
