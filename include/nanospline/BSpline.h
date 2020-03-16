@@ -217,6 +217,38 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             return res;
         }
 
+        Scalar get_turning_angle(Scalar t0, Scalar t1) const override {
+            using CurveType = Bezier<Scalar, _dim, _degree, _generic>;
+
+            if (_dim != 2) {
+                throw std::runtime_error(
+                        "Turning angle reduction is for 2D curves only");
+            }
+
+            std::vector<CurveType> beziers;
+            std::vector<Scalar> parameter_bounds;
+            std::tie(beziers, parameter_bounds) = convert_to_Bezier();
+
+            const auto num_beziers = beziers.size();
+            Scalar theta = 0;
+            for (size_t i=0; i<num_beziers; i++) {
+                const auto t_min = parameter_bounds[i];
+                const auto t_max = parameter_bounds[i+1];
+                if (t_max < t0 || t_min > t1) {
+                    continue;
+                }
+
+                Scalar normalized_lower = (t0 - t_min) / (t_max - t_min);
+                Scalar normalized_upper = (t1 - t_min) / (t_max - t_min);
+                normalized_lower = std::max<Scalar>(normalized_lower, 0);
+                normalized_upper = std::min<Scalar>(normalized_upper, 1);
+                theta += beziers[i].get_turning_angle(
+                        normalized_lower, normalized_upper);
+            }
+
+            return theta;
+        }
+
         std::vector<Scalar> reduce_turning_angle(
                 const Scalar lower,
                 const Scalar upper) const override final {

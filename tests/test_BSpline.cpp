@@ -78,6 +78,13 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
             curve2.insert_knot(0.5, 1);
             assert_same(curve, curve2, 10);
         }
+
+        SECTION("Turning angle") {
+            auto total_turning_angle = curve.get_turning_angle(0, 1);
+            REQUIRE(total_turning_angle == Approx(0));
+            const auto split_pts = curve.reduce_turning_angle(0, 1);
+            REQUIRE(split_pts.size() == 0);
+        }
     }
 
     SECTION("Generic degree 2") {
@@ -121,6 +128,13 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
             curve2.insert_knot(0.1, 2);
             assert_same(curve, curve2, 10);
         }
+
+        SECTION("Turning angle") {
+            auto total_turning_angle = curve.get_turning_angle(0, 1);
+            REQUIRE(total_turning_angle == Approx(0));
+            const auto split_pts = curve.reduce_turning_angle(0, 1);
+            REQUIRE(split_pts.size() == 0);
+        }
     }
 
     SECTION("Generic degree 3") {
@@ -159,6 +173,13 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
 
             curve2.insert_knot(0.6, 3);
             assert_same(curve, curve2, 10);
+        }
+
+        SECTION("Turning angle") {
+            auto total_turning_angle = curve.get_turning_angle(0, 1);
+            REQUIRE(total_turning_angle == Approx(0));
+            const auto split_pts = curve.reduce_turning_angle(0, 1);
+            REQUIRE(split_pts.size() == 0);
         }
     }
 
@@ -637,13 +658,13 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
         }
 
         SECTION("Closed curve") {
-            Eigen::Matrix<Scalar, 14, 2> ctrl_pts;
+            Eigen::Matrix<Scalar, 13, 2> ctrl_pts;
             ctrl_pts << 1, 4, .5, 6, 5, 4, 3, 12, 11, 14, 8, 4, 12, 3, 11, 9, 15, 10, 17, 8,
-                     1, 4, .5, 6, 5, 4, 3, 12 ;
-            Eigen::Matrix<Scalar, 18, 1> knots;
-            knots << 0.0/17, 1.0/17, 2.0/17, 3.0/17, 4.0/17, 5.0/17, 6.0/17, 7.0/17,
-                  8.0/17, 9.0/17, 10.0/17, 11.0/17, 12.0/17, 13.0/17, 14.0/17, 15.0/17,
-                  16.0/17, 17.0/17;
+                     1, 4, .5, 6, 5, 4;
+            Eigen::Matrix<Scalar, 17, 1> knots;
+            knots << 0.0/16, 1.0/16, 2.0/16, 3.0/16, 4.0/16, 5.0/16, 6.0/16, 7.0/16,
+                  8.0/16, 9.0/16, 10.0/16, 11.0/16, 12.0/16, 13.0/16, 14.0/16, 15.0/16,
+                  16.0/16;
 
             BSpline<Scalar, 2, 3, true> curve;
             curve.set_control_points(ctrl_pts);
@@ -656,8 +677,15 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
 
             SECTION("Knot insertion") {
                 auto curve2 = curve;
-                curve2.insert_knot(0.5, 3);
+                curve2.insert_knot(0.5, 2);
                 assert_same(curve, curve2, 10);
+            }
+
+            SECTION("Turning angle") {
+                const auto min_t = curve.get_domain_lower_bound();
+                const auto max_t = curve.get_domain_upper_bound();
+                auto total_turning_angle = curve.get_turning_angle(min_t, max_t);
+                REQUIRE(std::abs(total_turning_angle) == Approx(2 * M_PI));
             }
         }
 
