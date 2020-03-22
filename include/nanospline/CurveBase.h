@@ -43,25 +43,35 @@ class CurveBase {
         virtual std::shared_ptr<CurveBase> simplify(Scalar eps) const { return nullptr; }
         // virtual bool is_point() const = 0;
 
-        virtual Scalar get_turning_angle(Scalar t0, Scalar t1) const
-        {
-            // TODO: This method does not work if derivative is exact 0 at t0 or
-            // t1.
-            Point n0 = evaluate_derivative(t0);
-            const auto l0 = n0.norm();
-            if (l0 > 0) n0 /= l0;
+        virtual Scalar get_turning_angle(Scalar t0, Scalar t1) const {
+            if (_dim != 2) {
+                throw std::runtime_error(
+                        "Inflection computation is for 2D curves only");
+            }
 
-            Point n1 = evaluate_derivative(t1);
-            const auto l1 = n1.norm();
-            if (l1 > 0) n1 /= l1;
+            constexpr Scalar EPS = std::numeric_limits<Scalar>::epsilon();
+            Scalar turning_angle = 0;
+            constexpr auto num_samples = 10;
+            Point prev_d(0, 0);
 
-            Scalar cos_a = n0.dot(n1);
-            if (cos_a > 1)
-                cos_a = 1;
-            if (cos_a < -1)
-                cos_a = -1;
+            for (int i=0; i<num_samples; i++) {
+                const Scalar t = t0 + (t1-t0) * i / (num_samples-1);
+                const auto d = evaluate_derivative(t);
+                if (prev_d.norm() < EPS) {
+                    prev_d = d;
+                    continue;
+                }
 
-            return std::acos(cos_a);
+                if (d.norm() < EPS) {
+                    continue;
+                }
+
+                turning_angle += std::atan2(
+                        d[0]*prev_d[1] - d[1]*prev_d[0],
+                        d[0]*prev_d[0] + d[1]*prev_d[1]);
+                prev_d = d;
+            }
+            return turning_angle;
         }
 
     public:
