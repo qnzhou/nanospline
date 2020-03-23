@@ -373,10 +373,12 @@ if __name__ == "__main__":
             f.write(code)
 
     body = extern_declaration_template.format(body=("\n".join(extern_declarations)));
-    with open(os.path.join(dir_path, "..", "tests", "forward_declaration.h"), "w") as f:
+    with open(os.path.join(dir_path, "..", "tests",
+        "forward_declaration_inflection.h"), "w") as f:
         f.write(body)
 
     body = extern_definition_template.format(body=("\n".join(extern_definitions)));
-    with open(os.path.join(dir_path, "..", "tests", "forward_declaration.cpp"), "w") as f:
+    with open(os.path.join(dir_path, "..", "tests",
+        "forward_declaration_inflection.cpp"), "w") as f:
         f.write(body)
 
