@@ -112,6 +112,9 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
             REQUIRE(std::abs(turning_angle_1) == Approx(M_PI/4));
             REQUIRE(std::abs(turning_angle_2) == Approx(M_PI/4));
+
+            const auto singular_pts = curve.compute_singularities(0, 1);
+            REQUIRE(singular_pts.size() == 0);
         }
 
         SECTION("Non-uniform weights") {
@@ -148,6 +151,11 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
                 const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
                 REQUIRE(turning_angle_1 == Approx(0.5 * total_turning_angle));
                 REQUIRE(turning_angle_2 == Approx(0.5 * total_turning_angle));
+            }
+            const auto singular_pts = curve.compute_singularities(0, 1);
+            for (auto t : singular_pts) {
+                const auto d = curve.evaluate_derivative(t);
+                REQUIRE(d.norm() == Approx(0).margin(1e-6));
             }
         }
     }

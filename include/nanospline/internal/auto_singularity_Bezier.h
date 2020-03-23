@@ -4,7 +4,6 @@
 
 #pragma once
 #include <cassert>
-#include <cmath>
 #include <vector>
 
 #include <nanospline/Exceptions.h>
@@ -16,7 +15,7 @@ namespace internal {
 
 
 template<typename Scalar>
-std::vector<Scalar> compute_degree_2_singularities(
+std::vector<Scalar> compute_Bezier_degree_2_singularities(
         Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2,
         Scalar t0 = 0,
         Scalar t1 = 1) {
@@ -35,7 +34,7 @@ std::vector<Scalar> compute_degree_2_singularities(
 
 
 template<typename Scalar>
-std::vector<Scalar> compute_degree_3_singularities(
+std::vector<Scalar> compute_Bezier_degree_3_singularities(
         Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3,
         Scalar t0 = 0,
         Scalar t1 = 1) {
@@ -56,7 +55,7 @@ std::vector<Scalar> compute_degree_3_singularities(
 
 
 template<typename Scalar>
-std::vector<Scalar> compute_degree_4_singularities(
+std::vector<Scalar> compute_Bezier_degree_4_singularities(
         Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4,
         Scalar t0 = 0,
         Scalar t1 = 1) {
@@ -79,7 +78,7 @@ std::vector<Scalar> compute_degree_4_singularities(
 
 
 template<typename Scalar>
-std::vector<Scalar> compute_degree_5_singularities(
+std::vector<Scalar> compute_Bezier_degree_5_singularities(
         Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4, Scalar cx5, Scalar cy5,
         Scalar t0 = 0,
         Scalar t1 = 1) {
@@ -104,7 +103,7 @@ std::vector<Scalar> compute_degree_5_singularities(
 
 
 template<typename Scalar>
-std::vector<Scalar> compute_degree_6_singularities(
+std::vector<Scalar> compute_Bezier_degree_6_singularities(
         Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4, Scalar cx5, Scalar cy5, Scalar cx6, Scalar cy6,
         Scalar t0 = 0,
         Scalar t1 = 1) {
@@ -131,7 +130,7 @@ std::vector<Scalar> compute_degree_6_singularities(
 
 
 template<typename Scalar>
-std::vector<Scalar> compute_degree_7_singularities(
+std::vector<Scalar> compute_Bezier_degree_7_singularities(
         Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4, Scalar cx5, Scalar cy5, Scalar cx6, Scalar cy6, Scalar cx7, Scalar cy7,
         Scalar t0 = 0,
         Scalar t1 = 1) {
@@ -160,7 +159,7 @@ std::vector<Scalar> compute_degree_7_singularities(
 
 
 template<typename Scalar>
-std::vector<Scalar> compute_degree_8_singularities(
+std::vector<Scalar> compute_Bezier_degree_8_singularities(
         Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4, Scalar cx5, Scalar cy5, Scalar cx6, Scalar cy6, Scalar cx7, Scalar cy7, Scalar cx8, Scalar cy8,
         Scalar t0 = 0,
         Scalar t1 = 1) {
@@ -191,7 +190,7 @@ std::vector<Scalar> compute_degree_8_singularities(
 
 
 template<typename Scalar>
-std::vector<Scalar> compute_degree_9_singularities(
+std::vector<Scalar> compute_Bezier_degree_9_singularities(
         Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4, Scalar cx5, Scalar cy5, Scalar cx6, Scalar cy6, Scalar cx7, Scalar cy7, Scalar cx8, Scalar cy8, Scalar cx9, Scalar cy9,
         Scalar t0 = 0,
         Scalar t1 = 1) {
@@ -224,7 +223,7 @@ std::vector<Scalar> compute_degree_9_singularities(
 
 
 template<typename Scalar>
-std::vector<Scalar> compute_degree_10_singularities(
+std::vector<Scalar> compute_Bezier_degree_10_singularities(
         Scalar cx0, Scalar cy0, Scalar cx1, Scalar cy1, Scalar cx2, Scalar cy2, Scalar cx3, Scalar cy3, Scalar cx4, Scalar cy4, Scalar cx5, Scalar cy5, Scalar cx6, Scalar cy6, Scalar cx7, Scalar cy7, Scalar cx8, Scalar cy8, Scalar cx9, Scalar cy9, Scalar cx10, Scalar cy10,
         Scalar t0 = 0,
         Scalar t1 = 1) {
@@ -259,40 +258,40 @@ std::vector<Scalar> compute_degree_10_singularities(
 
 
 template<typename Derived>
-std::vector<typename Derived::Scalar> compute_singularities(
+std::vector<typename Derived::Scalar> compute_Bezier_singularities(
         const Eigen::PlainObjectBase<Derived>& ctrl_pts,
         typename Derived::Scalar t0 = 0,
         typename Derived::Scalar t1 = 1) {
     switch(ctrl_pts.rows()-1) {
         case 2:
-            return compute_degree_2_singularities(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), t0, t1);
+            return compute_Bezier_degree_2_singularities(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), t0, t1);
         case 3:
-            return compute_degree_3_singularities(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), t0, t1);
+            return compute_Bezier_degree_3_singularities(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), t0, t1);
         case 4:
-            return compute_degree_4_singularities(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), t0, t1);
+            return compute_Bezier_degree_4_singularities(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), t0, t1);
         #ifdef HIGH_DEGREE_SUPPORT
         case 5:
-            return compute_degree_5_singularities(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), ctrl_pts(5,0), ctrl_pts(5,1), t0, t1);
+            return compute_Bezier_degree_5_singularities(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), ctrl_pts(5,0), ctrl_pts(5,1), t0, t1);
         #endif // HIGH_DEGREE_SUPPORT
         #ifdef HIGH_DEGREE_SUPPORT
         case 6:
-            return compute_degree_6_singularities(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), ctrl_pts(5,0), ctrl_pts(5,1), ctrl_pts(6,0), ctrl_pts(6,1), t0, t1);
+            return compute_Bezier_degree_6_singularities(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), ctrl_pts(5,0), ctrl_pts(5,1), ctrl_pts(6,0), ctrl_pts(6,1), t0, t1);
         #endif // HIGH_DEGREE_SUPPORT
         #ifdef HIGH_DEGREE_SUPPORT
         case 7:
-            return compute_degree_7_singularities(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), ctrl_pts(5,0), ctrl_pts(5,1), ctrl_pts(6,0), ctrl_pts(6,1), ctrl_pts(7,0), ctrl_pts(7,1), t0, t1);
+            return compute_Bezier_degree_7_singularities(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), ctrl_pts(5,0), ctrl_pts(5,1), ctrl_pts(6,0), ctrl_pts(6,1), ctrl_pts(7,0), ctrl_pts(7,1), t0, t1);
         #endif // HIGH_DEGREE_SUPPORT
         #ifdef HIGH_DEGREE_SUPPORT
         case 8:
-            return compute_degree_8_singularities(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), ctrl_pts(5,0), ctrl_pts(5,1), ctrl_pts(6,0), ctrl_pts(6,1), ctrl_pts(7,0), ctrl_pts(7,1), ctrl_pts(8,0), ctrl_pts(8,1), t0, t1);
+            return compute_Bezier_degree_8_singularities(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), ctrl_pts(5,0), ctrl_pts(5,1), ctrl_pts(6,0), ctrl_pts(6,1), ctrl_pts(7,0), ctrl_pts(7,1), ctrl_pts(8,0), ctrl_pts(8,1), t0, t1);
         #endif // HIGH_DEGREE_SUPPORT
         #ifdef HIGH_DEGREE_SUPPORT
         case 9:
-            return compute_degree_9_singularities(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), ctrl_pts(5,0), ctrl_pts(5,1), ctrl_pts(6,0), ctrl_pts(6,1), ctrl_pts(7,0), ctrl_pts(7,1), ctrl_pts(8,0), ctrl_pts(8,1), ctrl_pts(9,0), ctrl_pts(9,1), t0, t1);
+            return compute_Bezier_degree_9_singularities(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), ctrl_pts(5,0), ctrl_pts(5,1), ctrl_pts(6,0), ctrl_pts(6,1), ctrl_pts(7,0), ctrl_pts(7,1), ctrl_pts(8,0), ctrl_pts(8,1), ctrl_pts(9,0), ctrl_pts(9,1), t0, t1);
         #endif // HIGH_DEGREE_SUPPORT
         #ifdef HIGH_DEGREE_SUPPORT
         case 10:
-            return compute_degree_10_singularities(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), ctrl_pts(5,0), ctrl_pts(5,1), ctrl_pts(6,0), ctrl_pts(6,1), ctrl_pts(7,0), ctrl_pts(7,1), ctrl_pts(8,0), ctrl_pts(8,1), ctrl_pts(9,0), ctrl_pts(9,1), ctrl_pts(10,0), ctrl_pts(10,1), t0, t1);
+            return compute_Bezier_degree_10_singularities(ctrl_pts(0,0), ctrl_pts(0,1), ctrl_pts(1,0), ctrl_pts(1,1), ctrl_pts(2,0), ctrl_pts(2,1), ctrl_pts(3,0), ctrl_pts(3,1), ctrl_pts(4,0), ctrl_pts(4,1), ctrl_pts(5,0), ctrl_pts(5,1), ctrl_pts(6,0), ctrl_pts(6,1), ctrl_pts(7,0), ctrl_pts(7,1), ctrl_pts(8,0), ctrl_pts(8,1), ctrl_pts(9,0), ctrl_pts(9,1), ctrl_pts(10,0), ctrl_pts(10,1), t0, t1);
         #endif // HIGH_DEGREE_SUPPORT
         default:
             throw not_implemented_error(

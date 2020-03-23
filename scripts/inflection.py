@@ -205,7 +205,7 @@ extern_definition_template = """/**
 #include <cassert>
 #include <vector>
 
-#include "forward_declaration.h"
+#include "forward_declaration_inflection.h"
 
 namespace nanospline {{
 namespace internal {{
@@ -240,7 +240,7 @@ def generate_code_for_Bezier(degree, printer):
     syms = utils.create_coeff_symbols(n_coeffs)
     func = utils.bezier(degree, t, False, syms)
 
-    poly, coeffs = extract_coefficients(func, t);
+    poly, coeffs = extract_coefficients(func, t)
     solver_lines = utils.generate_solver_code(coeffs, poly, printer)
 
     control_variables = ", ".join(["Scalar cx{i}, Scalar cy{i}".format(i=i)
@@ -269,7 +269,7 @@ def generate_code_for_Bezier(degree, printer):
             degree=degree,
             control_variables = control_variables)
 
-    return template_function, invocation, extern_declaration, extern_definition;
+    return template_function, invocation, extern_declaration, extern_definition
 
 def generate_code_for_RationalBezier(degree, printer):
     t = symbols('t')
@@ -278,7 +278,7 @@ def generate_code_for_RationalBezier(degree, printer):
     syms = utils.create_coeff_symbols(n_coeffs)
     func = utils.bezier(degree, t, True, syms)
 
-    poly, coeffs = extract_coefficients(func, t);
+    poly, coeffs = extract_coefficients(func, t)
     solver_lines = utils.generate_solver_code(coeffs, poly, printer)
 
     control_variables = ", ".join(["Scalar cx{i}, Scalar cy{i}".format(i=i)
@@ -319,7 +319,7 @@ def generate_code_for_RationalBezier(degree, printer):
             control_variables = control_variables,
             weight_variables = weight_variables)
 
-    return template_function, invocation, extern_declaration, extern_definition;
+    return template_function, invocation, extern_declaration, extern_definition
 
 
 if __name__ == "__main__":
@@ -328,8 +328,8 @@ if __name__ == "__main__":
 
     printer = C99CodePrinter()
 
-    extern_declarations = [];
-    extern_definitions = [];
+    extern_declarations = []
+    extern_definitions = []
 
     for poly_name in functions:
         code = code_template_header
@@ -338,22 +338,22 @@ if __name__ == "__main__":
         for n_coeffs, degree, is_rational, curve in functions[poly_name]:
             if is_rational:
                 template_function, invocation, extern_declaration, extern_definition = \
-                generate_code_for_RationalBezier(degree, printer);
+                generate_code_for_RationalBezier(degree, printer)
             else:
                 template_function, invocation, extern_declaration, extern_definition = \
-                generate_code_for_Bezier(degree, printer);
+                generate_code_for_Bezier(degree, printer)
 
 
             if degree >= 5:
                 lines.append("#ifdef HIGH_DEGREE_SUPPORT")
             lines.append("case {}:".format(degree))
-            lines.append("    " + invocation);
+            lines.append("    " + invocation)
             if degree >= 5:
                 lines.append("#endif // HIGH_DEGREE_SUPPORT")
 
-            specialized_code += template_function;
-            extern_declarations.append(extern_declaration);
-            extern_definitions.append(extern_definition);
+            specialized_code += template_function
+            extern_declarations.append(extern_declaration)
+            extern_definitions.append(extern_definition)
 
         lines.append("default:")
         lines.append("    throw not_implemented_error(")
@@ -372,12 +372,12 @@ if __name__ == "__main__":
             "internal", "auto_inflection_{}.h".format(poly_name)), "w") as f:
             f.write(code)
 
-    body = extern_declaration_template.format(body=("\n".join(extern_declarations)));
+    body = extern_declaration_template.format(body=("\n".join(extern_declarations)))
     with open(os.path.join(dir_path, "..", "tests",
         "forward_declaration_inflection.h"), "w") as f:
         f.write(body)
 
-    body = extern_definition_template.format(body=("\n".join(extern_definitions)));
+    body = extern_definition_template.format(body=("\n".join(extern_definitions)))
     with open(os.path.join(dir_path, "..", "tests",
         "forward_declaration_inflection.cpp"), "w") as f:
         f.write(body)

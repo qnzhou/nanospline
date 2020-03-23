@@ -9,7 +9,7 @@
 #include <nanospline/BezierBase.h>
 #include <nanospline/internal/auto_inflection_Bezier.h>
 #include <nanospline/internal/auto_match_tangent_Bezier.h>
-#include <nanospline/internal/auto_singularity.h>
+#include <nanospline/internal/auto_singularity_Bezier.h>
 
 namespace nanospline {
 
@@ -147,7 +147,12 @@ class Bezier final : public BezierBase<_Scalar, _dim, _degree, _generic> {
         std::vector<Scalar> compute_singularities(
                 const Scalar lower=0.0,
                 const Scalar upper=1.0) const override {
-            std::vector<Scalar> res = nanospline::internal::compute_singularities(
+            if (_dim != 2) {
+                throw std::runtime_error(
+                        "Singularity computation is for 2D curves only");
+            }
+
+            std::vector<Scalar> res = nanospline::internal::compute_Bezier_singularities(
                     Base::m_control_points, lower, upper);
 
             std::sort(res.begin(), res.end());
@@ -418,7 +423,12 @@ class Bezier<_Scalar, _dim, 2, false> final : public BezierBase<_Scalar, _dim, 2
         std::vector<Scalar> compute_singularities(
                 const Scalar lower,
                 const Scalar upper) const override {
-            auto res = nanospline::internal::compute_degree_2_singularities(
+            if (_dim != 2) {
+                throw std::runtime_error(
+                        "Singularity computation is for 2D curves only");
+            }
+
+            auto res = nanospline::internal::compute_Bezier_degree_2_singularities(
                     Base::m_control_points(0, 0),
                     Base::m_control_points(0, 1),
                     Base::m_control_points(1, 0),
@@ -581,7 +591,12 @@ class Bezier<_Scalar, _dim, 3, false> final : public BezierBase<_Scalar, _dim, 3
         std::vector<Scalar> compute_singularities(
                 const Scalar lower,
                 const Scalar upper) const override {
-            std::vector<Scalar> res = nanospline::internal::compute_degree_3_singularities(
+            if (_dim != 2) {
+                throw std::runtime_error(
+                        "Singularity computation is for 2D curves only");
+            }
+
+            std::vector<Scalar> res = nanospline::internal::compute_Bezier_degree_3_singularities(
                     Base::m_control_points(0, 0),
                     Base::m_control_points(0, 1),
                     Base::m_control_points(1, 0),

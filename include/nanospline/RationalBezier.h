@@ -7,6 +7,7 @@
 #include <nanospline/Bezier.h>
 #include <nanospline/internal/auto_inflection_RationalBezier.h>
 #include <nanospline/internal/auto_match_tangent_RationalBezier.h>
+#include <nanospline/internal/auto_singularity_RationalBezier.h>
 
 namespace nanospline {
 
@@ -122,6 +123,23 @@ class RationalBezier final : public BezierBase<_Scalar, _dim, _degree, _generic>
             } catch (infinite_root_error) {
                 res.clear();
             }
+
+            std::sort(res.begin(), res.end());
+            res.erase(std::unique(res.begin(), res.end()), res.end());
+
+            return res;
+        }
+
+        std::vector<Scalar> compute_singularities(
+                const Scalar lower=0.0,
+                const Scalar upper=1.0) const override {
+            if (_dim != 2) {
+                throw std::runtime_error(
+                        "Singularity computation is for 2D curves only");
+            }
+
+            std::vector<Scalar> res = nanospline::internal::compute_RationalBezier_singularities(
+                    Base::m_control_points, m_weights, lower, upper);
 
             std::sort(res.begin(), res.end());
             res.erase(std::unique(res.begin(), res.end()), res.end());
