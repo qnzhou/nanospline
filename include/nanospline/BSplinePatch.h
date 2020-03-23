@@ -7,19 +7,23 @@ namespace nanospline {
 
 template<typename _Scalar, int _dim=3,
     int _degree_u=3, int _degree_v=3>
-class BSplinePatch final : PatchBase<_Scalar, _dim> {
+class BSplinePatch final : public PatchBase<_Scalar, _dim> {
     public:
         static_assert(_dim > 0, "Dimension must be positive.");
-        static_assert(_degree_u >= 0, "Degree in u must be positive.");
-        static_assert(_degree_v >= 0, "Degree in v must be positive.");
 
         using Base = PatchBase<_Scalar, _dim>;
         using Scalar = typename Base::Scalar;
         using Point = typename Base::Point;
-        using ControlGrid = Eigen::Matrix<Scalar, (_degree_u+1)*(_degree_v+1), _dim>;
+        using ControlGrid = typename Base::ControlGrid;
         using KnotVector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
         using IsoCurveU = BSpline<Scalar, _dim, _degree_u>;
         using IsoCurveV = BSpline<Scalar, _dim, _degree_v>;
+
+    public:
+        BSplinePatch() {
+            Base::set_degree_u(_degree_u);
+            Base::set_degree_v(_degree_v);
+        }
 
     public:
         Point evaluate(Scalar u, Scalar v) const override {
@@ -37,29 +41,19 @@ class BSplinePatch final : PatchBase<_Scalar, _dim> {
             return iso_curve_v.evaluate_derivative(v);
         }
 
+        void initialize() override {
+            const auto num_v_knots = m_knots_v.size();
+            const auto num_u_knots = m_knots_u.size();
+            const int degree_u = Base::get_degree_u();
+            const int degree_v = Base::get_degree_v();
+            if (Base::m_control_grid.rows() !=
+                    (num_u_knots-degree_u-1) * (num_v_knots-degree_v-1)) {
+                throw invalid_setting_error(
+                        "Control grid size mismatch uv degrees");
+            }
+        }
+
     public:
-        constexpr int get_degree_u() const {
-            return _degree_u;
-        }
-
-        constexpr int get_degree_v() const {
-            return _degree_v;
-        }
-
-        const ControlGrid& get_control_grid() const {
-            return m_control_grid;
-        }
-
-        template<typename Derived>
-        void set_control_grid(const Eigen::PlainObjectBase<Derived>& ctrl_grid) {
-            m_control_grid = ctrl_grid;
-        }
-
-        template<typename Derived>
-        void set_control_grid(Eigen::PlainObjectBase<Derived>&& ctrl_grid) {
-            m_control_grid.swap(ctrl_grid);
-        }
-
         const KnotVector& get_knots_u() const {
             return m_knots_u;
         }
@@ -91,13 +85,15 @@ class BSplinePatch final : PatchBase<_Scalar, _dim> {
         IsoCurveU compute_iso_curve_u(Scalar v) const {
             const auto num_v_knots = m_knots_v.size();
             const auto num_u_knots = m_knots_u.size();
+            const int degree_u = Base::get_degree_u();
+            const int degree_v = Base::get_degree_v();
 
             typename IsoCurveU::ControlPoints control_points_u(
-                    num_u_knots-_degree_u-1, _dim);
-            for (int i=0; i<num_u_knots-_degree_u-1; i++) {
+                    num_u_knots-degree_u-1, _dim);
+            for (int i=0; i<num_u_knots-degree_u-1; i++) {
                 typename IsoCurveV::ControlPoints control_points_v(
-                        num_v_knots-_degree_v-1, _dim);
-                for (int j=0; j<num_v_knots-_degree_v-1; j++) {
+                        num_v_knots-degree_v-1, _dim);
+                for (int j=0; j<num_v_knots-degree_v-1; j++) {
                     control_points_v.row(j) = get_control_point(i, j);
                 }
 
@@ -116,13 +112,15 @@ class BSplinePatch final : PatchBase<_Scalar, _dim> {
         IsoCurveV compute_iso_curve_v(Scalar u) const {
             const auto num_v_knots = m_knots_v.size();
             const auto num_u_knots = m_knots_u.size();
+            const int degree_u = Base::get_degree_u();
+            const int degree_v = Base::get_degree_v();
 
             typename IsoCurveV::ControlPoints control_points_v(
-                    num_v_knots-_degree_v-1, _dim);
-            for (int j=0; j<num_v_knots-_degree_v-1; j++) {
+                    num_v_knots-degree_v-1, _dim);
+            for (int j=0; j<num_v_knots-degree_v-1; j++) {
                 typename IsoCurveU::ControlPoints control_points_u(
-                        num_u_knots-_degree_u-1, _dim);
-                for (int i=0; i<num_u_knots-_degree_u-1; i++) {
+                        num_u_knots-degree_u-1, _dim);
+                for (int i=0; i<num_u_knots-degree_u-1; i++) {
                     control_points_u.row(i) = get_control_point(i, j);
                 }
 
@@ -139,31 +137,35 @@ class BSplinePatch final : PatchBase<_Scalar, _dim> {
         }
 
         Scalar get_u_lower_bound() const {
-            return m_knots_u[_degree_u];
+            const auto degree_u = Base::get_degree_u();
+            return m_knots_u[degree_u];
         }
 
         Scalar get_v_lower_bound() const {
-            return m_knots_v[_degree_v];
+            const auto degree_v = Base::get_degree_v();
+            return m_knots_v[degree_v];
         }
 
         Scalar get_u_upper_bound() const {
             const auto num_knots = static_cast<int>(m_knots_u.rows());
-            return m_knots_u[num_knots-_degree_u-1];
+            const auto degree_u = Base::get_degree_u();
+            return m_knots_u[num_knots-degree_u-1];
         }
 
         Scalar get_v_upper_bound() const {
             const auto num_knots = static_cast<int>(m_knots_v.rows());
-            return m_knots_v[num_knots-_degree_v-1];
+            const auto degree_v = Base::get_degree_v();
+            return m_knots_v[num_knots-degree_v-1];
         }
 
     protected:
         Point get_control_point(int ui, int vj) const {
-            const auto row_size = m_knots_u.size() - _degree_u - 1;
-            return m_control_grid.row(vj*row_size + ui);
+            const auto degree_u = Base::get_degree_u();
+            const auto row_size = m_knots_u.size() - degree_u - 1;
+            return Base::m_control_grid.row(vj*row_size + ui);
         }
 
     protected:
-        ControlGrid m_control_grid;
         KnotVector m_knots_u;
         KnotVector m_knots_v;
 };

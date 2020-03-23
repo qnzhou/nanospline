@@ -18,6 +18,7 @@ TEST_CASE("BeizerPatch", "[nonrational][bezier_patch]") {
             0.0, 1.0, 0.0,
             1.0, 1.0, 0.0;
         patch.set_control_grid(control_grid);
+        patch.initialize();
 
         REQUIRE(patch.get_degree_u() == 1);
         REQUIRE(patch.get_degree_v() == 1);
@@ -48,6 +49,7 @@ TEST_CASE("BeizerPatch", "[nonrational][bezier_patch]") {
             0.0, 1.0, 1.0,
             1.0, 1.0, 0.0;
         patch.set_control_grid(control_grid);
+        patch.initialize();
 
         REQUIRE(patch.get_degree_u() == 1);
         REQUIRE(patch.get_degree_v() == 1);
@@ -79,6 +81,7 @@ TEST_CASE("BeizerPatch", "[nonrational][bezier_patch]") {
             }
         }
         patch.set_control_grid(control_grid);
+        patch.initialize();
 
         const auto corner_00 = patch.evaluate(0.0, 0.0);
         const auto corner_01 = patch.evaluate(0.0, 1.0);

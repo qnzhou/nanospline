@@ -24,6 +24,7 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]") {
         knots_v << 0.0, 0.0, 1.0, 1.0;
         patch.set_knots_u(knots_u);
         patch.set_knots_v(knots_v);
+        patch.initialize();
 
         REQUIRE(patch.get_degree_u() == 1);
         REQUIRE(patch.get_degree_v() == 1);
@@ -60,6 +61,7 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]") {
         knots_v << 0.0, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 2.5;
         patch.set_knots_u(knots_u);
         patch.set_knots_v(knots_v);
+        patch.initialize();
 
         validate_iso_curves(patch, 10);
         validate_derivative(patch, 10, 10);
