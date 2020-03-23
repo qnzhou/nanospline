@@ -58,8 +58,13 @@ class NURBSPatch final : public PatchBase<_Scalar, _dim> {
         }
 
         void initialize() override {
+            const auto num_control_pts = Base::m_control_grid.rows();
+            if (m_weights.size() != num_control_pts) {
+                throw invalid_setting_error("Weights and control grid mismatch");
+            }
+
             typename BSplinePatchHomogeneous::ControlGrid ctrl_pts(
-                    Base::m_control_grid.rows(), _dim+1);
+                    num_control_pts, _dim+1);
             ctrl_pts.template leftCols<_dim>() =
                 Base::m_control_grid.array().colwise() * m_weights.array();
             ctrl_pts.template rightCols<1>() = m_weights;

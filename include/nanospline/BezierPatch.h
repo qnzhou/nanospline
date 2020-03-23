@@ -109,8 +109,9 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
 
     protected:
         Point get_control_point(int ui, int vj) const {
-            const int degree_u = Base::get_degree_u();
-            return Base::m_control_grid.row(vj*(degree_u+1) + ui);
+            const auto degree_v = Base::get_degree_v();
+            const auto row_size = degree_v + 1;
+            return Base::m_control_grid.row(ui*row_size + vj);
         }
 };
 

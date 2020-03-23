@@ -42,6 +42,14 @@ class PatchBase {
             return m_control_grid;
         }
 
+        /**
+         * Control grid presents a 2D grid of control points.  It is linearized
+         * in V-major.  I.e. Let C_uv denotes the control point at (u, v), then
+         * control grid = [C_00, C_01, ... C_0n,
+         *                 C_10, C_11, ... C_1n,
+         *                 ...
+         *                 C_m0, C_m1, ... C_mn].
+         */
         template<typename Derived>
         void set_control_grid(const Eigen::PlainObjectBase<Derived>& ctrl_grid) {
             m_control_grid = ctrl_grid;
@@ -55,6 +63,10 @@ class PatchBase {
         template<typename Derived>
         void swap_control_grid(Eigen::PlainObjectBase<Derived>& ctrl_grid) {
             m_control_grid.swap(ctrl_grid);
+        }
+
+        constexpr int get_dim() const {
+            return _dim;
         }
 
     protected:

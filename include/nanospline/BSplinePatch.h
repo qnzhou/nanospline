@@ -160,9 +160,9 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
 
     protected:
         Point get_control_point(int ui, int vj) const {
-            const auto degree_u = Base::get_degree_u();
-            const auto row_size = m_knots_u.size() - degree_u - 1;
-            return Base::m_control_grid.row(vj*row_size + ui);
+            const auto degree_v = Base::get_degree_v();
+            const auto row_size = m_knots_v.size() - degree_v - 1;
+            return Base::m_control_grid.row(ui*row_size + vj);
         }
 
     protected:

@@ -86,6 +86,10 @@ class CurveBase {
             }
         }
 
+        constexpr int get_dim() const {
+            return _dim;
+        }
+
     protected:
         Scalar approximate_inverse_evaluate(const Point& p,
                 const int num_samples,

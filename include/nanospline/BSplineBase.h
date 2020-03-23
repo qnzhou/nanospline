@@ -2,6 +2,7 @@
 
 #include <Eigen/Core>
 #include <iostream>
+#include <limits>
 
 #include <nanospline/CurveBase.h>
 
@@ -236,11 +237,12 @@ class BSplineBase : public CurveBase<_Scalar, _dim> {
         }
 
         bool in_domain(Scalar t) const {
+            constexpr Scalar eps = std::numeric_limits<Scalar>::epsilon();
             const int p = get_degree();
             const int num_knots = static_cast<int>(m_knots.rows());
             const Scalar t_min = m_knots[p];
             const Scalar t_max = m_knots[num_knots-p-1];
-            return (t >= t_min) && (t <= t_max);
+            return (t >= t_min - eps) && (t <= t_max + eps);
         }
 
         Scalar get_domain_lower_bound() const {
