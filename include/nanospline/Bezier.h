@@ -9,6 +9,7 @@
 #include <nanospline/BezierBase.h>
 #include <nanospline/internal/auto_inflection_Bezier.h>
 #include <nanospline/internal/auto_match_tangent_Bezier.h>
+#include <nanospline/internal/auto_singularity.h>
 
 namespace nanospline {
 
@@ -143,6 +144,18 @@ class Bezier final : public BezierBase<_Scalar, _dim, _degree, _generic> {
             return res;
         }
 
+        std::vector<Scalar> compute_singularities(
+                const Scalar lower=0.0,
+                const Scalar upper=1.0) const override {
+            std::vector<Scalar> res = nanospline::internal::compute_singularities(
+                    Base::m_control_points, lower, upper);
+
+            std::sort(res.begin(), res.end());
+            res.erase(std::unique(res.begin(), res.end()), res.end());
+
+            return res;
+        }
+
         /**
          * Split a curve in halves at t.
          */
@@ -245,6 +258,12 @@ class Bezier<_Scalar, _dim, 0, false> final : public BezierBase<_Scalar, _dim, 0
                 const Scalar upper) const override {
             return {};
         }
+
+        std::vector<Scalar> compute_singularities(
+                const Scalar lower,
+                const Scalar upper) const override {
+            return {};
+        }
 };
 
 template<typename _Scalar, int _dim>
@@ -286,6 +305,12 @@ class Bezier<_Scalar, _dim, 1, false> final : public BezierBase<_Scalar, _dim, 1
         }
 
         std::vector<Scalar> reduce_turning_angle(
+                const Scalar lower,
+                const Scalar upper) const override {
+            return {};
+        }
+
+        std::vector<Scalar> compute_singularities(
                 const Scalar lower,
                 const Scalar upper) const override {
             return {};
@@ -383,6 +408,24 @@ class Bezier<_Scalar, _dim, 2, false> final : public BezierBase<_Scalar, _dim, 2
             } catch (infinite_root_error) {
                 res.clear();
             }
+
+            std::sort(res.begin(), res.end());
+            res.erase(std::unique(res.begin(), res.end()), res.end());
+
+            return res;
+        }
+
+        std::vector<Scalar> compute_singularities(
+                const Scalar lower,
+                const Scalar upper) const override {
+            auto res = nanospline::internal::compute_degree_2_singularities(
+                    Base::m_control_points(0, 0),
+                    Base::m_control_points(0, 1),
+                    Base::m_control_points(1, 0),
+                    Base::m_control_points(1, 1),
+                    Base::m_control_points(2, 0),
+                    Base::m_control_points(2, 1),
+                    lower, upper);
 
             std::sort(res.begin(), res.end());
             res.erase(std::unique(res.begin(), res.end()), res.end());
@@ -528,6 +571,26 @@ class Bezier<_Scalar, _dim, 3, false> final : public BezierBase<_Scalar, _dim, 3
             } catch (infinite_root_error) {
                 res.clear();
             }
+
+            std::sort(res.begin(), res.end());
+            res.erase(std::unique(res.begin(), res.end()), res.end());
+
+            return res;
+        }
+
+        std::vector<Scalar> compute_singularities(
+                const Scalar lower,
+                const Scalar upper) const override {
+            std::vector<Scalar> res = nanospline::internal::compute_degree_3_singularities(
+                    Base::m_control_points(0, 0),
+                    Base::m_control_points(0, 1),
+                    Base::m_control_points(1, 0),
+                    Base::m_control_points(1, 1),
+                    Base::m_control_points(2, 0),
+                    Base::m_control_points(2, 1),
+                    Base::m_control_points(3, 0),
+                    Base::m_control_points(3, 1),
+                    lower, upper);
 
             std::sort(res.begin(), res.end());
             res.erase(std::unique(res.begin(), res.end()), res.end());
