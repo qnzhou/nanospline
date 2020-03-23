@@ -322,7 +322,7 @@ def generate_code_for_RationalBezier(degree, printer):
     return template_function, invocation, extern_declaration, extern_definition;
 
 if __name__ == "__main__":
-    functions = utils.setup_functions()
+    functions = utils.setup_functions(7, 4)
     t = symbols('t')
 
     printer = C99CodePrinter()
