@@ -152,10 +152,15 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
                 REQUIRE(turning_angle_1 == Approx(0.5 * total_turning_angle));
                 REQUIRE(turning_angle_2 == Approx(0.5 * total_turning_angle));
             }
-            const auto singular_pts = curve.compute_singularities(0, 1);
-            for (auto t : singular_pts) {
-                const auto d = curve.evaluate_derivative(t);
-                REQUIRE(d.norm() == Approx(0).margin(1e-6));
+            const auto singular_pts = curve.compute_singularities(0, 1+1e-3);
+            if (weights[1] == 0) {
+                REQUIRE(singular_pts.size() == 2);
+                for (auto t : singular_pts) {
+                    const auto d = curve.evaluate_derivative(t);
+                    REQUIRE(d.norm() == Approx(0).margin(1e-6));
+                }
+            } else {
+                REQUIRE(singular_pts.size() == 0);
             }
         }
     }
