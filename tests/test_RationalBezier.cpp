@@ -4,7 +4,8 @@
 
 #include <nanospline/RationalBezier.h>
 #include <nanospline/save_svg.h>
-#include "forward_declaration.h"
+#include <nanospline/forward_declaration.h>
+
 #include "validation_utils.h"
 
 TEST_CASE("RationalBezier", "[rational][bezier]") {

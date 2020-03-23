@@ -5,8 +5,7 @@
 #include <nanospline/RationalBezier.h>
 #include <nanospline/split.h>
 #include <nanospline/save_svg.h>
-
-#include "forward_declaration.h"
+#include <nanospline/forward_declaration.h>
 
 TEST_CASE("inflection", "[inflection]") {
     using namespace nanospline;

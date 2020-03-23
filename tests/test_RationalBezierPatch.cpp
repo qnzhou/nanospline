@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include <nanospline/RationalBezierPatch.h>
+#include <nanospline/forward_declaration.h>
 
 #include "validation_utils.h"
 

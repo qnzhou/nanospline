@@ -5,7 +5,7 @@
 #include <cassert>
 #include <vector>
 
-#include "forward_declaration_singularity.h"
+#include <nanospline/forward_declaration_singularity.h>
 
 namespace nanospline {
 namespace internal {

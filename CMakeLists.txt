@@ -13,26 +13,33 @@ IF (NOT TARGET Eigen3::Eigen)
 ENDIF()
 ADD_SUBDIRECTORY(tests/Catch2)
 
-FILE(GLOB INC_FILES "${PROJECT_SOURCE_DIR}/include/*.h")
-FILE(GLOB SRC_FILES "${PROJECT_SOURCE_DIR}/tests/*.cpp")
+FILE(GLOB INC_FILES "${PROJECT_SOURCE_DIR}/include/nanospline/*.h"
+    "${PROJECT_SOURCE_DIR}/include/nanospline/internal/*.h")
+FILE(GLOB SRC_FILES "${PROJECT_SOURCE_DIR}/src/*.cpp")
 
-ADD_EXECUTABLE(nanospline_test ${SRC_FILES} ${INC_FILES})
-TARGET_LINK_LIBRARIES(nanospline_test Catch2::Catch2 Eigen3::Eigen)
-TARGET_INCLUDE_DIRECTORIES(nanospline_test PRIVATE
+ADD_LIBRARY(nanospline SHARED ${SRC_FILES} ${INC_FILES})
+TARGET_LINK_LIBRARIES(nanospline Eigen3::Eigen)
+TARGET_INCLUDE_DIRECTORIES(nanospline PUBLIC
     ${PROJECT_SOURCE_DIR}/include)
 
 IF (HIGH_DEGREE_SUPPORT)
-    TARGET_COMPILE_DEFINITIONS(nanospline_test PRIVATE
+    TARGET_COMPILE_DEFINITIONS(nanospline PRIVATE
         -DHIGH_DEGREE_SUPPORT)
 ENDIF()
 
 IF(NOT MSVC)
-    TARGET_COMPILE_OPTIONS(nanospline_test PRIVATE
+    TARGET_COMPILE_OPTIONS(nanospline PRIVATE
         -Wconversion -Wall -Werror)
 ELSE()
-    TARGET_COMPILE_OPTIONS(nanospline_test PRIVATE
+    TARGET_COMPILE_OPTIONS(nanospline PRIVATE
         -D_USE_MATH_DEFINES)
 ENDIF()
+
+
+
+FILE(GLOB TEST_FILES "${PROJECT_SOURCE_DIR}/tests/*.cpp")
+ADD_EXECUTABLE(nanospline_test ${TEST_FILES})
+TARGET_LINK_LIBRARIES(nanospline_test nanospline Catch2::Catch2)
 
 ADD_CUSTOM_TARGET(run_unit_tests
     COMMAND nanospline_test

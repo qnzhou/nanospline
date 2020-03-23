@@ -218,7 +218,7 @@ extern_definition_template = """/**
 #include <cassert>
 #include <vector>
 
-#include "forward_declaration_match_tangent.h"
+#include <nanospline/forward_declaration_match_tangent.h>
 
 namespace nanospline {{
 namespace internal {{
@@ -384,12 +384,12 @@ if __name__ == "__main__":
             f.write(code)
 
     body = extern_declaration_template.format(body=("\n".join(extern_declarations)));
-    with open(os.path.join(dir_path, "..", "tests",
+    with open(os.path.join(dir_path, "..", "include", "nanospline",
         "forward_declaration_match_tangent.h"), "w") as f:
         f.write(body)
 
     body = extern_definition_template.format(body=("\n".join(extern_definitions)));
-    with open(os.path.join(dir_path, "..", "tests",
+    with open(os.path.join(dir_path, "..", "src",
         "forward_declaration_match_tangent.cpp"), "w") as f:
         f.write(body)
 
