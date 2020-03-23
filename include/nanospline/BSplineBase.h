@@ -90,6 +90,13 @@ class BSplineBase : public CurveBase<_Scalar, _dim> {
                     "Turning angle reduction is not support for this curve type");
         }
 
+        virtual std::vector<Scalar> compute_singularities(
+                const Scalar lower=0.0,
+                const Scalar upper=1.0) const override {
+            throw not_implemented_error(
+                    "Compute singularity is not support for this curve type");
+        }
+
         virtual void insert_knot(Scalar t, int num_copies=1) {
             assert(num_copies >= 1);
             assert(in_domain(t));

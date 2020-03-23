@@ -105,13 +105,13 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             validate_2nd_derivatives(curve, 10);
 
             const auto total_turning_angle = curve.get_turning_angle(0, 1);
-            REQUIRE(total_turning_angle == Approx(M_PI/2));
+            REQUIRE(std::abs(total_turning_angle) == Approx(M_PI/2));
             const auto split_pts = curve.reduce_turning_angle(0, 1);
             REQUIRE(split_pts.size() == 1);
             const auto turning_angle_1 = curve.get_turning_angle(0, split_pts[0]);
             const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
-            REQUIRE(turning_angle_1 == Approx(M_PI/4));
-            REQUIRE(turning_angle_2 == Approx(M_PI/4));
+            REQUIRE(std::abs(turning_angle_1) == Approx(M_PI/4));
+            REQUIRE(std::abs(turning_angle_2) == Approx(M_PI/4));
         }
 
         SECTION("Non-uniform weights") {

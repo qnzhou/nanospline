@@ -49,6 +49,13 @@ class BezierBase : public CurveBase<_Scalar, _dim> {
                     "Turning angle reduction is not support for this curve type");
         }
 
+        virtual std::vector<Scalar> compute_singularities(
+                const Scalar lower=0.0,
+                const Scalar upper=1.0) const override {
+            throw not_implemented_error(
+                    "Compute singularity is not support for this curve type");
+        }
+
     public:
         const ControlPoints& get_control_points() const {
             return m_control_points;

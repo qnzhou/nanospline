@@ -37,6 +37,10 @@ class CurveBase {
                 const Scalar lower=0.0,
                 const Scalar upper=1.0) const =0;
 
+        virtual std::vector<Scalar> compute_singularities(
+                const Scalar lower=0.0,
+                const Scalar upper=1.0) const =0;
+
         virtual void write(std::ostream &out) const =0;
 
         friend std::ostream &operator<<(std::ostream &out, const CurveBase &c) { c.wirte(out); return out; }
@@ -46,32 +50,27 @@ class CurveBase {
         virtual Scalar get_turning_angle(Scalar t0, Scalar t1) const {
             if (_dim != 2) {
                 throw std::runtime_error(
-                        "Inflection computation is for 2D curves only");
+                        "Turning angle computation is for 2D curves only");
             }
 
             constexpr Scalar EPS = std::numeric_limits<Scalar>::epsilon();
-            Scalar turning_angle = 0;
-            constexpr auto num_samples = 10;
-            Point prev_d(0, 0);
+            constexpr int NUM_RETRIES = 10;
+            Point d0 = evaluate_derivative(t0);
+            Point d1 = evaluate_derivative(t1);
 
-            for (int i=0; i<num_samples; i++) {
-                const Scalar t = t0 + (t1-t0) * i / (num_samples-1);
-                const auto d = evaluate_derivative(t);
-                if (prev_d.norm() < EPS) {
-                    prev_d = d;
-                    continue;
-                }
-
-                if (d.norm() < EPS) {
-                    continue;
-                }
-
-                turning_angle += std::atan2(
-                        d[0]*prev_d[1] - d[1]*prev_d[0],
-                        d[0]*prev_d[0] + d[1]*prev_d[1]);
-                prev_d = d;
+            for (int i=0; i<NUM_RETRIES && d0.norm() < EPS; i++) {
+                t0 += (t1-t0) * 1e-3;
+                d0 = evaluate_derivative(t0);
             }
-            return turning_angle;
+
+            for (int i=0; i<NUM_RETRIES && d1.norm() < EPS; i++) {
+                t1 -= (t1-t0) * 1e-3;
+                d1 = evaluate_derivative(t1);
+            }
+
+            return std::atan2(
+                    d0[0]*d1[1] - d0[1]*d1[0],
+                    d0[0]*d1[0] + d0[1]*d1[1]);
         }
 
     public:
