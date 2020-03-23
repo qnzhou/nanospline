@@ -7,7 +7,7 @@ namespace nanospline {
 
 template<typename _Scalar, int _dim=3,
     int _degree_u=3, int _degree_v=3>
-class BSplinePatch : PatchBase<_Scalar, _dim> {
+class BSplinePatch final : PatchBase<_Scalar, _dim> {
     public:
         static_assert(_dim > 0, "Dimension must be positive.");
         static_assert(_degree_u >= 0, "Degree in u must be positive.");
@@ -22,17 +22,17 @@ class BSplinePatch : PatchBase<_Scalar, _dim> {
         using IsoCurveV = BSpline<Scalar, _dim, _degree_v>;
 
     public:
-        Point evaluate(Scalar u, Scalar v) const override final {
+        Point evaluate(Scalar u, Scalar v) const override {
             auto iso_curve_v = compute_iso_curve_v(u);
             return iso_curve_v.evaluate(v);
         }
 
-        Point evaluate_derivative_u(Scalar u, Scalar v) const override final {
+        Point evaluate_derivative_u(Scalar u, Scalar v) const override {
             auto iso_curve_u = compute_iso_curve_u(v);
             return iso_curve_u.evaluate_derivative(u);
         }
 
-        Point evaluate_derivative_v(Scalar u, Scalar v) const override final {
+        Point evaluate_derivative_v(Scalar u, Scalar v) const override {
             auto iso_curve_v = compute_iso_curve_v(u);
             return iso_curve_v.evaluate_derivative(v);
         }

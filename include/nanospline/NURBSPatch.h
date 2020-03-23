@@ -8,7 +8,7 @@ namespace nanospline {
 
 template<typename _Scalar, int _dim=3,
     int _degree_u=3, int _degree_v=3>
-class NURBSPatch : PatchBase<_Scalar, _dim> {
+class NURBSPatch final : PatchBase<_Scalar, _dim> {
     public:
         static_assert(_dim > 0, "Dimension must be positive.");
         static_assert(_degree_u > 0, "Degree in u must be positive.");
@@ -25,13 +25,13 @@ class NURBSPatch : PatchBase<_Scalar, _dim> {
         using IsoCurveV = NURBS<Scalar, _dim, _degree_v>;
 
     public:
-        Point evaluate(Scalar u, Scalar v) const override final {
+        Point evaluate(Scalar u, Scalar v) const override {
             validate_initialization();
             const auto p = m_homogeneous.evaluate(u, v);
             return p.template segment<_dim>(0) / p[_dim];
         }
 
-        Point evaluate_derivative_u(Scalar u, Scalar v) const override final {
+        Point evaluate_derivative_u(Scalar u, Scalar v) const override {
             validate_initialization();
             const auto p = m_homogeneous.evaluate(u, v);
             const auto d =
@@ -42,7 +42,7 @@ class NURBSPatch : PatchBase<_Scalar, _dim> {
                 / p[_dim];
         }
 
-        Point evaluate_derivative_v(Scalar u, Scalar v) const override final {
+        Point evaluate_derivative_v(Scalar u, Scalar v) const override {
             validate_initialization();
             const auto p = m_homogeneous.evaluate(u, v);
             const auto d =
