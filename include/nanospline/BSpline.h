@@ -294,6 +294,51 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             return res;
         }
 
+        std::vector<Scalar> compute_singularities(
+                const Scalar lower=0.0,
+                const Scalar upper=1.0) const override {
+            using CurveType = Bezier<Scalar, _dim, _degree, _generic>;
+
+            if (_dim != 2) {
+                throw std::runtime_error(
+                        "Singularity computation is for 2D curves only");
+            }
+
+            std::vector<CurveType> beziers;
+            std::vector<Scalar> parameter_bounds;
+            std::tie(beziers, parameter_bounds) = convert_to_Bezier();
+            assert(parameter_bounds.size() == beziers.size() + 1);
+
+            std::vector<Scalar> res;
+            res.reserve(static_cast<size_t>(Base::get_degree()));
+
+            const size_t num_beziers = beziers.size();
+            for (size_t idx=0; idx < num_beziers; idx++) {
+                const auto t_min = parameter_bounds[idx];
+                const auto t_max = parameter_bounds[idx+1];
+                if (t_max < lower || t_min > upper) {
+                    continue;
+                }
+
+                Scalar normalized_lower = (lower - t_min) / (t_max - t_min);
+                Scalar normalized_upper = (upper - t_min) / (t_max - t_min);
+                normalized_lower = std::max<Scalar>(normalized_lower, 0);
+                normalized_upper = std::min<Scalar>(normalized_upper, 1);
+
+                const auto& curve = beziers[idx];
+                auto result = curve.compute_singularities(
+                        normalized_lower, normalized_upper);
+                for (auto t : result) {
+                    res.push_back(t * (t_max-t_min) + t_min);
+                }
+            }
+
+            std::sort(res.begin(), res.end());
+            res.erase(std::unique(res.begin(), res.end()), res.end());
+
+            return res;
+        }
+
     private:
         template<typename Derived>
         void deBoor(Scalar t, int p, int k,

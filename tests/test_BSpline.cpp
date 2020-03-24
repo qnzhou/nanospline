@@ -135,6 +135,11 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
             const auto split_pts = curve.reduce_turning_angle(0, 1);
             REQUIRE(split_pts.size() == 0);
         }
+
+        SECTION("Singularity") {
+            auto singular_pts = curve.compute_singularities(0, 1);
+            REQUIRE(singular_pts.size() == 0);
+        }
     }
 
     SECTION("Generic degree 3") {
@@ -180,6 +185,11 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
             REQUIRE(total_turning_angle == Approx(0));
             const auto split_pts = curve.reduce_turning_angle(0, 1);
             REQUIRE(split_pts.size() == 0);
+        }
+
+        SECTION("Singularity") {
+            auto singular_pts = curve.compute_singularities(0, 1);
+            REQUIRE(singular_pts.size() == 0);
         }
     }
 
@@ -687,6 +697,11 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
                 auto total_turning_angle = curve.get_turning_angle(min_t, max_t);
                 REQUIRE(std::abs(total_turning_angle) == Approx(2 * M_PI));
             }
+
+            SECTION("Singularity") {
+                auto singular_pts = curve.compute_singularities(0, 1);
+                REQUIRE(singular_pts.size() == 0);
+            }
         }
 
     }
@@ -737,6 +752,11 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
                 REQUIRE(inflections.size() == 1);
                 REQUIRE(inflections[0] == Approx(1.0));
             }
+
+            SECTION("Singularity") {
+                auto singular_pts = curve.compute_singularities(0, 2.0);
+                REQUIRE(singular_pts.size() == 0);
+            }
         }
 
         SECTION("Closed curve") {
@@ -758,6 +778,9 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
                 auto k = curve.evaluate_curvature(t).norm();
                 REQUIRE(k == Approx(0).margin(1e-6));
             }
+
+            auto singular_pts = curve.compute_singularities(0, 2.0);
+            REQUIRE(singular_pts.size() == 0);
         }
 
     }
