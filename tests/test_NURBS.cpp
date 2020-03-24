@@ -4,8 +4,8 @@
 #include <iostream>
 #include <nanospline/NURBS.h>
 #include <nanospline/save_svg.h>
+#include <nanospline/forward_declaration.h>
 
-#include "forward_declaration.h"
 #include "validation_utils.h"
 
 TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
@@ -178,6 +178,11 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
                 auto inflections = curve.compute_inflections(0, 1);
                 REQUIRE(inflections.size() == 0);
             }
+
+            SECTION("Singularities") {
+                auto singular_pts = curve.compute_singularities(0, 1);
+                REQUIRE(singular_pts.size() == 0);
+            }
         }
     }
 
@@ -201,6 +206,9 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
         auto inflections = curve.compute_inflections(0, 1);
         REQUIRE(inflections.size() == 1);
         REQUIRE(inflections[0] == Approx(0.5));
+
+        auto singular_pts = curve.compute_singularities(0, 1);
+        REQUIRE(singular_pts.size() == 0);
     }
 
     SECTION("Inflection points of closed NURBS curve") {
@@ -226,5 +234,9 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
             auto k = curve.evaluate_curvature(t).norm();
             REQUIRE(k == Approx(0).margin(1e-6));
         }
+
+        auto singular_pts = curve.compute_singularities(
+                knots.minCoeff(), knots.maxCoeff());
+        REQUIRE(singular_pts.size() == 0);
     }
 }

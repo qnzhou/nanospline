@@ -8,29 +8,33 @@ namespace nanospline {
 
 template<typename _Scalar, int _dim=3,
     int _degree_u=3, int _degree_v=3>
-class RationalBezierPatch : PatchBase<_Scalar, _dim> {
+class RationalBezierPatch final : public PatchBase<_Scalar, _dim> {
     public:
         static_assert(_dim > 0, "Dimension must be positive.");
-        static_assert(_degree_u > 0, "Degree in u must be positive.");
-        static_assert(_degree_v > 0, "Degree in v must be positive.");
 
         using Base = PatchBase<_Scalar, _dim>;
         using Scalar = typename Base::Scalar;
         using Point = typename Base::Point;
-        using ControlGrid = Eigen::Matrix<Scalar, (_degree_u+1)*(_degree_v+1), _dim>;
-        using Weights = Eigen::Matrix<Scalar, (_degree_u+1)*(_degree_v+1), 1>;
+        using ControlGrid = typename Base::ControlGrid;
+        using Weights = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
         using BezierPatchHomogeneous = BezierPatch<Scalar, _dim+1, _degree_u, _degree_v>;
         using IsoCurveU = RationalBezier<Scalar, _dim, _degree_u>;
         using IsoCurveV = RationalBezier<Scalar, _dim, _degree_v>;
 
     public:
-        Point evaluate(Scalar u, Scalar v) const override final {
+        RationalBezierPatch() {
+            Base::set_degree_u(_degree_u);
+            Base::set_degree_v(_degree_v);
+        }
+
+    public:
+        Point evaluate(Scalar u, Scalar v) const override {
             validate_initialization();
             const auto p = m_homogeneous.evaluate(u, v);
             return p.template segment<_dim>(0) / p[_dim];
         }
 
-        Point evaluate_derivative_u(Scalar u, Scalar v) const override final {
+        Point evaluate_derivative_u(Scalar u, Scalar v) const override {
             validate_initialization();
             const auto p = m_homogeneous.evaluate(u, v);
             const auto d =
@@ -41,7 +45,7 @@ class RationalBezierPatch : PatchBase<_Scalar, _dim> {
                 / p[_dim];
         }
 
-        Point evaluate_derivative_v(Scalar u, Scalar v) const override final {
+        Point evaluate_derivative_v(Scalar u, Scalar v) const override {
             validate_initialization();
             const auto p = m_homogeneous.evaluate(u, v);
             const auto d =
@@ -52,29 +56,20 @@ class RationalBezierPatch : PatchBase<_Scalar, _dim> {
                 / p[_dim];
         }
 
+        void initialize() override {
+            typename BezierPatchHomogeneous::ControlGrid ctrl_pts(
+                    Base::m_control_grid.rows(), _dim+1);
+            ctrl_pts.template leftCols<_dim>() =
+                Base::m_control_grid.array().colwise() * m_weights.array();
+            ctrl_pts.template rightCols<1>() = m_weights;
+
+            m_homogeneous.set_control_grid(std::move(ctrl_pts));
+            m_homogeneous.set_degree_u(Base::get_degree_u());
+            m_homogeneous.set_degree_v(Base::get_degree_v());
+            m_homogeneous.initialize();
+        }
+
     public:
-        constexpr int get_degree_u() const {
-            return _degree_u;
-        }
-
-        constexpr int get_degree_v() const {
-            return _degree_v;
-        }
-
-        const ControlGrid& get_control_grid() const {
-            return m_control_grid;
-        }
-
-        template<typename Derived>
-        void set_control_grid(const Eigen::PlainObjectBase<Derived>& ctrl_grid) {
-            m_control_grid = ctrl_grid;
-        }
-
-        template<typename Derived>
-        void set_control_grid(Eigen::PlainObjectBase<Derived>&& ctrl_grid) {
-            m_control_grid.swap(ctrl_grid);
-        }
-
         const Weights get_weights() const {
             return m_weights;
         }
@@ -87,16 +82,6 @@ class RationalBezierPatch : PatchBase<_Scalar, _dim> {
         template<typename Derived>
         void set_weights(Eigen::PlainObjectBase<Derived>&& weights) {
             m_weights.swap(weights);
-        }
-
-        void initialize() {
-            typename BezierPatchHomogeneous::ControlGrid ctrl_pts(
-                    m_control_grid.rows(), _dim+1);
-            ctrl_pts.template leftCols<_dim>() =
-                m_control_grid.array().colwise() * m_weights.array();
-            ctrl_pts.template rightCols<1>() = m_weights;
-
-            m_homogeneous.set_control_grid(std::move(ctrl_pts));
         }
 
         Scalar get_u_lower_bound() const {
@@ -135,20 +120,20 @@ class RationalBezierPatch : PatchBase<_Scalar, _dim> {
 
     protected:
         std::tuple<Point, Scalar> get_control_point_and_weight(int ui, int vj) const {
-            int index = vj*(_degree_u+1) + ui;
-            return std::make_tuple(m_control_grid.row(index), m_weights[index]);
+            const int degree_u = Base::get_degree_u();
+            int index = vj*(degree_u+1) + ui;
+            return std::make_tuple(Base::m_control_grid.row(index), m_weights[index]);
         }
 
         void validate_initialization() const {
             const auto& ctrl_pts = m_homogeneous.get_control_grid();
-            if (ctrl_pts.rows() != m_control_grid.rows() ||
+            if (ctrl_pts.rows() != Base::m_control_grid.rows() ||
                 ctrl_pts.rows() != m_weights.rows() ) {
                 throw invalid_setting_error("Rational Bezier patch is not initialized.");
             }
         }
 
     protected:
-        ControlGrid m_control_grid;
         Weights m_weights;
         BezierPatchHomogeneous m_homogeneous;
 };

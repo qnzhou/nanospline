@@ -4,7 +4,8 @@
 
 #include <nanospline/RationalBezier.h>
 #include <nanospline/save_svg.h>
-#include "forward_declaration.h"
+#include <nanospline/forward_declaration.h>
+
 #include "validation_utils.h"
 
 TEST_CASE("RationalBezier", "[rational][bezier]") {
@@ -105,13 +106,16 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             validate_2nd_derivatives(curve, 10);
 
             const auto total_turning_angle = curve.get_turning_angle(0, 1);
-            REQUIRE(total_turning_angle == Approx(M_PI/2));
+            REQUIRE(std::abs(total_turning_angle) == Approx(M_PI/2));
             const auto split_pts = curve.reduce_turning_angle(0, 1);
             REQUIRE(split_pts.size() == 1);
             const auto turning_angle_1 = curve.get_turning_angle(0, split_pts[0]);
             const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
-            REQUIRE(turning_angle_1 == Approx(M_PI/4));
-            REQUIRE(turning_angle_2 == Approx(M_PI/4));
+            REQUIRE(std::abs(turning_angle_1) == Approx(M_PI/4));
+            REQUIRE(std::abs(turning_angle_2) == Approx(M_PI/4));
+
+            const auto singular_pts = curve.compute_singularities(0, 1);
+            REQUIRE(singular_pts.size() == 0);
         }
 
         SECTION("Non-uniform weights") {
@@ -140,6 +144,25 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             validate_derivatives(curve, 10, 1e-5);
             validate_2nd_derivatives(curve, 10);
 
+            const auto split_pts = curve.reduce_turning_angle(0, 1);
+            if (weights[1] > 0) {
+                REQUIRE(split_pts.size() == 1);
+                const auto total_turning_angle = curve.get_turning_angle(0, 1);
+                const auto turning_angle_1 = curve.get_turning_angle(0, split_pts[0]);
+                const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
+                REQUIRE(turning_angle_1 == Approx(0.5 * total_turning_angle));
+                REQUIRE(turning_angle_2 == Approx(0.5 * total_turning_angle));
+            }
+            const auto singular_pts = curve.compute_singularities(0, 1+1e-3);
+            if (weights[1] == 0) {
+                REQUIRE(singular_pts.size() == 2);
+                for (auto t : singular_pts) {
+                    const auto d = curve.evaluate_derivative(t);
+                    REQUIRE(d.norm() == Approx(0).margin(1e-6));
+                }
+            } else {
+                REQUIRE(singular_pts.size() == 0);
+            }
         }
     }
 
@@ -184,13 +207,13 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             }
             SECTION("Turning angle") {
                 const auto total_turning_angle = curve.get_turning_angle(0, 1);
-                REQUIRE(total_turning_angle == Approx(M_PI/2));
+                REQUIRE(std::abs(total_turning_angle) == Approx(M_PI/2));
                 const auto split_pts = curve.reduce_turning_angle(0, 1);
                 REQUIRE(split_pts.size() == 1);
                 const auto turning_angle_1 = curve.get_turning_angle(0, split_pts[0]);
                 const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
-                REQUIRE(turning_angle_1 == Approx(M_PI/4));
-                REQUIRE(turning_angle_2 == Approx(M_PI/4));
+                REQUIRE(std::abs(turning_angle_1) == Approx(M_PI/4));
+                REQUIRE(std::abs(turning_angle_2) == Approx(M_PI/4));
             }
         }
 
@@ -233,13 +256,13 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             }
             SECTION("Turning angle") {
                 const auto total_turning_angle = curve.get_turning_angle(0, 1);
-                REQUIRE(total_turning_angle == Approx(2*M_PI/3));
+                REQUIRE(std::abs(total_turning_angle) == Approx(2*M_PI/3));
                 const auto split_pts = curve.reduce_turning_angle(0, 1);
                 REQUIRE(split_pts.size() == 1);
                 const auto turning_angle_1 = curve.get_turning_angle(0, split_pts[0]);
                 const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
-                REQUIRE(turning_angle_1 == Approx(2*M_PI/6));
-                REQUIRE(turning_angle_2 == Approx(2*M_PI/6));
+                REQUIRE(std::abs(turning_angle_1) == Approx(2*M_PI/6));
+                REQUIRE(std::abs(turning_angle_2) == Approx(2*M_PI/6));
             }
         }
 

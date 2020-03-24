@@ -1,6 +1,7 @@
 from sympy import symbols
 from scipy.special import comb
 import numpy as np
+import re
 
 def indent(lines):
     return ["    {}".format(l) for l in lines];
@@ -58,6 +59,10 @@ def create_coeff_symbols(n_coeffs):
 
     return syms
 
+def remove_pow(c):
+    pattern = re.compile(r"pow\((\w+),\s*2\)");
+    c,n = re.subn(pattern, r"\1*\1", c);
+    return c;
 
 def generate_solver_code(coeffs, poly, printer):
     lines = []
@@ -66,7 +71,7 @@ def generate_solver_code(coeffs, poly, printer):
         "PolynomialRootFinder<Scalar, {}>::find_real_roots_in_interval({{".format(poly.degree()))
 
     lines.append(",\n".join(
-        ["    {}".format(printer.doprint(c)) for c in coeffs]))
+        ["    {}".format(remove_pow(printer.doprint(c))) for c in coeffs]))
     lines.append("},")
     lines.append("result, t0, t1, tol);")
 

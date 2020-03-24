@@ -174,6 +174,49 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             return res;
         }
 
+        std::vector<Scalar> compute_singularities(
+                const Scalar lower,
+                const Scalar upper) const override final {
+            if (_dim != 2) {
+                throw std::runtime_error(
+                        "Singularity computation is for 2D curves only");
+            }
+
+            std::vector<RationalBezier<Scalar, _dim, _degree, _generic>> segments;
+            std::vector<Scalar> parameter_bounds;
+            std::tie(segments, parameter_bounds) = convert_to_RationalBezier();
+            assert(segments.size()+1 == parameter_bounds.size());
+
+            std::vector<Scalar> res;
+            res.reserve(static_cast<size_t>(Base::get_degree()));
+
+            const size_t num_segments = segments.size();
+            for (size_t idx=0; idx<num_segments; idx++) {
+                const auto t_min = parameter_bounds[idx];
+                const auto t_max = parameter_bounds[idx+1];
+                if (t_max < lower || t_min > upper) {
+                    continue;
+                }
+
+                Scalar normalized_lower = (lower - t_min) / (t_max - t_min);
+                Scalar normalized_upper = (upper - t_min) / (t_max - t_min);
+                normalized_lower = std::max<Scalar>(normalized_lower, 0);
+                normalized_upper = std::min<Scalar>(normalized_upper, 1);
+
+                const auto& curve = segments[idx];
+                auto result = curve.compute_singularities(
+                        normalized_lower, normalized_upper);
+                for (auto t : result) {
+                    res.push_back(t * (t_max-t_min) + t_min);
+                }
+            }
+
+            std::sort(res.begin(), res.end());
+            res.erase(std::unique(res.begin(), res.end()), res.end());
+
+            return res;
+        }
+
     public:
         void initialize() {
             typename BSplineHomogeneous::ControlPoints ctrl_pts(

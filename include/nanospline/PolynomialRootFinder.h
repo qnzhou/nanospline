@@ -140,7 +140,7 @@ class PolynomialRootFinder<Scalar, 0> {
         assert(coeffs.size() > 0);
 
         if (abs(coeffs[0]) < eps)
-            throw invalid_setting_error("Polynomial is zero = zero, has infinit roots");
+            throw infinite_root_error();
     }
 };
 

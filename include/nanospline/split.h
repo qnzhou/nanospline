@@ -12,26 +12,8 @@ namespace nanospline {
 
 template<typename Scalar, int dim, int degree, bool generic>
 std::vector<Bezier<Scalar, dim, degree, generic>> split(const Bezier<Scalar, dim, degree, generic>& curve, Scalar t) {
-    using CurveType = Bezier<Scalar, dim, degree, generic>;
-    auto ctrl_pts = curve.get_control_points();
-    const auto d = curve.get_degree();
-
-    typename CurveType::ControlPoints ctrl_pts_1(d+1, dim);
-    typename CurveType::ControlPoints ctrl_pts_2(d+1, dim);
-
-    for (int i=0; i<=d; i++) {
-        ctrl_pts_1.row(i) = ctrl_pts.row(0);
-        ctrl_pts_2.row(d-i) = ctrl_pts.row(d-i);
-        for (int j=0; j<d-i; j++) {
-            ctrl_pts.row(j) = (1.0-t) * ctrl_pts.row(j) + t * ctrl_pts.row(j+1);
-        }
-    }
-
-    std::vector<CurveType> results(2);
-    results[0].set_control_points(std::move(ctrl_pts_1));
-    results[1].set_control_points(std::move(ctrl_pts_2));
-
-    return results;
+    auto r = curve.split(t);
+    return {r[0], r[1]};
 }
 
 template<typename Scalar, int dim, int degree, bool generic>

@@ -1,7 +1,7 @@
 #include <catch2/catch.hpp>
 
 #include <nanospline/hodograph.h>
-#include "forward_declaration.h"
+#include <nanospline/forward_declaration.h>
 #include "validation_utils.h"
 
 TEST_CASE("hodograph", "[hodograph]") {

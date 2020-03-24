@@ -63,7 +63,7 @@ void save_svg(const std::string& filename,
     const auto bbox_dim = bbox_max - bbox_min;
     const auto margin = bbox_dim.maxCoeff() / 10;
     const auto s = 1000.0 / bbox_dim.maxCoeff();
-    const auto r = bbox_dim.norm() / 100 * s;
+    const auto r = bbox_dim.norm() / 100;
     const auto o = -bbox_min.array() + margin;
 
     std::ofstream fout(filename.c_str());

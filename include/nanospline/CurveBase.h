@@ -13,6 +13,7 @@ namespace nanospline {
 template<typename _Scalar, int _dim>
 class CurveBase {
     public:
+        static_assert(_dim >= 0, "Negative degree is not allowed");
         using Scalar = _Scalar;
         using Point = Eigen::Matrix<Scalar, 1, _dim>;
 
@@ -36,13 +37,41 @@ class CurveBase {
                 const Scalar lower=0.0,
                 const Scalar upper=1.0) const =0;
 
+        virtual std::vector<Scalar> compute_singularities(
+                const Scalar lower=0.0,
+                const Scalar upper=1.0) const =0;
+
         virtual void write(std::ostream &out) const =0;
 
         friend std::ostream &operator<<(std::ostream &out, const CurveBase &c) { c.wirte(out); return out; }
         virtual std::shared_ptr<CurveBase> simplify(Scalar eps) const { return nullptr; }
         // virtual bool is_point() const = 0;
 
+        virtual Scalar get_turning_angle(Scalar t0, Scalar t1) const {
+            if (_dim != 2) {
+                throw std::runtime_error(
+                        "Turning angle computation is for 2D curves only");
+            }
 
+            constexpr Scalar EPS = std::numeric_limits<Scalar>::epsilon();
+            constexpr int NUM_RETRIES = 10;
+            Point d0 = evaluate_derivative(t0);
+            Point d1 = evaluate_derivative(t1);
+
+            for (int i=0; i<NUM_RETRIES && d0.norm() < EPS; i++) {
+                t0 += (t1-t0) * 1e-3;
+                d0 = evaluate_derivative(t0);
+            }
+
+            for (int i=0; i<NUM_RETRIES && d1.norm() < EPS; i++) {
+                t1 -= (t1-t0) * 1e-3;
+                d1 = evaluate_derivative(t1);
+            }
+
+            return std::atan2(
+                    d0[0]*d1[1] - d0[1]*d1[0],
+                    d0[0]*d1[0] + d0[1]*d1[1]);
+        }
 
     public:
         Point evaluate_curvature(Scalar t) const {
@@ -57,25 +86,8 @@ class CurveBase {
             }
         }
 
-        Scalar get_turning_angle(Scalar t0, Scalar t1) const
-        {
-            // TODO: This method does not work if derivative is exact 0 at t0 or
-            // t1.
-            Point n0 = evaluate_derivative(t0);
-            const auto l0 = n0.norm();
-            if (l0 > 0) n0 /= l0;
-
-            Point n1 = evaluate_derivative(t1);
-            const auto l1 = n1.norm();
-            if (l1 > 0) n1 /= l1;
-
-            Scalar cos_a = n0.dot(n1);
-            if (cos_a > 1)
-                cos_a = 1;
-            if (cos_a < -1)
-                cos_a = -1;
-
-            return std::acos(cos_a);
+        constexpr int get_dim() const {
+            return _dim;
         }
 
     protected:

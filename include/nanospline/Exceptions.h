@@ -41,4 +41,22 @@ class invalid_setting_error : public std::exception {
         std::string m_reason;
 };
 
+class infinite_root_error : public std::exception {
+    public:
+        infinite_root_error() {}
+        infinite_root_error(const std::string& reason) : m_reason(reason) {}
+
+        const char* what() const noexcept override {
+            if (m_reason.empty()) {
+                return "Infinitely many roots found!";
+            } else {
+                return (std::string("Infinite root found: ")
+                    + m_reason).c_str();
+            }
+        }
+
+    private:
+        std::string m_reason;
+};
+
 }

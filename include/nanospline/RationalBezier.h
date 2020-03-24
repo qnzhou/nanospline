@@ -7,11 +7,12 @@
 #include <nanospline/Bezier.h>
 #include <nanospline/internal/auto_inflection_RationalBezier.h>
 #include <nanospline/internal/auto_match_tangent_RationalBezier.h>
+#include <nanospline/internal/auto_singularity_RationalBezier.h>
 
 namespace nanospline {
 
 template<typename _Scalar, int _dim=2, int _degree=3, bool _generic=_degree<0>
-class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
+class RationalBezier final : public BezierBase<_Scalar, _dim, _degree, _generic> {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         using Base = BezierBase<_Scalar, _dim, _degree, _generic>;
@@ -61,7 +62,7 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
 
         std::vector<Scalar> compute_inflections (
                 const Scalar lower,
-                const Scalar upper) const override final {
+                const Scalar upper) const override {
             if (_dim != 2) {
                 throw std::runtime_error(
                         "Inflection computation is for 2D curves only");
@@ -70,8 +71,14 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
             if (degree <= 2) {
                 return {};
             }
-            auto res = internal::compute_RationalBezier_inflections(
-                    Base::m_control_points, m_weights, lower, upper);
+
+            std::vector<Scalar> res;
+            try {
+                res = internal::compute_RationalBezier_inflections(
+                        Base::m_control_points, m_weights, lower, upper);
+            } catch (infinite_root_error) {
+                res.clear();
+            }
 
             std::sort(res.begin(), res.end());
             res.erase(std::unique(res.begin(), res.end()), res.end());
@@ -81,7 +88,7 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
 
         std::vector<Scalar> reduce_turning_angle(
                 const Scalar lower,
-                const Scalar upper) const override final {
+                const Scalar upper) const override {
             constexpr Scalar tol = static_cast<Scalar>(1e-8);
             if (_dim != 2) {
                 throw std::runtime_error(
@@ -108,9 +115,31 @@ class RationalBezier : public BezierBase<_Scalar, _dim, _degree, _generic> {
                     -(tan0[1]+tan1[1])/2,
                     (tan0[0]+tan1[0])/2);
 
-            auto res = nanospline::internal::match_tangent_rational_bezier(
-                    Base::m_control_points, m_weights,
-                    degree, ave_tangent, lower, upper);
+            std::vector<Scalar> res;
+            try {
+                res = nanospline::internal::match_tangent_rational_bezier(
+                        Base::m_control_points, m_weights,
+                        degree, ave_tangent, lower, upper);
+            } catch (infinite_root_error) {
+                res.clear();
+            }
+
+            std::sort(res.begin(), res.end());
+            res.erase(std::unique(res.begin(), res.end()), res.end());
+
+            return res;
+        }
+
+        std::vector<Scalar> compute_singularities(
+                const Scalar lower=0.0,
+                const Scalar upper=1.0) const override {
+            if (_dim != 2) {
+                throw std::runtime_error(
+                        "Singularity computation is for 2D curves only");
+            }
+
+            std::vector<Scalar> res = nanospline::internal::compute_RationalBezier_singularities(
+                    Base::m_control_points, m_weights, lower, upper);
 
             std::sort(res.begin(), res.end());
             res.erase(std::unique(res.begin(), res.end()), res.end());
