@@ -17,7 +17,7 @@ FILE(GLOB INC_FILES "${PROJECT_SOURCE_DIR}/include/nanospline/*.h"
     "${PROJECT_SOURCE_DIR}/include/nanospline/internal/*.h")
 FILE(GLOB SRC_FILES "${PROJECT_SOURCE_DIR}/src/*.cpp")
 
-ADD_LIBRARY(nanospline SHARED ${SRC_FILES} ${INC_FILES})
+ADD_LIBRARY(nanospline STATIC ${SRC_FILES} ${INC_FILES})
 TARGET_LINK_LIBRARIES(nanospline Eigen3::Eigen)
 TARGET_INCLUDE_DIRECTORIES(nanospline PUBLIC
     ${PROJECT_SOURCE_DIR}/include)
