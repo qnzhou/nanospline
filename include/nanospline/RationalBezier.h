@@ -190,6 +190,14 @@ class RationalBezier final : public BezierBase<_Scalar, _dim, _degree, _generic>
             out << "w:\n" << m_weights << "\n";
         }
 
+        RationalBezier<_Scalar, _dim, _degree<0?_degree:_degree+1, _generic>
+        elevate_degree() const {
+            using TargetType = RationalBezier<_Scalar, _dim, _degree<0?_degree:_degree+1, _generic>;
+            TargetType new_curve;
+            new_curve.set_homogeneous(m_bezier_homogeneous.elevate_degree());
+            return new_curve;
+        }
+
     private:
         void validate_initialization() const {
             const auto& ctrl_pts = m_bezier_homogeneous.get_control_points();
