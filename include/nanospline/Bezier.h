@@ -202,6 +202,31 @@ class Bezier final : public BezierBase<_Scalar, _dim, _degree, _generic> {
             return split(t0)[1].split(t1)[0];
         }
 
+        /**
+         * Return the same curve but with degree increased by 1.
+         */
+        Bezier<_Scalar, _dim, _degree<0?_degree:_degree+1, _generic>
+        elevate_degree() const {
+            using TargetType = Bezier<_Scalar, _dim, _degree<0?_degree:_degree+1, _generic>;
+            const auto degree = Base::get_degree();
+
+            const auto& ctrl_pts = Base::m_control_points;
+            typename TargetType::ControlPoints target_ctrl_pts(degree+2, _dim);
+            assert(ctrl_pts.rows() == degree+1);
+
+            target_ctrl_pts.row(0) = ctrl_pts.row(0);
+            for (int i=1; i<degree+1; i++) {
+                const Scalar alpha = (Scalar) i / (Scalar)(degree+1);
+                target_ctrl_pts.row(i) = (1-alpha) * ctrl_pts.row(i) +
+                    alpha * ctrl_pts.row(i-1);
+            }
+            target_ctrl_pts.row(degree+1) = ctrl_pts.row(degree);
+
+            TargetType new_curve;
+            new_curve.set_control_points(std::move(target_ctrl_pts));
+            return new_curve;
+        }
+
     private:
         ControlPoints deBoor(Scalar t, int num_recurrsions) const {
             const auto degree = Base::get_degree();
@@ -269,6 +294,17 @@ class Bezier<_Scalar, _dim, 0, false> final : public BezierBase<_Scalar, _dim, 0
                 const Scalar upper) const override {
             return {};
         }
+
+    public:
+        Bezier<_Scalar, _dim, 1, false> elevate_degree() const {
+            using TargetType = Bezier<_Scalar, _dim, 1, false>;
+            TargetType new_curve;
+            typename TargetType::ControlPoints ctrl_pts(2, _dim);
+            ctrl_pts.row(0) = Base::m_control_points.row(0);
+            ctrl_pts.row(1) = Base::m_control_points.row(0);
+            new_curve.set_control_points(std::move(ctrl_pts));
+            return new_curve;
+        }
 };
 
 template<typename _Scalar, int _dim>
@@ -319,6 +355,18 @@ class Bezier<_Scalar, _dim, 1, false> final : public BezierBase<_Scalar, _dim, 1
                 const Scalar lower,
                 const Scalar upper) const override {
             return {};
+        }
+
+    public:
+        Bezier<_Scalar, _dim, 2, false> elevate_degree() const {
+            using TargetType = Bezier<_Scalar, _dim, 2, false>;
+            TargetType new_curve;
+            typename TargetType::ControlPoints ctrl_pts(3, _dim);
+            ctrl_pts.row(0) = Base::m_control_points.row(0);
+            ctrl_pts.row(1) = Base::m_control_points.colwise().mean();
+            ctrl_pts.row(2) = Base::m_control_points.row(1);
+            new_curve.set_control_points(std::move(ctrl_pts));
+            return new_curve;
         }
 };
 
@@ -441,6 +489,21 @@ class Bezier<_Scalar, _dim, 2, false> final : public BezierBase<_Scalar, _dim, 2
             res.erase(std::unique(res.begin(), res.end()), res.end());
 
             return res;
+        }
+
+    public:
+        Bezier<_Scalar, _dim, 3, false> elevate_degree() const {
+            using TargetType = Bezier<_Scalar, _dim, 3, false>;
+            TargetType new_curve;
+            typename TargetType::ControlPoints ctrl_pts(4, _dim);
+            ctrl_pts.row(0) = Base::m_control_points.row(0);
+            ctrl_pts.row(1) = Base::m_control_points.row(0) / 3.0 +
+                              Base::m_control_points.row(1) * 2.0 / 3.0;
+            ctrl_pts.row(2) = Base::m_control_points.row(1) * 2.0 / 3.0 +
+                              Base::m_control_points.row(2) / 3.0;
+            ctrl_pts.row(3) = Base::m_control_points.row(2);
+            new_curve.set_control_points(std::move(ctrl_pts));
+            return new_curve;
         }
 };
 
@@ -651,6 +714,21 @@ class Bezier<_Scalar, _dim, 3, false> final : public BezierBase<_Scalar, _dim, 3
             return split(t0)[1].split(t1)[0];
         }
 
+        Bezier<_Scalar, _dim, 4, false> elevate_degree() const {
+            using TargetType = Bezier<_Scalar, _dim, 4, false>;
+            TargetType new_curve;
+            typename TargetType::ControlPoints ctrl_pts(5, _dim);
+            ctrl_pts.row(0) = Base::m_control_points.row(0);
+            ctrl_pts.row(1) = Base::m_control_points.row(0) / 4.0 +
+                              Base::m_control_points.row(1) * 3.0 / 4.0;
+            ctrl_pts.row(2) = Base::m_control_points.row(1) / 2.0 +
+                              Base::m_control_points.row(2) / 2.0;
+            ctrl_pts.row(3) = Base::m_control_points.row(2) * 3.0 / 4.0 +
+                              Base::m_control_points.row(3) / 4.0;
+            ctrl_pts.row(4) = Base::m_control_points.row(3);
+            new_curve.set_control_points(std::move(ctrl_pts));
+            return new_curve;
+        }
 };
 
 

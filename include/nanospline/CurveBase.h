@@ -43,10 +43,6 @@ class CurveBase {
 
         virtual void write(std::ostream &out) const =0;
 
-        friend std::ostream &operator<<(std::ostream &out, const CurveBase &c) { c.wirte(out); return out; }
-        virtual std::shared_ptr<CurveBase> simplify(Scalar eps) const { return nullptr; }
-        // virtual bool is_point() const = 0;
-
         virtual Scalar get_turning_angle(Scalar t0, Scalar t1) const {
             if (_dim != 2) {
                 throw std::runtime_error(
@@ -89,6 +85,10 @@ class CurveBase {
         constexpr int get_dim() const {
             return _dim;
         }
+
+        friend std::ostream &operator<<(std::ostream &out, const CurveBase &c) { c.wirte(out); return out; }
+        virtual std::shared_ptr<CurveBase> simplify(Scalar eps) const { return nullptr; }
+        // virtual bool is_point() const = 0;
 
     protected:
         Scalar approximate_inverse_evaluate(const Point& p,
