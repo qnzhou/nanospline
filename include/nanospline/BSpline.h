@@ -411,7 +411,7 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
                 throw invalid_setting_error(
                         "Input must contain at least 1 Béziers curves");
             }
-            assert(parameter_bounds.size() == num_curves+1);
+            assert(parameter_bounds.size() == static_cast<size_t>(num_curves+1));
             const int degree = beziers.front().get_degree();
             const int num_ctrl_pts = num_curves * degree + 1;
             const int num_knots = num_curves * degree + degree + 2;
@@ -423,7 +423,7 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
                 const auto& seg_ctrl_pts =
                     beziers[static_cast<size_t>(i)].get_control_points();
                 assert((seg_ctrl_pts.row(0) - Base::m_control_points.row(i*degree)).norm() < TOL);
-                Base::m_control_points.block(1+i*degree, 0, degree, _dim) = 
+                Base::m_control_points.block(1+i*degree, 0, degree, _dim) =
                     seg_ctrl_pts.block(1, 0, degree, _dim);
             }
 
