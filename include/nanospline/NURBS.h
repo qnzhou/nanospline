@@ -22,6 +22,23 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
         using BSplineHomogeneous = BSpline<_Scalar, _dim+1, _degree, _generic>;
 
     public:
+        NURBS() = default;
+
+        explicit NURBS(
+                const std::vector<RationalBezier<_Scalar, _dim, _degree, _generic>>& curves,
+                const std::vector<_Scalar>& parameter_bounds) {
+            combine_rational_Beziers(curves, parameter_bounds);
+        }
+
+        explicit NURBS(
+                const std::vector<RationalBezier<_Scalar, _dim, _degree, _generic>>& curves) {
+            const auto num_curves = curves.size();
+            std::vector<_Scalar> parameter_bounds(num_curves+1);
+            std::iota(parameter_bounds.begin(), parameter_bounds.end(), 0);
+            combine_rational_Beziers(curves, parameter_bounds);
+        }
+
+    public:
         Point evaluate(Scalar t) const override {
             validate_initialization();
             auto p = m_bspline_homogeneous.evaluate(t);
@@ -283,6 +300,21 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
                 ctrl_pts.rows() != m_weights.rows() ) {
                 throw invalid_setting_error("NURBS curve is not initialized.");
             }
+        }
+
+        void combine_rational_Beziers(
+                const std::vector<RationalBezier<_Scalar, _dim, _degree, _generic>>& curves,
+                const std::vector<_Scalar>& parameter_bounds) {
+            using CurveType = RationalBezier<_Scalar, _dim, _degree, _generic>;
+
+            const auto num_curves = curves.size();
+            std::vector<typename CurveType::BezierHomogeneous> beziers;
+            beziers.reserve(num_curves);
+            std::for_each(curves.begin(), curves.end(),
+                    [&beziers](const auto& curve) {
+                        beziers.push_back(curve.get_homogeneous());
+                    });
+            set_homogeneous(BSplineHomogeneous(beziers, parameter_bounds));
         }
 
     private:

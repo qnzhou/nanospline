@@ -26,7 +26,7 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
          * Create a B-Spline by combining a sequence of Bézier curves.
          * These Bézier curves must be at least C0 continous at the joints.
          */
-        BSpline(const std::vector<Bezier<_Scalar, _dim, _degree, _generic>>& beziers,
+        explicit BSpline(const std::vector<Bezier<_Scalar, _dim, _degree, _generic>>& beziers,
                 const std::vector<_Scalar>& parameter_bounds) {
             combine_Beziers(beziers, parameter_bounds);
         }
@@ -34,7 +34,7 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
         /**
          * Same as above, except use uniform knot span for each curve.
          */
-        BSpline(const std::vector<Bezier<_Scalar, _dim, _degree, _generic>>& beziers) {
+        explicit BSpline(const std::vector<Bezier<_Scalar, _dim, _degree, _generic>>& beziers) {
             const auto num_curves = beziers.size();
             std::vector<_Scalar> parameter_bounds(num_curves+1);
             std::iota(parameter_bounds.begin(), parameter_bounds.end(), 0);
