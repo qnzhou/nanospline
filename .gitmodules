@@ -1,6 +1,0 @@
-[submodule "tests/Catch2"]
-	path = tests/Catch2
-	url = https://github.com/catchorg/Catch2.git
-[submodule "third_party/eigen"]
-	path = third_party/eigen
-	url = https://github.com/PyMesh/eigen.git
