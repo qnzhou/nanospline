@@ -149,7 +149,7 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
                 validate_2nd_derivatives(curve, 10);
             }
 
-            SECTION("Insert knot") {
+            SECTION("Insert and remove knot") {
                 auto curve2 = curve;
                 curve2.insert_knot(0.6);
                 assert_same(curve, curve2, 10);
@@ -158,6 +158,12 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
                 assert_same(curve, curve2, 10);
 
                 curve2.initialize();
+                assert_same(curve, curve2, 10);
+
+                REQUIRE(curve2.remove_knot(0.6, 1) == 1);
+                assert_same(curve, curve2, 10);
+
+                REQUIRE(curve2.remove_knot(0.7, 2) == 2);
                 assert_same(curve, curve2, 10);
             }
 

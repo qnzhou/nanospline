@@ -61,12 +61,14 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
         void insert_knot(Scalar t, int multiplicity=1) override {
             validate_initialization();
             m_bspline_homogeneous.insert_knot(t, multiplicity);
+            set_homogeneous(m_bspline_homogeneous);
+        }
 
-            // Extract control points, weights and knots;
-            const auto ctrl_pts = m_bspline_homogeneous.get_control_points();
-            m_weights = ctrl_pts.col(_dim);
-            Base::m_control_points = ctrl_pts.leftCols(_dim).array().colwise() / m_weights.array();
-            Base::m_knots = m_bspline_homogeneous.get_knots();
+        int remove_knot(Scalar t, int multiplicity=1, Scalar tol=-1) override {
+            validate_initialization();
+            const auto r = m_bspline_homogeneous.remove_knot(t, multiplicity, tol);
+            set_homogeneous(m_bspline_homogeneous);
+            return r;
         }
 
         std::tuple<std::vector<RationalBezier<Scalar, _dim, _degree, _generic>>, std::vector<Scalar>>

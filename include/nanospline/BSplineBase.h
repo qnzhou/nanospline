@@ -237,7 +237,7 @@ class BSplineBase : public CurveBase<_Scalar, _dim> {
                 Pw.row(j) = Pw.row(k);
                 j++;
             }
-            Pw = Pw.topRows(j);
+            Pw.conservativeResize(j, Eigen::NoChange_t());
             return count;
         }
 
