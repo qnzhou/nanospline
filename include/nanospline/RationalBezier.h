@@ -183,6 +183,7 @@ class RationalBezier final : public BezierBase<_Scalar, _dim, _degree, _generic>
             Base::m_control_points =
                 ctrl_pts.template leftCols<_dim>().array().colwise()
                 / m_weights.array();
+            validate_initialization();
         }
 
         virtual void write(std::ostream &out) const override {
@@ -192,6 +193,7 @@ class RationalBezier final : public BezierBase<_Scalar, _dim, _degree, _generic>
 
         RationalBezier<_Scalar, _dim, _degree<0?_degree:_degree+1, _generic>
         elevate_degree() const {
+            validate_initialization();
             using TargetType = RationalBezier<_Scalar, _dim, _degree<0?_degree:_degree+1, _generic>;
             TargetType new_curve;
             new_curve.set_homogeneous(m_bezier_homogeneous.elevate_degree());

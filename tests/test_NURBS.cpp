@@ -103,6 +103,11 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
                 auto inflections = curve.compute_inflections(0, 1);
                 REQUIRE(inflections.size() == 0);
             }
+
+            SECTION("Degree elevation") {
+                const auto curve2 = curve.elevate_degree();
+                assert_same(curve, curve2, 10);
+            }
         }
 
         SECTION("4-way split") {
@@ -189,6 +194,11 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
                 auto singular_pts = curve.compute_singularities(0, 1);
                 REQUIRE(singular_pts.size() == 0);
             }
+
+            SECTION("Degree elevation") {
+                const auto curve2 = curve.elevate_degree();
+                assert_same(curve, curve2, 10);
+            }
         }
     }
 
@@ -209,12 +219,21 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
         curve.set_weights(weights);
         curve.initialize();
 
-        auto inflections = curve.compute_inflections(0, 1);
-        REQUIRE(inflections.size() == 1);
-        REQUIRE(inflections[0] == Approx(0.5));
+        SECTION("Inflection") {
+            auto inflections = curve.compute_inflections(0, 1);
+            REQUIRE(inflections.size() == 1);
+            REQUIRE(inflections[0] == Approx(0.5));
+        }
 
-        auto singular_pts = curve.compute_singularities(0, 1);
-        REQUIRE(singular_pts.size() == 0);
+        SECTION("Singularity") {
+            auto singular_pts = curve.compute_singularities(0, 1);
+            REQUIRE(singular_pts.size() == 0);
+        }
+
+        SECTION("Degree elevation") {
+            const auto curve2 = curve.elevate_degree();
+            assert_same(curve, curve2, 10);
+        }
     }
 
     SECTION("Inflection points of closed NURBS curve") {
@@ -234,15 +253,24 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
         curve.set_weights(weights);
         curve.initialize();
 
-        auto inflections = curve.compute_inflections(
-                knots.minCoeff(), knots.maxCoeff());
-        for (auto t : inflections) {
-            auto k = curve.evaluate_curvature(t).norm();
-            REQUIRE(k == Approx(0).margin(1e-6));
+        SECTION("Inflection") {
+            auto inflections = curve.compute_inflections(
+                    knots.minCoeff(), knots.maxCoeff());
+            for (auto t : inflections) {
+                auto k = curve.evaluate_curvature(t).norm();
+                REQUIRE(k == Approx(0).margin(1e-6));
+            }
         }
 
-        auto singular_pts = curve.compute_singularities(
-                knots.minCoeff(), knots.maxCoeff());
-        REQUIRE(singular_pts.size() == 0);
+        SECTION("Singularity") {
+            auto singular_pts = curve.compute_singularities(
+                    knots.minCoeff(), knots.maxCoeff());
+            REQUIRE(singular_pts.size() == 0);
+        }
+
+        SECTION("Degree elevation") {
+            const auto curve2 = curve.elevate_degree();
+            assert_same(curve, curve2, 10);
+        }
     }
 }

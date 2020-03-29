@@ -219,6 +219,12 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             return res;
         }
 
+        virtual void write(std::ostream &out) const override {
+            out << "c:\n" << this->m_control_points << "\n";
+            out << "k:\n" << this->m_knots << "\n";
+            out << "w:\n" << m_weights << "\n";
+        }
+
     public:
         void initialize() {
             typename BSplineHomogeneous::ControlPoints ctrl_pts(
@@ -260,10 +266,13 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             validate_initialization();
         }
 
-        virtual void write(std::ostream &out) const override {
-            out << "c:\n" << this->m_control_points << "\n";
-            out << "k:\n" << this->m_knots << "\n";
-            out << "w:\n" << m_weights << "\n";
+        NURBS<_Scalar, _dim, _degree<0?_degree:_degree+1, _generic>
+        elevate_degree() const {
+            validate_initialization();
+            using TargetType = NURBS<_Scalar, _dim, _degree<0?_degree:_degree+1, _generic>;
+            TargetType new_curve;
+            new_curve.set_homogeneous(m_bspline_homogeneous.elevate_degree());
+            return new_curve;
         }
 
     private:
