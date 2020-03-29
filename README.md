@@ -19,9 +19,12 @@ The following functionalities are covered:
 * [Curvature](#Curvature)
 * [Hodograph](#Hodograph)
 * [Inverse evaluation](#Inverse-evaluation)
-* [Knot insersion](#Knot-insertion)
+* [Knot insertion and removal](#Knot-insertion-and-removal)
 * [Split](#Split)
+* [Degree elevation](#Degree-elevation)
 * [Inflection](#Inflection)
+* [Turning angle](#Turning-angle)
+* [Singularity](#Singularity)
 * [Conversion](#Conversion)
 
 ### Data structure
@@ -224,7 +227,7 @@ force bisection method to find an approximate closest point.  The parameter
 `t_min` and `t_max` specify the search domain, and `level` is the recursion
 level.  Higher recursion level provides more accurate result.
 
-### Knot insertion
+### Knot insertion and removal
 
 For B-spline and NURBS curves, one can insert extra knot, `t`, with
 multiplicity, `m`, using the following:
@@ -232,6 +235,22 @@ multiplicity, `m`, using the following:
 ```c++
 curve.insert_knot(t, m);
 ```
+
+To remove a knot `m` times:
+
+```c++
+curve.remove_knot(t, m);
+```
+
+Just to be complete, the full signature of the `remove_knot` function is
+
+```c++
+int num_removed = curve.remove_knot(t, m, tolerance);
+```
+
+Where the return value `num_removed` indicates how many times the knot is
+removed, and `tolerance` specifies the max allowed change (L2 distance) in the
+curve that a valid removal can introduce.
 
 ### Split
 
@@ -241,6 +260,53 @@ To split a curve into two halves at parameter value `t`:
 #include <nanospline/split.h>
 
 auto halves = nanospline::split(curve, t);
+```
+
+One can also split a B-Spline curve into a sequence of Bézier curves:
+
+```c++
+#include <nanospline/BSpline.h>
+
+auto r = bspline.convert_to_Bezier();
+const auto& bezier_segments = std::get<0>(r);
+const auto& parameter_bounds = std::get<1>(r);
+```
+
+Where the `i`th Bézier curve covers the knot span `[parameter_bounds[i],
+parameter_bounds[i+1]]`.  It is also possible recombine these Bézier segments to
+form a B-spline curve:
+
+```c++
+BSpline<Scalar, dim, degree, generic> curve(
+    bezier_segments, parameter_bounds);
+
+// or with uniform knot span
+
+BSpline<Scalar, dim, degree, generic> curve(bezier_segments);
+```
+
+Similarly, NURBS curve can be split into a sequence of rational Bézier curves:
+
+```c++
+#include <nanospline/BSpline.h>
+
+auto r = nurbs.convert_to_Bezier();
+const auto& rational_bezier_segments = std::get<0>(r);
+const auto& parameter_bounds = std::get<1>(r);
+
+// Re-combine rational Bézier back into NURBS
+
+NURBS<Scalar, dim, degree, generic> curve(
+    rational_bezier_segments, parameter_bounds);
+```
+
+### Degree elevation
+
+It is often useful to increase the degree of a curve:
+
+```c++
+auto curve2 = curve.elevate_degree();
+assert(curve2.get_degree() == curve.get_degree()+1);
 ```
 
 ### Inflection
@@ -254,8 +320,44 @@ points, i.e. points with zero curvature.
 auto inflections = nanospline::compute_inflections(curve);
 ```
 
-where `inflections` is a vector of parameter values corresponding to inflection
+Where `inflections` is a vector of parameter values corresponding to inflection
 points.
+
+### Turning angle
+
+Turning angle is the total curvature of a given curve.  It represents how much a
+curve is bending.  In nanospline, turning angle computation is supported for 2D
+curves:
+
+```c++
+auto turning_angle = curve.get_turning_angle(t0, t1);
+```
+
+which returns the turning angle (in radians) for the curve segment between `t0`
+and `t1`.  It is often important to determine the locations, `tcs`, where
+splitting the curve at `tcs` will reduce the turning angle by half for each
+curve piece:
+
+```c++
+auto turning_angle = curve.get_turning_angle(t0, t1);
+std::vector<Scalar> tcs = curve.reduce_turning_angle(t0, t1);
+
+if (!tcs.empty()) {
+    auto turning_angle_0 = curve.get_turning_angle(t0, tcs.front());
+    assert(std::abs(turning_angle * 0.5 - turning_angle_0) < EPS);
+    ...
+}
+```
+
+### Singularity
+
+Singularity points of a curve are defined as the locations at where the curve has
+0 first derivative.  Singularity locations between `t0` and `t1` for 2D curves
+can be computed in the following way:
+
+```c++
+std::vector<Scalar> singularites = curve.compute_singularities(t0, t1);
+```
 
 ### Conversion
 
