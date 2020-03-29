@@ -20,6 +20,28 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
         using KnotVector = typename Base::KnotVector;
 
     public:
+        BSpline() = default;
+
+        /**
+         * Create a B-Spline by combining a sequence of Bézier curves.
+         * These Bézier curves must be at least C0 continous at the joints.
+         */
+        BSpline(const std::vector<Bezier<_Scalar, _dim, _degree, _generic>>& beziers,
+                const std::vector<_Scalar>& parameter_bounds) {
+            combine_Beziers(beziers, parameter_bounds);
+        }
+
+        /**
+         * Same as above, except use uniform knot span for each curve.
+         */
+        BSpline(const std::vector<Bezier<_Scalar, _dim, _degree, _generic>>& beziers) {
+            const auto num_curves = beziers.size();
+            std::vector<_Scalar> parameter_bounds(num_curves+1);
+            std::iota(parameter_bounds.begin(), parameter_bounds.end(), 0);
+            combine_Beziers(beziers, parameter_bounds);
+        }
+
+    public:
         Point evaluate(Scalar t) const override {
             assert(Base::in_domain(t));
             Base::validate_curve();
@@ -340,6 +362,31 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             return {segments, parameter_bounds};
         }
 
+        BSpline<_Scalar, _dim, _degree<0?_degree:_degree+1, _generic>
+        elevate_degree() const {
+            constexpr int elevated_degree = _degree < 0 ? _degree:_degree+1;
+            using TargetType = BSpline<_Scalar, _dim, elevated_degree, _generic>;
+            using BezierType = Bezier<Scalar, _dim, _degree, _generic>;
+            using BezierType2 = Bezier<Scalar, _dim, elevated_degree, _generic>;
+
+            if (Base::get_degree() == 0) {
+                throw invalid_setting_error("Cannot elevate degree 0 BSpline");
+            }
+
+            std::vector<BezierType> beziers;
+            std::vector<Scalar> parameter_bounds;
+            std::tie(beziers, parameter_bounds) = convert_to_Bezier();
+
+            std::vector<BezierType2> beziers2;
+            beziers2.reserve(beziers.size());
+            std::for_each(beziers.begin(), beziers.end(),
+                    [&beziers2](const auto& curve){
+                        beziers2.push_back(curve.elevate_degree());
+                    });
+
+            return TargetType(beziers2, parameter_bounds);
+        }
+
     private:
         template<typename Derived>
         void deBoor(Scalar t, int p, int k,
@@ -358,6 +405,44 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
                     ctrl_pts.row(j) = (1.0-alpha) * ctrl_pts.row(j-1) +
                         alpha * ctrl_pts.row(j);
                 }
+            }
+        }
+
+        void combine_Beziers(const std::vector<Bezier<_Scalar, _dim, _degree, _generic>>& beziers,
+                const std::vector<_Scalar>& parameter_bounds) {
+            constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon();
+            const int num_curves = static_cast<int>(beziers.size());
+            if (num_curves == 0) {
+                throw invalid_setting_error(
+                        "Input must contain at least 1 Béziers curves");
+            }
+            assert(parameter_bounds.size() == num_curves+1);
+            const int degree = beziers.front().get_degree();
+            const int num_ctrl_pts = num_curves * degree + 1;
+            const int num_knots = num_curves * degree + degree + 2;
+
+            Base::m_control_points.resize(num_ctrl_pts, _dim);
+            Base::m_control_points.topRows(degree+1) = beziers[0].get_control_points();
+            for (int i=1; i<num_curves; i++) {
+                assert(degree == beziers[static_cast<size_t>(i)].get_degree());
+                const auto& seg_ctrl_pts =
+                    beziers[static_cast<size_t>(i)].get_control_points();
+                assert((seg_ctrl_pts.row(0) - Base::m_control_points.row(i*degree)).norm() < TOL);
+                Base::m_control_points.block(1+i*degree, 0, degree, _dim) = 
+                    seg_ctrl_pts.block(1, 0, degree, _dim);
+            }
+
+            Base::m_knots.resize(num_knots);
+            Base::m_knots.segment(0, degree+1).setConstant(parameter_bounds.front());
+            Base::m_knots.segment(num_knots-degree-1, degree+1).setConstant(parameter_bounds.back());
+            for (Eigen::Index i=1; i<num_curves; i++) {
+                Base::m_knots.segment(i*degree+1, degree).setConstant(
+                        parameter_bounds[static_cast<size_t>(i)]);
+            }
+
+            for (const auto t : parameter_bounds) {
+                // Attempt to remove as many multiplicty as possible.
+                Base::remove_knot(t, degree, TOL);
             }
         }
 };

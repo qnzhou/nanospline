@@ -224,7 +224,7 @@ class BSplineBase : public CurveBase<_Scalar, _dim> {
             for (int k=r+1; k<=m; k++) {
                 U[k-count] = U[k];
             }
-            U = U.segment(0, m-count+1);
+            U.conservativeResize(m-count+1);
             int j=fout, i=j;
             for (int k=1; k<count; k++) {
                 if (k%2 == 1) {
