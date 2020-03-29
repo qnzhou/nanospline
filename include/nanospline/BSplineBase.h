@@ -249,7 +249,7 @@ class BSplineBase : public CurveBase<_Scalar, _dim> {
             int low = p;
             int high = static_cast<int>(m_knots.rows()-p-1);
 
-            // Hangle out of domain cases.
+            // Handle out of domain cases.
             if (t < m_knots[low]) {
                 return low;
             }
