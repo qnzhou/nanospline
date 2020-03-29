@@ -43,15 +43,12 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
 
     public:
         Point evaluate(Scalar t) const override {
-            assert(Base::in_domain(t));
             Base::validate_curve();
             const int p = Base::get_degree();
             const int k = Base::locate_span(t);
             assert(p >= 0);
             assert(Base::m_knots.rows() ==
                     Base::m_control_points.rows() + p + 1);
-            assert(Base::m_knots[k] <= t);
-            assert(Base::m_knots[k+1] >= t);
 
             ControlPoints ctrl_pts(p+1, _dim);
             for (int i=0; i<=p; i++) {
@@ -67,7 +64,6 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
         }
 
         Point evaluate_derivative(Scalar t) const override {
-            assert(Base::in_domain(t));
             Base::validate_curve();
             const int p = Base::get_degree();
             const int k = Base::locate_span(t);
@@ -96,7 +92,6 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
         }
 
         Point evaluate_2nd_derivative(Scalar t) const override {
-            assert(Base::in_domain(t));
             Base::validate_curve();
             const int p = Base::get_degree();
             const int k = Base::locate_span(t);

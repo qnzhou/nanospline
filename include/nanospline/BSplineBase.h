@@ -248,8 +248,14 @@ class BSplineBase : public CurveBase<_Scalar, _dim> {
             assert(num_knots > m_control_points.rows());
             int low = p;
             int high = static_cast<int>(m_knots.rows()-p-1);
-            assert(m_knots[low] <= t);
-            assert(m_knots[high] >= t);
+
+            // Hangle out of domain cases.
+            if (t < m_knots[low]) {
+                return low;
+            }
+            if (t > m_knots[high]) {
+                return high;
+            }
 
             auto bypass_duplicates_after = [this, num_knots](int i) {
                 while(i+1<num_knots && this->m_knots[i] == this->m_knots[i+1]) {
