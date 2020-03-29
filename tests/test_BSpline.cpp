@@ -73,9 +73,15 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
             validate_2nd_derivatives(curve, 10);
         }
 
-        SECTION("Knot insertion") {
+        SECTION("Knot insertion and removal") {
             auto curve2 = curve;
             curve2.insert_knot(0.5, 1);
+            assert_same(curve, curve2, 10);
+
+            REQUIRE(curve2.remove_knot(0.5, 1) == 1);
+            assert_same(curve, curve2, 10);
+
+            REQUIRE(curve2.remove_knot(0.5, 1) == 0);
             assert_same(curve, curve2, 10);
         }
 
@@ -123,9 +129,13 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
             validate_2nd_derivatives(curve, 10);
         }
 
-        SECTION("Knot insertion") {
+        SECTION("Knot insertion and removal") {
             auto curve2 = curve;
             curve2.insert_knot(0.1, 2);
+            assert_same(curve, curve2, 10);
+            REQUIRE(curve2.remove_knot(0.1, 1) == 1);
+            assert_same(curve, curve2, 10);
+            REQUIRE(curve2.remove_knot(0.1, 1) == 1);
             assert_same(curve, curve2, 10);
         }
 
@@ -177,6 +187,15 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
             assert_same(curve, curve2, 10);
 
             curve2.insert_knot(0.6, 3);
+            assert_same(curve, curve2, 10);
+
+            REQUIRE(curve2.remove_knot(0.6, 2) == 2);
+            assert_same(curve, curve2, 10);
+
+            REQUIRE(curve2.remove_knot(0.6, 1) == 1);
+            assert_same(curve, curve2, 10);
+
+            REQUIRE(curve2.remove_knot(0.5, 3) == 3);
             assert_same(curve, curve2, 10);
         }
 
@@ -685,9 +704,12 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
                 validate_2nd_derivatives(curve, 10);
             }
 
-            SECTION("Knot insertion") {
+            SECTION("Knot insertion and removal") {
                 auto curve2 = curve;
                 curve2.insert_knot(0.5, 2);
+                assert_same(curve, curve2, 10);
+
+                REQUIRE(curve2.remove_knot(0.5, 2) == 2);
                 assert_same(curve, curve2, 10);
             }
 
