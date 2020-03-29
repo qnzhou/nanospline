@@ -9,6 +9,7 @@ template<typename _Scalar, int _dim=3,
     int _degree_u=3, int _degree_v=3>
 class BSplinePatch final : public PatchBase<_Scalar, _dim> {
     public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         static_assert(_dim > 0, "Dimension must be positive.");
 
         using Base = PatchBase<_Scalar, _dim>;

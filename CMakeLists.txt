@@ -3,7 +3,8 @@ SET(CMAKE_CXX_STANDARD 14)
 
 PROJECT(nanospline)
 
-OPTION(HIGH_DEGREE_SUPPORT, "With high degree polynomial solver support" OFF)
+OPTION(HIGH_DEGREE_SUPPORT "With high degree polynomial solver support" OFF)
+OPTION(WITH_ADDRESS_SANITIZER "Compile with address sanitizer" OFF)
 
 FIND_PACKAGE(Eigen3)
 IF (NOT TARGET Eigen3::Eigen)
@@ -33,6 +34,13 @@ IF(NOT MSVC)
 ELSE()
     TARGET_COMPILE_OPTIONS(nanospline PRIVATE
         -D_USE_MATH_DEFINES)
+ENDIF()
+
+IF (WITH_ADDRESS_SANITIZER)
+    TARGET_COMPILE_OPTIONS(nanospline PUBLIC
+        -fno-omit-frame-pointer -fsanitize=address)
+    TARGET_LINK_OPTIONS(nanospline PUBLIC
+        -fno-omit-frame-pointer -fsanitize=address)
 ENDIF()
 
 
