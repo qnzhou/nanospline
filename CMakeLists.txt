@@ -32,7 +32,13 @@ else()
         -D_USE_MATH_DEFINES)
 endif()
 
-add_sanitizers(nanospline)
+if (SANITIZE_ADDRESS OR
+        SANITIZE_LINK_STATIC OR
+        SANITIZE_MEMORY OR
+        SANITIZE_THREAD OR
+        SANITIZE_UNDEFINED)
+    add_sanitizers(nanospline)
+endif()
 
 
 file(GLOB TEST_FILES "${PROJECT_SOURCE_DIR}/tests/*.cpp")
@@ -47,7 +53,13 @@ else()
         -D_USE_MATH_DEFINES)
 endif()
 
-add_sanitizers(nanospline_test)
+if (SANITIZE_ADDRESS OR
+        SANITIZE_LINK_STATIC OR
+        SANITIZE_MEMORY OR
+        SANITIZE_THREAD OR
+        SANITIZE_UNDEFINED)
+    add_sanitizers(nanospline_test)
+endif()
 
 add_custom_target(run_unit_tests
     COMMAND nanospline_test
