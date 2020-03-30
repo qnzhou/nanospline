@@ -1,7 +1,6 @@
 include_guard()
 
-FIND_PACKAGE(Eigen3)
-IF (NOT TARGET Eigen3::Eigen)
+if (NOT TARGET Eigen3::Eigen)
 
     FetchContent_Declare(
         Eigen
@@ -15,6 +14,4 @@ IF (NOT TARGET Eigen3::Eigen)
         FetchContent_Populate(Eigen)
         add_subdirectory(${eigen_SOURCE_DIR} ${eigen_BINARY_DIR})
     endif()
-
-ENDIF()
-
+endif()
