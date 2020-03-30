@@ -71,7 +71,7 @@ class Bezier final : public BezierBase<_Scalar, _dim, _degree, _generic> {
             try {
                 res = nanospline::internal::compute_Bezier_inflections(
                         Base::m_control_points, lower, upper);
-            } catch (infinite_root_error& e) {
+            } catch (infinite_root_error&) {
                 // Infinitely many inflections.
                 res.clear();
             }
