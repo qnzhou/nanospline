@@ -6,13 +6,9 @@ PROJECT(nanospline)
 OPTION(HIGH_DEGREE_SUPPORT "With high degree polynomial solver support" OFF)
 OPTION(WITH_ADDRESS_SANITIZER "Compile with address sanitizer" OFF)
 
-FIND_PACKAGE(Eigen3)
-IF (NOT TARGET Eigen3::Eigen)
-    ADD_LIBRARY(Eigen3::Eigen INTERFACE IMPORTED)
-    TARGET_INCLUDE_DIRECTORIES(Eigen3::Eigen SYSTEM INTERFACE
-        ${PROJECT_SOURCE_DIR}/third_party/eigen)
-ENDIF()
-ADD_SUBDIRECTORY(tests/Catch2)
+INCLUDE(FetchContent)
+INCLUDE(cmake/Eigen3.cmake)
+INCLUDE(cmake/Catch2.cmake)
 
 FILE(GLOB INC_FILES "${PROJECT_SOURCE_DIR}/include/nanospline/*.h"
     "${PROJECT_SOURCE_DIR}/include/nanospline/internal/*.h")
