@@ -8,7 +8,7 @@ FetchContent_Declare(
 )
 
 FetchContent_GetProperties(Catch2)
-if(NOT Catch2_POPULATED)
+if(NOT catch2_POPULATED)
     FetchContent_Populate(Catch2)
     add_subdirectory(${catch2_SOURCE_DIR} ${catch2_BINARY_DIR})
 endif()

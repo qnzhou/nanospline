@@ -11,7 +11,7 @@ IF (NOT TARGET Eigen3::Eigen)
     )
 
     FetchContent_GetProperties(Eigen)
-    if(NOT Eigen_POPULATED)
+    if(NOT eigen_POPULATED)
         FetchContent_Populate(Eigen)
         add_subdirectory(${eigen_SOURCE_DIR} ${eigen_BINARY_DIR})
     endif()

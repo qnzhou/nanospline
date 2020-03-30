@@ -1,58 +1,55 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.11)
-SET(CMAKE_CXX_STANDARD 14)
+cmake_minimum_required(VERSION 3.11)
+set(CMAKE_CXX_STANDARD 14)
 
-PROJECT(nanospline)
+project(nanospline)
 
-OPTION(HIGH_DEGREE_SUPPORT "With high degree polynomial solver support" OFF)
-OPTION(WITH_ADDRESS_SANITIZER "Compile with address sanitizer" OFF)
+option(HIGH_DEGREE_SUPPORT "With high degree polynomial solver support" OFF)
 
-INCLUDE(FetchContent)
-INCLUDE(cmake/Eigen3.cmake)
-INCLUDE(cmake/Catch2.cmake)
+include(FetchContent)
+include(cmake/Eigen3.cmake)
+include(cmake/Catch2.cmake)
+include(cmake/sanitizer-cmake.cmake)
 
-FILE(GLOB INC_FILES "${PROJECT_SOURCE_DIR}/include/nanospline/*.h"
+file(GLOB INC_FILES "${PROJECT_SOURCE_DIR}/include/nanospline/*.h"
     "${PROJECT_SOURCE_DIR}/include/nanospline/internal/*.h")
-FILE(GLOB SRC_FILES "${PROJECT_SOURCE_DIR}/src/*.cpp")
+file(GLOB SRC_FILES "${PROJECT_SOURCE_DIR}/src/*.cpp")
 
-ADD_LIBRARY(nanospline STATIC ${SRC_FILES} ${INC_FILES})
-TARGET_LINK_LIBRARIES(nanospline Eigen3::Eigen)
-TARGET_INCLUDE_DIRECTORIES(nanospline PUBLIC
+add_library(nanospline STATIC ${SRC_FILES} ${INC_FILES})
+target_link_libraries(nanospline PUBLIC Eigen3::Eigen)
+target_include_directories(nanospline PUBLIC
     ${PROJECT_SOURCE_DIR}/include)
 
-IF (HIGH_DEGREE_SUPPORT)
-    TARGET_COMPILE_DEFINITIONS(nanospline PRIVATE
+if (HIGH_DEGREE_SUPPORT)
+    target_compile_definitions(nanospline PRIVATE
         -DHIGH_DEGREE_SUPPORT)
-ENDIF()
+endif()
 
-IF(NOT MSVC)
-    TARGET_COMPILE_OPTIONS(nanospline PRIVATE
+if(NOT MSVC)
+    target_compile_options(nanospline PRIVATE
         -Wconversion -Wall -Werror)
-ELSE()
-    TARGET_COMPILE_OPTIONS(nanospline PRIVATE
+else()
+    target_compile_options(nanospline PRIVATE
         -D_USE_MATH_DEFINES)
-ENDIF()
+endif()
 
-IF (WITH_ADDRESS_SANITIZER)
-    TARGET_COMPILE_OPTIONS(nanospline PUBLIC
-        -fno-omit-frame-pointer -fsanitize=address)
-    TARGET_LINK_OPTIONS(nanospline PUBLIC
-        -fno-omit-frame-pointer -fsanitize=address)
-ENDIF()
+add_sanitizers(nanospline)
 
 
+file(GLOB TEST_FILES "${PROJECT_SOURCE_DIR}/tests/*.cpp")
+add_executable(nanospline_test ${TEST_FILES})
+target_link_libraries(nanospline_test nanospline Catch2::Catch2)
 
-FILE(GLOB TEST_FILES "${PROJECT_SOURCE_DIR}/tests/*.cpp")
-ADD_EXECUTABLE(nanospline_test ${TEST_FILES})
-TARGET_LINK_LIBRARIES(nanospline_test nanospline Catch2::Catch2)
-
-IF(NOT MSVC)
-    TARGET_COMPILE_OPTIONS(nanospline_test PRIVATE
+if(NOT MSVC)
+    target_compile_options(nanospline_test PRIVATE
         -Wconversion -Wall -Werror)
-ELSE()
-    TARGET_COMPILE_OPTIONS(nanospline_test PRIVATE
+else()
+    target_compile_options(nanospline_test PRIVATE
         -D_USE_MATH_DEFINES)
-ENDIF()
+endif()
 
-ADD_CUSTOM_TARGET(run_unit_tests
+add_sanitizers(nanospline_test)
+
+add_custom_target(run_unit_tests
     COMMAND nanospline_test
     DEPENDS nanospline_test)
+
