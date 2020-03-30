@@ -29,6 +29,12 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
             validate_derivatives(curve, 10);
             validate_2nd_derivatives(curve, 10);
         }
+
+        SECTION("degree elevation") {
+            auto new_curve = curve.elevate_degree();
+            REQUIRE(new_curve.get_degree() == 1);
+            assert_same(curve, new_curve, 10);
+        }
     }
 
     SECTION("Generic degree 1") {
@@ -53,6 +59,12 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
             validate_2nd_derivatives(curve, 10);
+        }
+
+        SECTION("degree elevation") {
+            auto new_curve = curve.elevate_degree();
+            REQUIRE(new_curve.get_degree() == 2);
+            assert_same(curve, new_curve, 10);
         }
     }
 
@@ -137,6 +149,12 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
             REQUIRE(singular_pts[0] == Approx(0.5));
             REQUIRE(curve.evaluate_derivative(0.5).norm() == Approx(0.0));
         }
+
+        SECTION("degree elevation") {
+            auto new_curve = curve.elevate_degree();
+            REQUIRE(new_curve.get_degree() == 4);
+            assert_same(curve, new_curve, 10);
+        }
     }
 
     SECTION("Dynmaic degree") {
@@ -208,6 +226,12 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
             auto singular_pts = curve.compute_singularities(0, 1);
             REQUIRE(singular_pts.size() == 0);
         }
+
+        SECTION("degree elevation") {
+            auto new_curve = curve.elevate_degree();
+            REQUIRE(new_curve.get_degree() == 4);
+            assert_same(curve, new_curve, 10);
+        }
     }
 
     SECTION("Specialized degree 0") {
@@ -228,6 +252,12 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
             validate_2nd_derivatives(curve, 10);
+        }
+
+        SECTION("degree elevation") {
+            auto new_curve = curve.elevate_degree();
+            REQUIRE(new_curve.get_degree() == 1);
+            assert_same(curve, new_curve, 10);
         }
 
         //SECTION("Turning angle") {
@@ -292,6 +322,12 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
             const auto split_pts = curve.reduce_turning_angle(0, 1);
             REQUIRE(split_pts.size() == 0);
         }
+
+        SECTION("degree elevation") {
+            auto new_curve = curve.elevate_degree();
+            REQUIRE(new_curve.get_degree() == 2);
+            assert_same(curve, new_curve, 10);
+        }
     }
 
     SECTION("Specialized degree 2") {
@@ -346,6 +382,12 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
             REQUIRE(singular_pts.size() == 1);
             REQUIRE(singular_pts[0] == Approx(0.5));
             REQUIRE(curve.evaluate_derivative(0.5).norm() == Approx(0.0));
+        }
+
+        SECTION("degree elevation") {
+            auto new_curve = curve.elevate_degree();
+            REQUIRE(new_curve.get_degree() == 3);
+            assert_same(curve, new_curve, 10);
         }
     }
 
@@ -425,6 +467,12 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
             REQUIRE(singular_pts.size() == 1);
             REQUIRE(singular_pts[0] == Approx(0.5));
             REQUIRE(curve.evaluate_derivative(0.5).norm() == Approx(0.0));
+        }
+
+        SECTION("degree elevation") {
+            auto new_curve = curve.elevate_degree();
+            REQUIRE(new_curve.get_degree() == 4);
+            assert_same(curve, new_curve, 10);
         }
     }
 

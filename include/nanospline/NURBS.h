@@ -22,6 +22,23 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
         using BSplineHomogeneous = BSpline<_Scalar, _dim+1, _degree, _generic>;
 
     public:
+        NURBS() = default;
+
+        explicit NURBS(
+                const std::vector<RationalBezier<_Scalar, _dim, _degree, _generic>>& curves,
+                const std::vector<_Scalar>& parameter_bounds) {
+            combine_rational_Beziers(curves, parameter_bounds);
+        }
+
+        explicit NURBS(
+                const std::vector<RationalBezier<_Scalar, _dim, _degree, _generic>>& curves) {
+            const auto num_curves = curves.size();
+            std::vector<_Scalar> parameter_bounds(num_curves+1);
+            std::iota(parameter_bounds.begin(), parameter_bounds.end(), 0);
+            combine_rational_Beziers(curves, parameter_bounds);
+        }
+
+    public:
         Point evaluate(Scalar t) const override {
             validate_initialization();
             auto p = m_bspline_homogeneous.evaluate(t);
@@ -61,12 +78,14 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
         void insert_knot(Scalar t, int multiplicity=1) override {
             validate_initialization();
             m_bspline_homogeneous.insert_knot(t, multiplicity);
+            set_homogeneous(m_bspline_homogeneous);
+        }
 
-            // Extract control points, weights and knots;
-            const auto ctrl_pts = m_bspline_homogeneous.get_control_points();
-            m_weights = ctrl_pts.col(_dim);
-            Base::m_control_points = ctrl_pts.leftCols(_dim).array().colwise() / m_weights.array();
-            Base::m_knots = m_bspline_homogeneous.get_knots();
+        int remove_knot(Scalar t, int multiplicity=1, Scalar tol=-1) override {
+            validate_initialization();
+            const auto r = m_bspline_homogeneous.remove_knot(t, multiplicity, tol);
+            set_homogeneous(m_bspline_homogeneous);
+            return r;
         }
 
         std::tuple<std::vector<RationalBezier<Scalar, _dim, _degree, _generic>>, std::vector<Scalar>>
@@ -217,6 +236,12 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             return res;
         }
 
+        virtual void write(std::ostream &out) const override {
+            out << "c:\n" << this->m_control_points << "\n";
+            out << "k:\n" << this->m_knots << "\n";
+            out << "w:\n" << m_weights << "\n";
+        }
+
     public:
         void initialize() {
             typename BSplineHomogeneous::ControlPoints ctrl_pts(
@@ -258,10 +283,13 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             validate_initialization();
         }
 
-        virtual void write(std::ostream &out) const override {
-            out << "c:\n" << this->m_control_points << "\n";
-            out << "k:\n" << this->m_knots << "\n";
-            out << "w:\n" << m_weights << "\n";
+        NURBS<_Scalar, _dim, _degree<0?_degree:_degree+1, _generic>
+        elevate_degree() const {
+            validate_initialization();
+            using TargetType = NURBS<_Scalar, _dim, _degree<0?_degree:_degree+1, _generic>;
+            TargetType new_curve;
+            new_curve.set_homogeneous(m_bspline_homogeneous.elevate_degree());
+            return new_curve;
         }
 
     private:
@@ -272,6 +300,21 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
                 ctrl_pts.rows() != m_weights.rows() ) {
                 throw invalid_setting_error("NURBS curve is not initialized.");
             }
+        }
+
+        void combine_rational_Beziers(
+                const std::vector<RationalBezier<_Scalar, _dim, _degree, _generic>>& curves,
+                const std::vector<_Scalar>& parameter_bounds) {
+            using CurveType = RationalBezier<_Scalar, _dim, _degree, _generic>;
+
+            const auto num_curves = curves.size();
+            std::vector<typename CurveType::BezierHomogeneous> beziers;
+            beziers.reserve(num_curves);
+            std::for_each(curves.begin(), curves.end(),
+                    [&beziers](const auto& curve) {
+                        beziers.push_back(curve.get_homogeneous());
+                    });
+            set_homogeneous(BSplineHomogeneous(beziers, parameter_bounds));
         }
 
     private:

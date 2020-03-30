@@ -153,6 +153,94 @@ class BSplineBase : public CurveBase<_Scalar, _dim> {
             m_knots.swap(knots_new);
         }
 
+        virtual int remove_knot(Scalar t, int num_copies=1, Scalar tol=-1) {
+            assert(num_copies >= 1);
+            assert(in_domain(t));
+            validate_curve();
+
+            if (tol < 0) {
+                tol = (m_control_points.colwise().maxCoeff() -
+                       m_control_points.colwise().minCoeff()).maxCoeff() * 1e-6;
+            }
+
+            const int p = get_degree();
+            const int r = locate_span(t);
+            const int s = (t == m_knots[r]) ? get_multiplicity(r):0;
+            const int n = static_cast<int>(m_control_points.rows()-1);
+            const int m = static_cast<int>(m_knots.rows()-1);
+
+            if (s == 0) return 0; // t is not in the knot vector.
+            if (r <= p || r >= m-p) {
+                // Cannot remove knots at the beginning and end.
+                return 0;
+            }
+            assert(r>=p);
+            assert(m_knots[r+1] != m_knots[r]);
+
+            auto& U = m_knots;
+            auto& Pw = m_control_points;
+            const int ord = p+1;
+            const int fout = (2*r-s-p)/2;
+            int last = r-s;
+            int first = r-p;
+            ControlPoints temp(n+1, _dim);
+
+            int count = 0;
+            for (int k=0; k<num_copies; k++, count++) {
+                const int off = first-1;
+                temp.row(0) = Pw.row(off);
+                temp.row(last+1-off) = Pw.row(last+1);
+                int i=first, j=last, ii=1, jj=last-off;
+                while (j-i > k) {
+                    const auto alpha_i = (t-U[i]) / (U[i+ord+k] - U[i]);
+                    const auto alpha_j = (t-U[j-k]) / (U[j+ord] - U[j-k]);
+                    temp.row(ii) = (Pw.row(i) - (1-alpha_i)*temp.row(ii-1)) / alpha_i;
+                    temp.row(jj) = (Pw.row(j) - alpha_j * temp.row(jj+1)) / (1-alpha_j);
+                    i++; ii++; j--; jj--;
+                }
+
+                if (j-i < k) {
+                    if ((temp.row(ii-1) - temp.row(jj+1)).norm() > tol) {
+                        break;
+                    }
+                } else {
+                    const auto alpha_i = (t-U[i]) / (U[i+ord+k] - U[i]);
+                    if ((Pw.row(i) - (alpha_i * temp.row(ii+k+1) +
+                                    (1-alpha_i) * temp.row(ii-1))).norm() > tol) {
+                        break;
+                    }
+                }
+
+                i=first; j=last;
+                while(j-i>k) {
+                    Pw.row(i) = temp.row(i-off);
+                    Pw.row(j) = temp.row(j-off);
+                    i++; j--;
+                }
+                first--; last++;
+            }
+
+            if (count==0) return 0;
+            for (int k=r+1; k<=m; k++) {
+                U[k-count] = U[k];
+            }
+            U.conservativeResize(m-count+1);
+            int j=fout, i=j;
+            for (int k=1; k<count; k++) {
+                if (k%2 == 1) {
+                    i++;
+                } else {
+                    j--;
+                }
+            }
+            for (int k=i+1; k<=n; k++) {
+                Pw.row(j) = Pw.row(k);
+                j++;
+            }
+            Pw.conservativeResize(j, Eigen::NoChange_t());
+            return count;
+        }
+
     public:
         int locate_span(const Scalar t) const {
             const auto p = get_degree();
@@ -160,8 +248,14 @@ class BSplineBase : public CurveBase<_Scalar, _dim> {
             assert(num_knots > m_control_points.rows());
             int low = p;
             int high = static_cast<int>(m_knots.rows()-p-1);
-            assert(m_knots[low] <= t);
-            assert(m_knots[high] >= t);
+
+            // Handle out of domain cases.
+            if (t < m_knots[low]) {
+                return low;
+            }
+            if (t > m_knots[high]) {
+                return high;
+            }
 
             auto bypass_duplicates_after = [this, num_knots](int i) {
                 while(i+1<num_knots && this->m_knots[i] == this->m_knots[i+1]) {

@@ -69,8 +69,9 @@ TEST_CASE("NURBSPatch", "[rational][bspline_patch]") {
         patch.set_knots_v(knots_v);
 
         Eigen::Matrix<Scalar, 16, 1> weights;
+        weights.setOnes();
         SECTION("Uniform weight") {
-            weights.setConstant(1.0);
+            weights.setConstant(2.0);
         }
         SECTION("Non-uniform weight") {
             weights[5] = 2.0;

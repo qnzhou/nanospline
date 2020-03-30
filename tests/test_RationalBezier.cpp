@@ -39,6 +39,11 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             auto k = curve.evaluate_curvature(0.4);
             REQUIRE(k.norm() == Approx(0.0));
         }
+        SECTION("Degree elevation") {
+            const auto new_curve = curve.elevate_degree();
+            REQUIRE(new_curve.get_degree() == curve.get_degree()+1);
+            assert_same(curve, new_curve, 10);
+        }
     }
 
     SECTION("Generic degree 1") {
@@ -74,6 +79,11 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             REQUIRE(total_turning_angle == Approx(0));
             const auto split_pts = curve.reduce_turning_angle(0, 1);
             REQUIRE(split_pts.size() == 0);
+        }
+        SECTION("Degree elevation") {
+            const auto new_curve = curve.elevate_degree();
+            REQUIRE(new_curve.get_degree() == curve.get_degree()+1);
+            assert_same(curve, new_curve, 10);
         }
     }
 
@@ -116,6 +126,10 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
 
             const auto singular_pts = curve.compute_singularities(0, 1);
             REQUIRE(singular_pts.size() == 0);
+
+            const auto new_curve = curve.elevate_degree();
+            REQUIRE(new_curve.get_degree() == curve.get_degree()+1);
+            assert_same(curve, new_curve, 10);
         }
 
         SECTION("Non-uniform weights") {
@@ -163,6 +177,10 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             } else {
                 REQUIRE(singular_pts.size() == 0);
             }
+
+            const auto new_curve = curve.elevate_degree();
+            REQUIRE(new_curve.get_degree() == curve.get_degree()+1);
+            assert_same(curve, new_curve, 10);
         }
     }
 
@@ -215,6 +233,11 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
                 REQUIRE(std::abs(turning_angle_1) == Approx(M_PI/4));
                 REQUIRE(std::abs(turning_angle_2) == Approx(M_PI/4));
             }
+            SECTION("Degree elevation") {
+                const auto new_curve = curve.elevate_degree();
+                REQUIRE(new_curve.get_degree() == curve.get_degree()+1);
+                assert_same(curve, new_curve, 10);
+            }
         }
 
         SECTION("One third circle") {
@@ -263,6 +286,11 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
                 const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
                 REQUIRE(std::abs(turning_angle_1) == Approx(2*M_PI/6));
                 REQUIRE(std::abs(turning_angle_2) == Approx(2*M_PI/6));
+            }
+            SECTION("Degree elevation") {
+                const auto new_curve = curve.elevate_degree();
+                REQUIRE(new_curve.get_degree() == curve.get_degree()+1);
+                assert_same(curve, new_curve, 10);
             }
         }
 

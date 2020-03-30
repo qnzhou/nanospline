@@ -76,7 +76,7 @@ class RationalBezier final : public BezierBase<_Scalar, _dim, _degree, _generic>
             try {
                 res = internal::compute_RationalBezier_inflections(
                         Base::m_control_points, m_weights, lower, upper);
-            } catch (infinite_root_error) {
+            } catch (infinite_root_error&) {
                 res.clear();
             }
 
@@ -120,7 +120,7 @@ class RationalBezier final : public BezierBase<_Scalar, _dim, _degree, _generic>
                 res = nanospline::internal::match_tangent_rational_bezier(
                         Base::m_control_points, m_weights,
                         degree, ave_tangent, lower, upper);
-            } catch (infinite_root_error) {
+            } catch (infinite_root_error&) {
                 res.clear();
             }
 
@@ -183,11 +183,21 @@ class RationalBezier final : public BezierBase<_Scalar, _dim, _degree, _generic>
             Base::m_control_points =
                 ctrl_pts.template leftCols<_dim>().array().colwise()
                 / m_weights.array();
+            validate_initialization();
         }
 
         virtual void write(std::ostream &out) const override {
             out << "c:\n" << this->m_control_points << "\n";
             out << "w:\n" << m_weights << "\n";
+        }
+
+        RationalBezier<_Scalar, _dim, _degree<0?_degree:_degree+1, _generic>
+        elevate_degree() const {
+            validate_initialization();
+            using TargetType = RationalBezier<_Scalar, _dim, _degree<0?_degree:_degree+1, _generic>;
+            TargetType new_curve;
+            new_curve.set_homogeneous(m_bezier_homogeneous.elevate_degree());
+            return new_curve;
         }
 
     private:

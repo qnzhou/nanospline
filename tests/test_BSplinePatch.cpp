@@ -138,5 +138,47 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]") {
         validate_iso_curves(patch, 10);
         validate_derivative(patch, 10, 10);
     }
+
+    SECTION("Debug example") {
+        BSplinePatch<Scalar, 3, -1, -1> patch;
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 3> control_grid(6, 3);
+        control_grid <<
+            326.0, 1385.0, 19.999999999999996,
+            326.0, 1385.0, 36.0,
+            351.0, 1385.0, 19.999999999999996,
+            351.0, 1385.0, 36.0,
+            351.0, 1410.0, 19.999999999999996,
+            351.0, 1410.0, 36.0;
+        patch.set_control_grid(control_grid);
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> u_knots(6, 1);
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> v_knots(4, 1);
+        u_knots << 
+            1.5707963267948966,
+            1.5707963267948966,
+            1.5707963267948966,
+            3.141592653589793,
+            3.141592653589793,
+            3.141592653589793;
+        v_knots <<
+            -16.000000000000004,
+            -16.000000000000004,
+            0.0,
+            0.0;
+        patch.set_knots_u(u_knots);
+        patch.set_knots_v(v_knots);
+        patch.set_degree_u(2);
+        patch.set_degree_v(1);
+        patch.initialize();
+
+        REQUIRE(patch.get_degree_u() == 2);
+        REQUIRE(patch.get_degree_v() == 1);
+        validate_iso_curves(patch, 10);
+        validate_derivative(patch, 10, 10);
+
+        // Out of bound extrapolation.
+        const auto p0 = patch.evaluate(1.5707963267948966, -16.000000000000011);
+        const auto p1 = patch.evaluate(1.5707963267948966, -16.000000000000004);
+        REQUIRE((p0-p1).norm() == Approx(0.0).margin(1e-12));
+    }
 }
 

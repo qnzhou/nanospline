@@ -41,6 +41,10 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
             validate_derivatives(curve, 10);
             validate_2nd_derivatives(curve, 10);
         }
+
+        SECTION("Degree elevation") {
+            REQUIRE_THROWS(curve.elevate_degree());
+        }
     }
 
     SECTION("Generic degree 1") {
@@ -73,9 +77,15 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
             validate_2nd_derivatives(curve, 10);
         }
 
-        SECTION("Knot insertion") {
+        SECTION("Knot insertion and removal") {
             auto curve2 = curve;
             curve2.insert_knot(0.5, 1);
+            assert_same(curve, curve2, 10);
+
+            REQUIRE(curve2.remove_knot(0.5, 1) == 1);
+            assert_same(curve, curve2, 10);
+
+            REQUIRE(curve2.remove_knot(0.5, 1) == 0);
             assert_same(curve, curve2, 10);
         }
 
@@ -84,6 +94,17 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
             REQUIRE(total_turning_angle == Approx(0));
             const auto split_pts = curve.reduce_turning_angle(0, 1);
             REQUIRE(split_pts.size() == 0);
+        }
+
+        SECTION("Split and combine") {
+            const auto r = curve.convert_to_Bezier();
+            decltype(curve) curve2(std::get<0>(r), std::get<1>(r));
+            assert_same(curve, curve2, 10);
+        }
+
+        SECTION("Degree elevation") {
+            const auto curve2 = curve.elevate_degree();
+            assert_same(curve, curve2, 10);
         }
     }
 
@@ -123,9 +144,13 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
             validate_2nd_derivatives(curve, 10);
         }
 
-        SECTION("Knot insertion") {
+        SECTION("Knot insertion and removal") {
             auto curve2 = curve;
             curve2.insert_knot(0.1, 2);
+            assert_same(curve, curve2, 10);
+            REQUIRE(curve2.remove_knot(0.1, 1) == 1);
+            assert_same(curve, curve2, 10);
+            REQUIRE(curve2.remove_knot(0.1, 1) == 1);
             assert_same(curve, curve2, 10);
         }
 
@@ -139,6 +164,17 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
         SECTION("Singularity") {
             auto singular_pts = curve.compute_singularities(0, 1);
             REQUIRE(singular_pts.size() == 0);
+        }
+
+        SECTION("Split and combine") {
+            const auto r = curve.convert_to_Bezier();
+            decltype(curve) curve2(std::get<0>(r), std::get<1>(r));
+            assert_same(curve, curve2, 10);
+        }
+
+        SECTION("Degree elevation") {
+            const auto curve2 = curve.elevate_degree();
+            assert_same(curve, curve2, 10);
         }
     }
 
@@ -178,6 +214,15 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
 
             curve2.insert_knot(0.6, 3);
             assert_same(curve, curve2, 10);
+
+            REQUIRE(curve2.remove_knot(0.6, 2) == 2);
+            assert_same(curve, curve2, 10);
+
+            REQUIRE(curve2.remove_knot(0.6, 1) == 1);
+            assert_same(curve, curve2, 10);
+
+            REQUIRE(curve2.remove_knot(0.5, 3) == 3);
+            assert_same(curve, curve2, 10);
         }
 
         SECTION("Turning angle") {
@@ -190,6 +235,17 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
         SECTION("Singularity") {
             auto singular_pts = curve.compute_singularities(0, 1);
             REQUIRE(singular_pts.size() == 0);
+        }
+
+        SECTION("Split and combine") {
+            const auto r = curve.convert_to_Bezier();
+            decltype(curve) curve2(std::get<0>(r), std::get<1>(r));
+            assert_same(curve, curve2, 10);
+        }
+
+        SECTION("Degree elevation") {
+            const auto curve2 = curve.elevate_degree();
+            assert_same(curve, curve2, 10);
         }
     }
 
@@ -648,6 +704,17 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
             validate_derivatives(curve, 10);
             validate_2nd_derivatives(curve, 10);
         }
+
+        SECTION("Split and combine") {
+            const auto r = curve.convert_to_Bezier();
+            decltype(curve) curve2(std::get<0>(r), std::get<1>(r));
+            assert_same(curve, curve2, 10);
+        }
+
+        SECTION("Degree elevation") {
+            const auto curve2 = curve.elevate_degree();
+            assert_same(curve, curve2, 10);
+        }
     }
 
     SECTION("Comparison") {
@@ -664,6 +731,17 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
             SECTION("Derivative") {
                 validate_derivatives(curve, 10);
                 validate_2nd_derivatives(curve, 10);
+            }
+
+            SECTION("Split and combine") {
+                const auto r = curve.convert_to_Bezier();
+                decltype(curve) curve2(std::get<0>(r), std::get<1>(r));
+                assert_same(curve, curve2, 10);
+            }
+
+            SECTION("Degree elevation") {
+                const auto curve2 = curve.elevate_degree();
+                assert_same(curve, curve2, 10);
             }
         }
 
@@ -685,9 +763,12 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
                 validate_2nd_derivatives(curve, 10);
             }
 
-            SECTION("Knot insertion") {
+            SECTION("Knot insertion and removal") {
                 auto curve2 = curve;
                 curve2.insert_knot(0.5, 2);
+                assert_same(curve, curve2, 10);
+
+                REQUIRE(curve2.remove_knot(0.5, 2) == 2);
                 assert_same(curve, curve2, 10);
             }
 
@@ -701,6 +782,17 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
             SECTION("Singularity") {
                 auto singular_pts = curve.compute_singularities(0, 1);
                 REQUIRE(singular_pts.size() == 0);
+            }
+
+            SECTION("Split and combine") {
+                const auto r = curve.convert_to_Bezier();
+                decltype(curve) curve2(std::get<0>(r), std::get<1>(r));
+                assert_same(curve, curve2, 10);
+            }
+
+            SECTION("Degree elevation") {
+                const auto curve2 = curve.elevate_degree();
+                assert_same(curve, curve2, 10);
             }
         }
 
@@ -756,6 +848,11 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
             SECTION("Singularity") {
                 auto singular_pts = curve.compute_singularities(0, 2.0);
                 REQUIRE(singular_pts.size() == 0);
+            }
+
+            SECTION("Degree elevation") {
+                const auto curve2 = curve.elevate_degree();
+                assert_same(curve, curve2, 10);
             }
         }
 

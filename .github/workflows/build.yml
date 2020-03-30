@@ -7,15 +7,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-    - name: Checkout submodules
-      uses: textbook/git-checkout-submodule-action@2.0.0
 
     - name: build and run
       run: |
         mkdir build
         cd build
-        cmake ..
-        make
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+        make -j
         ./nanospline_test
 
   build-MacOS:
@@ -25,11 +23,10 @@ jobs:
 
     - name: build and run
       run: |
-        git submodule update --init
         mkdir build
         cd build
-        cmake ..
-        make
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+        make -j
         ./nanospline_test
 
   build-Windows:
@@ -39,7 +36,6 @@ jobs:
 
     - name: build and run
       run: |
-        git submodule update --init
         mkdir build
         cd build
         cmake .. -DCMAKE_GENERATOR_PLATFORM=x64

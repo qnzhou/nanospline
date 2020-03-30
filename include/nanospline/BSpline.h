@@ -20,16 +20,35 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
         using KnotVector = typename Base::KnotVector;
 
     public:
+        BSpline() = default;
+
+        /**
+         * Create a B-Spline by combining a sequence of Bézier curves.
+         * These Bézier curves must be at least C0 continous at the joints.
+         */
+        explicit BSpline(const std::vector<Bezier<_Scalar, _dim, _degree, _generic>>& beziers,
+                const std::vector<_Scalar>& parameter_bounds) {
+            combine_Beziers(beziers, parameter_bounds);
+        }
+
+        /**
+         * Same as above, except use uniform knot span for each curve.
+         */
+        explicit BSpline(const std::vector<Bezier<_Scalar, _dim, _degree, _generic>>& beziers) {
+            const auto num_curves = beziers.size();
+            std::vector<_Scalar> parameter_bounds(num_curves+1);
+            std::iota(parameter_bounds.begin(), parameter_bounds.end(), 0);
+            combine_Beziers(beziers, parameter_bounds);
+        }
+
+    public:
         Point evaluate(Scalar t) const override {
-            assert(Base::in_domain(t));
             Base::validate_curve();
             const int p = Base::get_degree();
             const int k = Base::locate_span(t);
             assert(p >= 0);
             assert(Base::m_knots.rows() ==
                     Base::m_control_points.rows() + p + 1);
-            assert(Base::m_knots[k] <= t);
-            assert(Base::m_knots[k+1] >= t);
 
             ControlPoints ctrl_pts(p+1, _dim);
             for (int i=0; i<=p; i++) {
@@ -45,7 +64,6 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
         }
 
         Point evaluate_derivative(Scalar t) const override {
-            assert(Base::in_domain(t));
             Base::validate_curve();
             const int p = Base::get_degree();
             const int k = Base::locate_span(t);
@@ -74,7 +92,6 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
         }
 
         Point evaluate_2nd_derivative(Scalar t) const override {
-            assert(Base::in_domain(t));
             Base::validate_curve();
             const int p = Base::get_degree();
             const int k = Base::locate_span(t);
@@ -112,70 +129,6 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
 
             deBoor(t, p-2, k, ctrl_pts);
             return ctrl_pts.row(p-2);
-        }
-
-        std::tuple<std::vector<Bezier<Scalar, _dim, _degree, _generic>>, std::vector<Scalar>>
-        convert_to_Bezier() const {
-            const int d = Base::get_degree();
-            const auto t_min = Base::get_domain_lower_bound();
-            const auto t_max = Base::get_domain_upper_bound();
-
-            BSpline<Scalar, _dim, _degree, _generic> curve = *this;
-            {
-                // Insert more knots such that all internal knots has multiplicity d.
-                const auto& knots = Base::get_knots();
-                const auto m = knots.size();
-
-                {
-                    // Add multiplicity in end points first.
-                    // This ensures BSpline loops are handled correctly.
-                    const auto k_start = curve.locate_span(t_min);
-                    const auto k_end = curve.locate_span(t_max);
-                    const auto s_start = curve.get_multiplicity(k_start);
-                    const auto s_end = curve.get_multiplicity(k_end+1);
-                    if (d > s_start) {
-                        curve.insert_knot(t_min, d-s_start);
-                    }
-                    if (d > s_end) {
-                        curve.insert_knot(t_max, d-s_end);
-                    }
-                }
-
-                for (int i=0; i<m; i++) {
-                    if (knots[i] <= t_min) continue;
-                    if (knots[i] >= t_max) break;
-
-                    const int k = curve.locate_span(knots[i]);
-                    const int s = curve.get_multiplicity(k);
-                    if (d > s) {
-                        curve.insert_knot(knots[i], d-s);
-                    }
-                }
-            }
-
-            using CurveType = Bezier<Scalar, _dim, _degree, _generic>;
-            std::vector<CurveType> segments;
-            const auto& ctrl_pts = curve.get_control_points();
-            const auto& knots = curve.get_knots();
-            const auto m = knots.size();
-            Scalar curr_t = t_min;
-            std::vector<Scalar> parameter_bounds;
-            parameter_bounds.reserve(static_cast<size_t>(m+1));
-            parameter_bounds.push_back(t_min);
-            for (int i=0; i<m; i++) {
-                if (knots[i] <= curr_t) continue;
-                if (knots[i] > t_max) break;
-                curr_t = knots[i];
-
-                typename CurveType::ControlPoints local_ctrl_pts(d+1, _dim);
-                local_ctrl_pts = ctrl_pts.block(i-d-1, 0, d+1, _dim);
-                CurveType segment;
-                segment.set_control_points(std::move(local_ctrl_pts));
-                segments.push_back(std::move(segment));
-                parameter_bounds.push_back(curr_t);
-            }
-
-            return {segments, parameter_bounds};
         }
 
         std::vector<Scalar> compute_inflections (
@@ -339,6 +292,96 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             return res;
         }
 
+    public:
+        std::tuple<std::vector<Bezier<Scalar, _dim, _degree, _generic>>, std::vector<Scalar>>
+        convert_to_Bezier() const {
+            const int d = Base::get_degree();
+            const auto t_min = Base::get_domain_lower_bound();
+            const auto t_max = Base::get_domain_upper_bound();
+
+            BSpline<Scalar, _dim, _degree, _generic> curve = *this;
+            {
+                // Insert more knots such that all internal knots has multiplicity d.
+                const auto& knots = Base::get_knots();
+                const auto m = knots.size();
+
+                {
+                    // Add multiplicity in end points first.
+                    // This ensures BSpline loops are handled correctly.
+                    const auto k_start = curve.locate_span(t_min);
+                    const auto k_end = curve.locate_span(t_max);
+                    const auto s_start = curve.get_multiplicity(k_start);
+                    const auto s_end = curve.get_multiplicity(k_end+1);
+                    if (d > s_start) {
+                        curve.insert_knot(t_min, d-s_start);
+                    }
+                    if (d > s_end) {
+                        curve.insert_knot(t_max, d-s_end);
+                    }
+                }
+
+                for (int i=0; i<m; i++) {
+                    if (knots[i] <= t_min) continue;
+                    if (knots[i] >= t_max) break;
+
+                    const int k = curve.locate_span(knots[i]);
+                    const int s = curve.get_multiplicity(k);
+                    if (d > s) {
+                        curve.insert_knot(knots[i], d-s);
+                    }
+                }
+            }
+
+            using CurveType = Bezier<Scalar, _dim, _degree, _generic>;
+            std::vector<CurveType> segments;
+            const auto& ctrl_pts = curve.get_control_points();
+            const auto& knots = curve.get_knots();
+            const auto m = knots.size();
+            Scalar curr_t = t_min;
+            std::vector<Scalar> parameter_bounds;
+            parameter_bounds.reserve(static_cast<size_t>(m+1));
+            parameter_bounds.push_back(t_min);
+            for (int i=0; i<m; i++) {
+                if (knots[i] <= curr_t) continue;
+                if (knots[i] > t_max) break;
+                curr_t = knots[i];
+
+                typename CurveType::ControlPoints local_ctrl_pts(d+1, _dim);
+                local_ctrl_pts = ctrl_pts.block(i-d-1, 0, d+1, _dim);
+                CurveType segment;
+                segment.set_control_points(std::move(local_ctrl_pts));
+                segments.push_back(std::move(segment));
+                parameter_bounds.push_back(curr_t);
+            }
+
+            return {segments, parameter_bounds};
+        }
+
+        BSpline<_Scalar, _dim, _degree<0?_degree:_degree+1, _generic>
+        elevate_degree() const {
+            constexpr int elevated_degree = _degree < 0 ? _degree:_degree+1;
+            using TargetType = BSpline<_Scalar, _dim, elevated_degree, _generic>;
+            using BezierType = Bezier<Scalar, _dim, _degree, _generic>;
+            using BezierType2 = Bezier<Scalar, _dim, elevated_degree, _generic>;
+
+            if (Base::get_degree() == 0) {
+                throw invalid_setting_error("Cannot elevate degree 0 BSpline");
+            }
+
+            std::vector<BezierType> beziers;
+            std::vector<Scalar> parameter_bounds;
+            std::tie(beziers, parameter_bounds) = convert_to_Bezier();
+
+            std::vector<BezierType2> beziers2;
+            beziers2.reserve(beziers.size());
+            std::for_each(beziers.begin(), beziers.end(),
+                    [&beziers2](const auto& curve){
+                        beziers2.push_back(curve.elevate_degree());
+                    });
+
+            return TargetType(beziers2, parameter_bounds);
+        }
+
     private:
         template<typename Derived>
         void deBoor(Scalar t, int p, int k,
@@ -357,6 +400,44 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
                     ctrl_pts.row(j) = (1.0-alpha) * ctrl_pts.row(j-1) +
                         alpha * ctrl_pts.row(j);
                 }
+            }
+        }
+
+        void combine_Beziers(const std::vector<Bezier<_Scalar, _dim, _degree, _generic>>& beziers,
+                const std::vector<_Scalar>& parameter_bounds) {
+            constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon();
+            const int num_curves = static_cast<int>(beziers.size());
+            if (num_curves == 0) {
+                throw invalid_setting_error(
+                        "Input must contain at least 1 Béziers curves");
+            }
+            assert(parameter_bounds.size() == static_cast<size_t>(num_curves+1));
+            const int degree = beziers.front().get_degree();
+            const int num_ctrl_pts = num_curves * degree + 1;
+            const int num_knots = num_curves * degree + degree + 2;
+
+            Base::m_control_points.resize(num_ctrl_pts, _dim);
+            Base::m_control_points.topRows(degree+1) = beziers[0].get_control_points();
+            for (int i=1; i<num_curves; i++) {
+                assert(degree == beziers[static_cast<size_t>(i)].get_degree());
+                const auto& seg_ctrl_pts =
+                    beziers[static_cast<size_t>(i)].get_control_points();
+                assert((seg_ctrl_pts.row(0) - Base::m_control_points.row(i*degree)).norm() < TOL);
+                Base::m_control_points.block(1+i*degree, 0, degree, _dim) =
+                    seg_ctrl_pts.block(1, 0, degree, _dim);
+            }
+
+            Base::m_knots.resize(num_knots);
+            Base::m_knots.segment(0, degree+1).setConstant(parameter_bounds.front());
+            Base::m_knots.segment(num_knots-degree-1, degree+1).setConstant(parameter_bounds.back());
+            for (Eigen::Index i=1; i<num_curves; i++) {
+                Base::m_knots.segment(i*degree+1, degree).setConstant(
+                        parameter_bounds[static_cast<size_t>(i)]);
+            }
+
+            for (const auto t : parameter_bounds) {
+                // Attempt to remove as many multiplicty as possible.
+                Base::remove_knot(t, degree, TOL);
             }
         }
 };
