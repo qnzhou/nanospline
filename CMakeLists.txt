@@ -25,19 +25,10 @@ if (HIGH_DEGREE_SUPPORT)
 endif()
 
 if(NOT MSVC)
-    target_compile_options(nanospline PRIVATE
-        -Wconversion -Wall -Werror)
+    target_compile_options(nanospline PRIVATE -Wconversion -Wall -Werror)
 else()
-    target_compile_options(nanospline PRIVATE
-        -D_USE_MATH_DEFINES)
-endif()
-
-if (SANITIZE_ADDRESS OR
-        SANITIZE_LINK_STATIC OR
-        SANITIZE_MEMORY OR
-        SANITIZE_THREAD OR
-        SANITIZE_UNDEFINED)
-    add_sanitizers(nanospline)
+    target_compile_options(nanospline PRIVATE "/MP")
+    target_compile_definitions(nanospline PRIVATE -D_USE_MATH_DEFINES)
 endif()
 
 
@@ -46,11 +37,10 @@ add_executable(nanospline_test ${TEST_FILES})
 target_link_libraries(nanospline_test nanospline Catch2::Catch2)
 
 if(NOT MSVC)
-    target_compile_options(nanospline_test PRIVATE
-        -Wconversion -Wall -Werror)
+    target_compile_options(nanospline_test PRIVATE -Wconversion -Wall -Werror)
 else()
-    target_compile_options(nanospline_test PRIVATE
-        -D_USE_MATH_DEFINES)
+    target_compile_options(nanospline_test PRIVATE "/MP")
+    target_compile_definitions(nanospline_test PRIVATE -D_USE_MATH_DEFINES)
 endif()
 
 if (SANITIZE_ADDRESS OR
@@ -58,6 +48,7 @@ if (SANITIZE_ADDRESS OR
         SANITIZE_MEMORY OR
         SANITIZE_THREAD OR
         SANITIZE_UNDEFINED)
+    add_sanitizers(nanospline)
     add_sanitizers(nanospline_test)
 endif()
 
