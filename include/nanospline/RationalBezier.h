@@ -76,7 +76,7 @@ class RationalBezier final : public BezierBase<_Scalar, _dim, _degree, _generic>
             try {
                 res = internal::compute_RationalBezier_inflections(
                         Base::m_control_points, m_weights, lower, upper);
-            } catch (infinite_root_error) {
+            } catch (infinite_root_error&) {
                 res.clear();
             }
 
@@ -120,7 +120,7 @@ class RationalBezier final : public BezierBase<_Scalar, _dim, _degree, _generic>
                 res = nanospline::internal::match_tangent_rational_bezier(
                         Base::m_control_points, m_weights,
                         degree, ave_tangent, lower, upper);
-            } catch (infinite_root_error) {
+            } catch (infinite_root_error&) {
                 res.clear();
             }
 

@@ -71,7 +71,7 @@ class Bezier final : public BezierBase<_Scalar, _dim, _degree, _generic> {
             try {
                 res = nanospline::internal::compute_Bezier_inflections(
                         Base::m_control_points, lower, upper);
-            } catch (infinite_root_error e) {
+            } catch (infinite_root_error& e) {
                 // Infinitely many inflections.
                 res.clear();
             }
@@ -134,7 +134,7 @@ class Bezier final : public BezierBase<_Scalar, _dim, _degree, _generic> {
             try {
                 res = nanospline::internal::match_tangent_bezier(
                         Base::m_control_points, degree, ave_tangent, lower, upper);
-            } catch (infinite_root_error) {
+            } catch (infinite_root_error&) {
                 res.clear();
             }
 
@@ -458,7 +458,7 @@ class Bezier<_Scalar, _dim, 2, false> final : public BezierBase<_Scalar, _dim, 2
                         Base::m_control_points(2, 0),
                         Base::m_control_points(2, 1),
                         ave_tangent, lower, upper);
-            } catch (infinite_root_error) {
+            } catch (infinite_root_error&) {
                 res.clear();
             }
 
@@ -573,7 +573,7 @@ class Bezier<_Scalar, _dim, 3, false> final : public BezierBase<_Scalar, _dim, 3
                         Base::m_control_points(3, 0),
                         Base::m_control_points(3, 1),
                         lower, upper);
-            } catch (infinite_root_error) {
+            } catch (infinite_root_error&) {
                 res.clear();
             }
 
@@ -641,7 +641,7 @@ class Bezier<_Scalar, _dim, 3, false> final : public BezierBase<_Scalar, _dim, 3
                         Base::m_control_points(3, 0),
                         Base::m_control_points(3, 1),
                         ave_tangent, lower, upper);
-            } catch (infinite_root_error) {
+            } catch (infinite_root_error&) {
                 res.clear();
             }
 

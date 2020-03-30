@@ -176,7 +176,7 @@ TEST_CASE("inflection", "[inflection]") {
         REQUIRE(curve.get_degree() == 3);
         auto inflections = curve.compute_inflections(1e-12, 1.0-1e-12);
 
-        CHECK(inflections.size() == expected_num_inflections);
+        CHECK(inflections.size() == static_cast<size_t>(expected_num_inflections));
         for (auto t : inflections) {
             auto curvature = curve.evaluate_curvature(t);
             REQUIRE(curvature.norm() == Approx(0.0).margin(1e-12));
@@ -212,7 +212,7 @@ TEST_CASE("inflection", "[inflection]") {
         REQUIRE(curve.get_degree() == 4);
         auto inflections = curve.compute_inflections(1e-12, 1.0-1e-12);
 
-        CHECK(inflections.size() == expected_num_inflections);
+        CHECK(inflections.size() == static_cast<size_t>(expected_num_inflections));
         for (auto t : inflections) {
             auto curvature = curve.evaluate_curvature(t);
             REQUIRE(curvature.norm() == Approx(0.0).margin(1e-12));
