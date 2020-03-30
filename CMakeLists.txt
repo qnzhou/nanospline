@@ -27,7 +27,6 @@ endif()
 if(NOT MSVC)
     target_compile_options(nanospline PRIVATE -Wconversion -Wall -Werror)
 else()
-    target_compile_options(nanospline PRIVATE "/MP")
     target_compile_definitions(nanospline PRIVATE -D_USE_MATH_DEFINES)
 endif()
 
