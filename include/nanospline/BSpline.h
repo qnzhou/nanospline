@@ -1,5 +1,6 @@
 #pragma once
 
+#include <numeric>
 #include <vector>
 
 #include <Eigen/Core>
@@ -430,7 +431,7 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             Base::m_knots.resize(num_knots);
             Base::m_knots.segment(0, degree+1).setConstant(parameter_bounds.front());
             Base::m_knots.segment(num_knots-degree-1, degree+1).setConstant(parameter_bounds.back());
-            for (Eigen::Index i=1; i<num_curves; i++) {
+            for (int i=1; i<num_curves; i++) {
                 Base::m_knots.segment(i*degree+1, degree).setConstant(
                         parameter_bounds[static_cast<size_t>(i)]);
             }

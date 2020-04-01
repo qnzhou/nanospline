@@ -2,6 +2,7 @@
 
 #include <Eigen/Core>
 #include <iostream>
+#include <numeric>
 
 #include <nanospline/Exceptions.h>
 #include <nanospline/BSplineBase.h>
