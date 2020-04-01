@@ -311,7 +311,7 @@ class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             std::vector<typename CurveType::BezierHomogeneous> beziers;
             beziers.reserve(num_curves);
             std::for_each(curves.begin(), curves.end(),
-                    [&beziers](const auto& curve) {
+                    [&beziers](const CurveType& curve) {
                         beziers.push_back(curve.get_homogeneous());
                     });
             set_homogeneous(BSplineHomogeneous(beziers, parameter_bounds));

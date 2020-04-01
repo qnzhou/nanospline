@@ -4,7 +4,6 @@ FetchContent_Declare(
     sanitizer
     GIT_REPOSITORY https://github.com/arsenm/sanitizers-cmake.git
     GIT_TAG        99e159ec9bc8dd362b08d18436bd40ff0648417b
-    GIT_SHALLOW TRUE
 )
 
 FetchContent_GetProperties(sanitizer)

@@ -6,7 +6,8 @@
 namespace nanospline {
 
 template<typename Scalar, int dim, int degree, bool generic>
-auto compute_hodograph(const Bezier<Scalar, dim, degree, generic>& curve) {
+Bezier<Scalar, dim, degree<=0?degree:degree-1, generic>
+compute_hodograph(const Bezier<Scalar, dim, degree, generic>& curve) {
     using HodographType = Bezier<Scalar, dim, degree<=0?degree:degree-1, generic>;
     HodographType hodograph;
 
@@ -31,7 +32,8 @@ auto compute_hodograph(const Bezier<Scalar, dim, degree, generic>& curve) {
 }
 
 template<typename Scalar, int dim, int degree, bool generic>
-auto compute_hodograph(const BSpline<Scalar, dim, degree, generic>& curve) {
+BSpline<Scalar, dim, degree<=0?degree:degree-1, generic>
+compute_hodograph(const BSpline<Scalar, dim, degree, generic>& curve) {
     using HodographType = BSpline<Scalar, dim, degree<=0?degree:degree-1, generic>;
     HodographType hodograph;
 
