@@ -375,7 +375,7 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             std::vector<BezierType2> beziers2;
             beziers2.reserve(beziers.size());
             std::for_each(beziers.begin(), beziers.end(),
-                    [&beziers2](const auto& curve){
+                    [&beziers2](const BezierType& curve){
                         beziers2.push_back(curve.elevate_degree());
                     });
 
