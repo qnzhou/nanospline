@@ -1,5 +1,6 @@
 #pragma once
 
+#include <numeric>
 #include <vector>
 
 #include <Eigen/Core>
