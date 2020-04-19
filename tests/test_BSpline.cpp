@@ -270,13 +270,7 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
         curve.set_control_points(control_pts);
         curve.set_knots(knots);
 
-        for (Scalar x=0.0; x<1.01; x+=0.2) {
-            Eigen::Matrix<Scalar, 2, 1> q(9.0 * x, 1.0);
-            const auto t = curve.approximate_inverse_evaluate(q);
-            const auto p = curve.evaluate(t);
-            REQUIRE(p[0] == Approx(q[0]).epsilon(1e-3));
-            REQUIRE(p[1] == Approx(0.0));
-        }
+        validate_approximate_inverse_evaluation(curve, 10);
     }
 
     SECTION("Closed BSpline") {
@@ -715,6 +709,10 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
             const auto curve2 = curve.elevate_degree();
             assert_same(curve, curve2, 10);
         }
+
+        SECTION("Approximate inverse evaluate") {
+            validate_approximate_inverse_evaluation(curve, 10);
+        }
     }
 
     SECTION("Comparison") {
@@ -731,6 +729,10 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
             SECTION("Derivative") {
                 validate_derivatives(curve, 10);
                 validate_2nd_derivatives(curve, 10);
+            }
+
+            SECTION("Approximate inverse evaluate") {
+                validate_approximate_inverse_evaluation(curve, 10);
             }
 
             SECTION("Split and combine") {
@@ -770,6 +772,10 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
 
                 REQUIRE(curve2.remove_knot(0.5, 2) == 2);
                 assert_same(curve, curve2, 10);
+            }
+
+            SECTION("Approximate inverse evaluate") {
+                validate_approximate_inverse_evaluation(curve, 10);
             }
 
             SECTION("Turning angle") {

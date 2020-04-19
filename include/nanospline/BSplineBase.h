@@ -32,8 +32,6 @@ class BSplineBase : public CurveBase<_Scalar, _dim> {
                 const Scalar lower=0.0,
                 const Scalar upper=1.0,
                 const int level=3) const override {
-            assert(in_domain(lower));
-            assert(in_domain(upper));
             assert(lower < upper);
             validate_curve();
             const int num_samples = 2 * (get_degree() + 1);
@@ -67,7 +65,9 @@ class BSplineBase : public CurveBase<_Scalar, _dim> {
             }
 
             if (level <= 0) {
-                return min_t;
+                constexpr Scalar TOL =
+                    std::numeric_limits<Scalar>::epsilon() * 100;
+                return this->newton_raphson(p, min_t, 10, TOL, lower, upper);
             } else {
                 return approximate_inverse_evaluate(
                         p,

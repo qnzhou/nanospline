@@ -268,5 +268,18 @@ void validate_iso_curves(const PatchType& patch, int num_samples=10) {
     }
 }
 
+template<typename CurveType>
+void validate_approximate_inverse_evaluation(const CurveType& curve, int num_samples) {
+    const auto t_min = curve.get_domain_lower_bound();
+    const auto t_max = curve.get_domain_upper_bound();
+    for (int i=0; i<=num_samples; i++) {
+        const auto t = i * (t_max - t_min) / num_samples + t_min;
+        const auto q = curve.evaluate(t);
+        const auto t2 = curve.approximate_inverse_evaluate(q, t_min, t_max);
+        const auto p = curve.evaluate(t2);
+        REQUIRE((p-q).norm() == Approx(0.0).margin(1e-12));
+    }
+}
+
 
 }

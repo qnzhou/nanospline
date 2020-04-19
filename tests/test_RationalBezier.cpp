@@ -44,6 +44,9 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             REQUIRE(new_curve.get_degree() == curve.get_degree()+1);
             assert_same(curve, new_curve, 10);
         }
+        SECTION("Approximate inverse evaluate") {
+            validate_approximate_inverse_evaluation(curve, 10);
+        }
     }
 
     SECTION("Generic degree 1") {
@@ -85,6 +88,9 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             REQUIRE(new_curve.get_degree() == curve.get_degree()+1);
             assert_same(curve, new_curve, 10);
         }
+        SECTION("Approximate inverse evaluate") {
+            validate_approximate_inverse_evaluation(curve, 10);
+        }
     }
 
     SECTION("Generic degree 2") {
@@ -114,6 +120,7 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             assert_same(curve, regular_bezier, 10);
             validate_derivatives(curve, 10);
             validate_2nd_derivatives(curve, 10);
+            validate_approximate_inverse_evaluation(curve, 10);
 
             const auto total_turning_angle = curve.get_turning_angle(0, 1);
             REQUIRE(std::abs(total_turning_angle) == Approx(M_PI/2));
@@ -157,6 +164,7 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             REQUIRE((end-control_pts.row(2)).norm() == Approx(0.0));
             validate_derivatives(curve, 10, 1e-5);
             validate_2nd_derivatives(curve, 10);
+            validate_approximate_inverse_evaluation(curve, 10);
 
             const auto split_pts = curve.reduce_turning_angle(0, 1);
             if (weights[1] > 0) {
@@ -211,6 +219,9 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
                 validate_derivatives(curve, 10);
                 validate_2nd_derivatives(curve, 10);
             }
+            SECTION("Approximate inverse evaluate") {
+                validate_approximate_inverse_evaluation(curve, 10);
+            }
             SECTION("Curvature") {
                 auto k = curve.evaluate_curvature(0.4);
                 REQUIRE(k.norm() == Approx(1.0/R));
@@ -264,6 +275,9 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             SECTION("Derivative") {
                 validate_derivatives(curve, 10);
                 validate_2nd_derivatives(curve, 10);
+            }
+            SECTION("Approximate inverse evaluate") {
+                validate_approximate_inverse_evaluation(curve, 10);
             }
             SECTION("Curvature") {
                 auto k = curve.evaluate_curvature(0.4);
