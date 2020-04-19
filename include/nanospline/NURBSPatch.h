@@ -58,6 +58,20 @@ class NURBSPatch final : public PatchBase<_Scalar, _dim> {
                 / p[_dim];
         }
 
+        Point evaluate_2nd_derivative_uu(Scalar u, Scalar v) const override {
+            auto iso_curve_u = compute_iso_curve_u(v);
+            return iso_curve_u.evaluate_2nd_derivative(u);
+        }
+
+        Point evaluate_2nd_derivative_vv(Scalar u, Scalar v) const override {
+            auto iso_curve_v = compute_iso_curve_v(u);
+            return iso_curve_v.evaluate_2nd_derivative(v);
+        }
+
+        Point evaluate_2nd_derivative_uv(Scalar u, Scalar v) const override {
+            return Point::Zero();
+        }
+
         void initialize() override {
             const auto num_control_pts = Base::m_control_grid.rows();
             if (m_weights.size() != num_control_pts) {
@@ -76,6 +90,28 @@ class NURBSPatch final : public PatchBase<_Scalar, _dim> {
             m_homogeneous.set_degree_u(Base::get_degree_u());
             m_homogeneous.set_degree_v(Base::get_degree_v());
             m_homogeneous.initialize();
+        }
+
+        Scalar get_u_lower_bound() const override {
+            const int degree_u = Base::get_degree_u();
+            return m_knots_u[degree_u];
+        }
+
+        Scalar get_v_lower_bound() const override {
+            const int degree_v = Base::get_degree_v();
+            return m_knots_v[degree_v];
+        }
+
+        Scalar get_u_upper_bound() const override {
+            const auto num_knots = static_cast<int>(m_knots_u.rows());
+            const int degree_u = Base::get_degree_u();
+            return m_knots_u[num_knots-degree_u-1];
+        }
+
+        Scalar get_v_upper_bound() const override {
+            const auto num_knots = static_cast<int>(m_knots_v.rows());
+            const int degree_v = Base::get_degree_v();
+            return m_knots_v[num_knots-degree_v-1];
         }
 
     public:
@@ -119,28 +155,6 @@ class NURBSPatch final : public PatchBase<_Scalar, _dim> {
         template<typename Derived>
         void set_knots_v(Eigen::PlainObjectBase<Derived>&& knots) {
             m_knots_v.swap(knots);
-        }
-
-        Scalar get_u_lower_bound() const {
-            const int degree_u = Base::get_degree_u();
-            return m_knots_u[degree_u];
-        }
-
-        Scalar get_v_lower_bound() const {
-            const int degree_v = Base::get_degree_v();
-            return m_knots_v[degree_v];
-        }
-
-        Scalar get_u_upper_bound() const {
-            const auto num_knots = static_cast<int>(m_knots_u.rows());
-            const int degree_u = Base::get_degree_u();
-            return m_knots_u[num_knots-degree_u-1];
-        }
-
-        Scalar get_v_upper_bound() const {
-            const auto num_knots = static_cast<int>(m_knots_v.rows());
-            const int degree_v = Base::get_degree_v();
-            return m_knots_v[num_knots-degree_v-1];
         }
 
         IsoCurveU compute_iso_curve_u(Scalar v) const {

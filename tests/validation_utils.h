@@ -139,6 +139,46 @@ void validate_derivative(const PatchType& patch, int u_samples, int v_samples,
     }
 }
 
+template<typename PatchType>
+void validate_derivative_patches(const PatchType patch, int u_samples, int v_samples,
+        const typename PatchType::Scalar tol=1e-6) {
+    const auto u_min = patch.get_u_lower_bound();
+    const auto u_max = patch.get_u_upper_bound();
+    const auto v_min = patch.get_v_lower_bound();
+    const auto v_max = patch.get_v_upper_bound();
+
+    const auto du_patch = patch.compute_du_patch();
+    const auto dv_patch = patch.compute_dv_patch();
+
+    // Three ways of computing duv.
+    const auto duv_patch = du_patch.compute_dv_patch();
+    const auto dvu_patch = dv_patch.compute_du_patch();
+    const auto duv_patch_explicit = patch.compute_duv_patch();
+
+    for (int i=0; i<=u_samples; i++) {
+        const auto u = i * (u_max-u_min) / u_samples + u_min;
+        for (int j=0; j<=v_samples; j++) {
+            const auto v = j * (v_max-v_min) / v_samples + v_min;
+
+            auto du = patch.evaluate_derivative_u(u, v);
+            auto dv = patch.evaluate_derivative_v(u, v);
+
+            auto du_p = du_patch.evaluate(u, v);
+            auto dv_p = dv_patch.evaluate(u, v);
+
+            auto duv_0 = duv_patch.evaluate(u, v);
+            auto duv_1 = dvu_patch.evaluate(u, v);
+            auto duv_2 = duv_patch_explicit.evaluate(u, v);
+
+            REQUIRE((du - du_p).norm() == Approx(0.0).margin(tol));
+            REQUIRE((dv - dv_p).norm() == Approx(0.0).margin(tol));
+
+            REQUIRE((duv_0 - duv_2).norm() == Approx(0.0).margin(tol));
+            REQUIRE((duv_1 - duv_2).norm() == Approx(0.0).margin(tol));
+        }
+    }
+}
+
 /**
  * Validate 2nd derivative computation using finite difference.
  */

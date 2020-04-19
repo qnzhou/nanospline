@@ -57,6 +57,20 @@ class RationalBezierPatch final : public PatchBase<_Scalar, _dim> {
                 / p[_dim];
         }
 
+        Point evaluate_2nd_derivative_uu(Scalar u, Scalar v) const override {
+            auto iso_curve_u = compute_iso_curve_u(v);
+            return iso_curve_u.evaluate_2nd_derivative(u);
+        }
+
+        Point evaluate_2nd_derivative_vv(Scalar u, Scalar v) const override {
+            auto iso_curve_v = compute_iso_curve_v(u);
+            return iso_curve_v.evaluate_2nd_derivative(v);
+        }
+
+        Point evaluate_2nd_derivative_uv(Scalar u, Scalar v) const override {
+            return Point::Zero();
+        }
+
         void initialize() override {
             typename BezierPatchHomogeneous::ControlGrid ctrl_pts(
                     Base::m_control_grid.rows(), _dim+1);
@@ -69,6 +83,23 @@ class RationalBezierPatch final : public PatchBase<_Scalar, _dim> {
             m_homogeneous.set_degree_v(Base::get_degree_v());
             m_homogeneous.initialize();
         }
+
+        Scalar get_u_lower_bound() const override {
+            return 0.0;
+        }
+
+        Scalar get_v_lower_bound() const override {
+            return 0.0;
+        }
+
+        Scalar get_u_upper_bound() const override {
+            return 1.0;
+        }
+
+        Scalar get_v_upper_bound() const override {
+            return 1.0;
+        }
+
 
     public:
         const Weights get_weights() const {
@@ -83,22 +114,6 @@ class RationalBezierPatch final : public PatchBase<_Scalar, _dim> {
         template<typename Derived>
         void set_weights(Eigen::PlainObjectBase<Derived>&& weights) {
             m_weights.swap(weights);
-        }
-
-        Scalar get_u_lower_bound() const {
-            return 0.0;
-        }
-
-        Scalar get_v_lower_bound() const {
-            return 0.0;
-        }
-
-        Scalar get_u_upper_bound() const {
-            return 1.0;
-        }
-
-        Scalar get_v_upper_bound() const {
-            return 1.0;
         }
 
         IsoCurveU compute_iso_curve_u(Scalar v) const {

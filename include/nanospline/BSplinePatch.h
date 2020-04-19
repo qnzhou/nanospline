@@ -42,6 +42,20 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
             return iso_curve_v.evaluate_derivative(v);
         }
 
+        Point evaluate_2nd_derivative_uu(Scalar u, Scalar v) const override {
+            auto iso_curve_u = compute_iso_curve_u(v);
+            return iso_curve_u.evaluate_2nd_derivative(u);
+        }
+
+        Point evaluate_2nd_derivative_vv(Scalar u, Scalar v) const override {
+            auto iso_curve_v = compute_iso_curve_v(u);
+            return iso_curve_v.evaluate_2nd_derivative(v);
+        }
+
+        Point evaluate_2nd_derivative_uv(Scalar u, Scalar v) const override {
+            return Point::Zero();
+        }
+
         void initialize() override {
             const auto num_v_knots = m_knots_v.size();
             const auto num_u_knots = m_knots_u.size();
@@ -53,6 +67,29 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
                         "Control grid size mismatch uv degrees");
             }
         }
+
+        Scalar get_u_lower_bound() const override {
+            const auto degree_u = Base::get_degree_u();
+            return m_knots_u[degree_u];
+        }
+
+        Scalar get_v_lower_bound() const override {
+            const auto degree_v = Base::get_degree_v();
+            return m_knots_v[degree_v];
+        }
+
+        Scalar get_u_upper_bound() const override {
+            const auto num_knots = static_cast<int>(m_knots_u.rows());
+            const auto degree_u = Base::get_degree_u();
+            return m_knots_u[num_knots-degree_u-1];
+        }
+
+        Scalar get_v_upper_bound() const override {
+            const auto num_knots = static_cast<int>(m_knots_v.rows());
+            const auto degree_v = Base::get_degree_v();
+            return m_knots_v[num_knots-degree_v-1];
+        }
+
 
     public:
         const KnotVector& get_knots_u() const {
@@ -135,28 +172,6 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
             iso_curve_v.set_control_points(std::move(control_points_v));
             iso_curve_v.set_knots(m_knots_v);
             return iso_curve_v;
-        }
-
-        Scalar get_u_lower_bound() const {
-            const auto degree_u = Base::get_degree_u();
-            return m_knots_u[degree_u];
-        }
-
-        Scalar get_v_lower_bound() const {
-            const auto degree_v = Base::get_degree_v();
-            return m_knots_v[degree_v];
-        }
-
-        Scalar get_u_upper_bound() const {
-            const auto num_knots = static_cast<int>(m_knots_u.rows());
-            const auto degree_u = Base::get_degree_u();
-            return m_knots_u[num_knots-degree_u-1];
-        }
-
-        Scalar get_v_upper_bound() const {
-            const auto num_knots = static_cast<int>(m_knots_v.rows());
-            const auto degree_v = Base::get_degree_v();
-            return m_knots_v[num_knots-degree_v-1];
         }
 
     protected:
