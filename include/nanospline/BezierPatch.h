@@ -25,7 +25,7 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
             BezierPatch<_Scalar, _dim, _degree_u, _degree_v> patch;
             patch.set_degree_u(_degree_u>0?_degree_u:0);
             patch.set_degree_v(_degree_v>0?_degree_v:0);
-            ControlGrid grid(patch.get_degree_u() * patch.get_degree_v(), _dim);
+            ControlGrid grid((patch.get_degree_u()+1) * (patch.get_degree_v()+1), _dim);
             grid.setZero();
             patch.swap_control_grid(grid);
             patch.initialize();

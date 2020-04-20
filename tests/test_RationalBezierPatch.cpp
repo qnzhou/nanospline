@@ -7,7 +7,7 @@
 
 #include "validation_utils.h"
 
-TEST_CASE("RationalBeizerPatch", "[rational][rational_bezier_patch]") {
+TEST_CASE("RationalBezierPatch", "[rational][rational_bezier_patch]") {
     using namespace nanospline;
     using Scalar = double;
 
