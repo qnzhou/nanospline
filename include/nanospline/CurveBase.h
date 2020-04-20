@@ -114,7 +114,9 @@ class CurveBase {
             }
 
             if (level <= 0) {
-                return min_t;
+                constexpr Scalar TOL =
+                    std::numeric_limits<Scalar>::epsilon() * 100;
+                return newton_raphson(p, min_t, 10, TOL, lower, upper);
             } else {
                 return approximate_inverse_evaluate(p,
                         num_samples,
@@ -124,6 +126,29 @@ class CurveBase {
             }
         }
 
+        Scalar newton_raphson(const Point& p, Scalar t, int num_iterations,
+                const Scalar tol, const Scalar lower, const Scalar upper) const {
+            Scalar prev_t = t;
+            Scalar prev_err = -1;
+            for (int i=0; i<num_iterations; i++) {
+                const auto d0 = this->evaluate(t);
+                const auto d1 = this->evaluate_derivative(t);
+                const auto d2 = this->evaluate_2nd_derivative(t);
+                const auto f =  (p-d0).dot(d1);
+                const auto df =  (p-d0).dot(d2) - d1.squaredNorm();
+                const auto err = std::abs(f);
+                if (err < tol) return t;
+                if (prev_err > 0 && err > prev_err) return prev_t;
+
+                prev_err = err;
+                prev_t = t;
+
+                t -= f/df;
+                if (t <= lower) return lower;
+                if (t >= upper) return upper;
+            }
+            return t;
+        }
 };
 
 }

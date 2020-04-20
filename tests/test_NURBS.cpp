@@ -47,6 +47,9 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
             validate_derivatives(curve, 10);
             validate_2nd_derivatives(curve, 10);
         }
+        SECTION("Approximate inverse evaluate") {
+            validate_approximate_inverse_evaluation(curve, 10);
+        }
     }
 
     SECTION("Circles") {
@@ -85,6 +88,9 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
             SECTION("Derivative") {
                 validate_derivatives(curve, 10);
                 validate_2nd_derivatives(curve, 10);
+            }
+            SECTION("Approximate inverse evaluate") {
+                validate_approximate_inverse_evaluation(curve, 10);
             }
             SECTION("Curvature") {
                 auto k = curve.evaluate_curvature(0.4);
@@ -152,6 +158,9 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
             SECTION("Derivative") {
                 validate_derivatives(curve, 10);
                 validate_2nd_derivatives(curve, 10);
+            }
+            SECTION("Approximate inverse evaluate") {
+                validate_approximate_inverse_evaluation(curve, 10);
             }
 
             SECTION("Insert and remove knot") {
@@ -234,6 +243,10 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
             const auto curve2 = curve.elevate_degree();
             assert_same(curve, curve2, 10);
         }
+
+        SECTION("Approximate inverse evaluate") {
+            validate_approximate_inverse_evaluation(curve, 10);
+        }
     }
 
     SECTION("Inflection points of closed NURBS curve") {
@@ -271,6 +284,10 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
         SECTION("Degree elevation") {
             const auto curve2 = curve.elevate_degree();
             assert_same(curve, curve2, 10);
+        }
+
+        SECTION("Approximate inverse evaluate") {
+            validate_approximate_inverse_evaluation(curve, 10);
         }
     }
 }

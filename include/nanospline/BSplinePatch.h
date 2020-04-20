@@ -21,6 +21,28 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
         using IsoCurveV = BSpline<Scalar, _dim, _degree_v>;
 
     public:
+        static BSplinePatch<_Scalar, _dim, _degree_u, _degree_v> ZeroPatch() {
+            BSplinePatch<_Scalar, _dim, _degree_u, _degree_v> patch;
+            const int degree_u = _degree_u>0?_degree_u:0;
+            const int degree_v = _degree_v>0?_degree_v:0;
+            patch.set_degree_u(degree_u);
+            patch.set_degree_v(degree_v);
+            ControlGrid grid((degree_u+1) * (degree_v+1), _dim);
+            grid.setZero();
+            patch.swap_control_grid(grid);
+            KnotVector knots_u(2*(degree_u+1));
+            knots_u.segment(0, degree_u+1).setZero();
+            knots_u.segment(degree_u+1, degree_u+1).setOnes();
+            KnotVector knots_v(2*(degree_v+1));
+            knots_v.segment(0, degree_v+1).setZero();
+            knots_v.segment(degree_v+1, degree_v+1).setOnes();
+            patch.set_knots_u(knots_u);
+            patch.set_knots_v(knots_v);
+            patch.initialize();
+            return patch;
+        }
+
+    public:
         BSplinePatch() {
             Base::set_degree_u(_degree_u);
             Base::set_degree_v(_degree_v);
@@ -42,6 +64,21 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
             return iso_curve_v.evaluate_derivative(v);
         }
 
+        Point evaluate_2nd_derivative_uu(Scalar u, Scalar v) const override {
+            auto iso_curve_u = compute_iso_curve_u(v);
+            return iso_curve_u.evaluate_2nd_derivative(u);
+        }
+
+        Point evaluate_2nd_derivative_vv(Scalar u, Scalar v) const override {
+            auto iso_curve_v = compute_iso_curve_v(u);
+            return iso_curve_v.evaluate_2nd_derivative(v);
+        }
+
+        Point evaluate_2nd_derivative_uv(Scalar u, Scalar v) const override {
+            auto duv_patch = compute_duv_patch();
+            return duv_patch.evaluate(u, v);
+        }
+
         void initialize() override {
             const auto num_v_knots = m_knots_v.size();
             const auto num_u_knots = m_knots_u.size();
@@ -53,6 +90,29 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
                         "Control grid size mismatch uv degrees");
             }
         }
+
+        Scalar get_u_lower_bound() const override {
+            const auto degree_u = Base::get_degree_u();
+            return m_knots_u[degree_u];
+        }
+
+        Scalar get_v_lower_bound() const override {
+            const auto degree_v = Base::get_degree_v();
+            return m_knots_v[degree_v];
+        }
+
+        Scalar get_u_upper_bound() const override {
+            const auto num_knots = static_cast<int>(m_knots_u.rows());
+            const auto degree_u = Base::get_degree_u();
+            return m_knots_u[num_knots-degree_u-1];
+        }
+
+        Scalar get_v_upper_bound() const override {
+            const auto num_knots = static_cast<int>(m_knots_v.rows());
+            const auto degree_v = Base::get_degree_v();
+            return m_knots_v[num_knots-degree_v-1];
+        }
+
 
     public:
         const KnotVector& get_knots_u() const {
@@ -137,27 +197,70 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
             return iso_curve_v;
         }
 
-        Scalar get_u_lower_bound() const {
-            const auto degree_u = Base::get_degree_u();
-            return m_knots_u[degree_u];
+        BSplinePatch<_Scalar, _dim, -1, -1> compute_du_patch() const {
+            const int num_u_knots = static_cast<int>(m_knots_u.size());
+            const int num_v_knots = static_cast<int>(m_knots_v.size());
+            const int degree_u = Base::get_degree_u();
+            const int degree_v = Base::get_degree_v();
+
+            if (degree_u == 0) {
+                return BSplinePatch<_Scalar, _dim, -1, -1>::ZeroPatch();
+            }
+
+            ControlGrid du_grid((num_u_knots-degree_u-2) * (num_v_knots-degree_v-1), _dim);
+            for (int i=0; i<num_u_knots-degree_u-2; i++) {
+                for (int j=0; j<num_v_knots-degree_v-1; j++) {
+                    const int row_id = i*(num_v_knots-degree_v-1)+j;
+                    du_grid.row(row_id) = degree_u *
+                        (get_control_point(i+1,j) - get_control_point(i,j)) /
+                        (m_knots_u[i+degree_u+1] - m_knots_u[i+1]);
+                }
+            }
+
+            BSplinePatch<_Scalar, _dim, -1, -1> du_patch;
+            du_patch.set_degree_u(degree_u-1);
+            du_patch.set_degree_v(degree_v);
+            du_patch.swap_control_grid(du_grid);
+            du_patch.set_knots_u(m_knots_u.segment(1, num_u_knots-2).eval());
+            du_patch.set_knots_v(m_knots_v);
+            du_patch.initialize();
+            return du_patch;
         }
 
-        Scalar get_v_lower_bound() const {
-            const auto degree_v = Base::get_degree_v();
-            return m_knots_v[degree_v];
+        BSplinePatch<_Scalar, _dim, -1, -1> compute_dv_patch() const {
+            const int num_u_knots = static_cast<int>(m_knots_u.size());
+            const int num_v_knots = static_cast<int>(m_knots_v.size());
+            const int degree_u = Base::get_degree_u();
+            const int degree_v = Base::get_degree_v();
+
+            if (degree_v == 0) {
+                return BSplinePatch<_Scalar, _dim, -1, -1>::ZeroPatch();
+            }
+
+            ControlGrid dv_grid((num_u_knots-degree_u-1) * (num_v_knots-degree_v-2), _dim);
+            for (int i=0; i<num_u_knots-degree_u-1; i++) {
+                for (int j=0; j<num_v_knots-degree_v-2; j++) {
+                    const int row_id = i*(num_v_knots-degree_v-2)+j;
+                    dv_grid.row(row_id) = degree_v *
+                        (get_control_point(i,j+1) - get_control_point(i,j)) /
+                        (m_knots_v[j+degree_v+1] - m_knots_v[j+1]);
+                }
+            }
+
+            BSplinePatch<_Scalar, _dim, -1, -1> dv_patch;
+            dv_patch.set_degree_u(degree_u);
+            dv_patch.set_degree_v(degree_v-1);
+            dv_patch.swap_control_grid(dv_grid);
+            dv_patch.set_knots_u(m_knots_u);
+            dv_patch.set_knots_v(m_knots_v.segment(1, num_v_knots-2).eval());
+            dv_patch.initialize();
+            return dv_patch;
         }
 
-        Scalar get_u_upper_bound() const {
-            const auto num_knots = static_cast<int>(m_knots_u.rows());
-            const auto degree_u = Base::get_degree_u();
-            return m_knots_u[num_knots-degree_u-1];
+        BSplinePatch<_Scalar, _dim, -1, -1> compute_duv_patch() const {
+            return compute_du_patch().compute_dv_patch();
         }
 
-        Scalar get_v_upper_bound() const {
-            const auto num_knots = static_cast<int>(m_knots_v.rows());
-            const auto degree_v = Base::get_degree_v();
-            return m_knots_v[num_knots-degree_v-1];
-        }
 
     protected:
         Point get_control_point(int ui, int vj) const {

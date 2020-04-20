@@ -51,6 +51,7 @@ TEST_CASE("NURBSPatch", "[rational][bspline_patch]") {
         REQUIRE(p_mid[2] == Approx(0.5));
 
         validate_derivative(patch, 10, 10);
+        validate_inverse_evaluation(patch, 10, 10);
     }
 
     SECTION("Cubic patch") {
@@ -84,6 +85,7 @@ TEST_CASE("NURBSPatch", "[rational][bspline_patch]") {
 
         validate_iso_curves(patch, 10);
         validate_derivative(patch, 10, 10);
+        validate_inverse_evaluation(patch, 10, 10);
     }
 
     SECTION("Mixed degree") {
@@ -139,6 +141,7 @@ TEST_CASE("NURBSPatch", "[rational][bspline_patch]") {
         REQUIRE(patch.get_degree_v() == 1);
         validate_iso_curves(patch, 10);
         validate_derivative(patch, 10, 10);
+        validate_inverse_evaluation(patch, 10, 10);
     }
 }
 

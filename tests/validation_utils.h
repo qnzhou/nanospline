@@ -104,6 +104,7 @@ void validate_derivatives(const CurveType& curve, int num_samples,
 template<typename PatchType>
 void validate_derivative(const PatchType& patch, int u_samples, int v_samples,
         const typename PatchType::Scalar tol=1e-6) {
+    const auto dim = patch.get_dim();
     const auto u_min = patch.get_u_lower_bound();
     const auto u_max = patch.get_u_upper_bound();
     const auto v_min = patch.get_v_lower_bound();
@@ -117,8 +118,8 @@ void validate_derivative(const PatchType& patch, int u_samples, int v_samples,
         for (int j=0; j<=v_samples; j++) {
             const auto v = j * (v_max-v_min) / v_samples + v_min;
 
-            auto du = patch.evaluate_derivative_u(u, v);
-            auto dv = patch.evaluate_derivative_v(u, v);
+            const auto du = patch.evaluate_derivative_u(u, v);
+            const auto dv = patch.evaluate_derivative_v(u, v);
 
             // Center difference.
             const auto u_prev = std::max(u-delta_u, u_min);
@@ -131,10 +132,75 @@ void validate_derivative(const PatchType& patch, int u_samples, int v_samples,
             const auto p_v_prev = patch.evaluate(u, v_prev);
             const auto p_v_next = patch.evaluate(u, v_next);
 
-            REQUIRE(du[0]*(u_next-u_prev) == Approx(p_u_next[0]-p_u_prev[0]).margin(tol));
-            REQUIRE(du[1]*(u_next-u_prev) == Approx(p_u_next[1]-p_u_prev[1]).margin(tol));
-            REQUIRE(dv[0]*(v_next-v_prev) == Approx(p_v_next[0]-p_v_prev[0]).margin(tol));
-            REQUIRE(dv[1]*(v_next-v_prev) == Approx(p_v_next[1]-p_v_prev[1]).margin(tol));
+            for (int k=0; k<dim; k++) {
+                REQUIRE(du[k]*(u_next-u_prev) == Approx(p_u_next[k]-p_u_prev[k]).margin(tol));
+                REQUIRE(dv[k]*(v_next-v_prev) == Approx(p_v_next[k]-p_v_prev[k]).margin(tol));
+            }
+
+            const auto duu = patch.evaluate_2nd_derivative_uu(u, v);
+            const auto dvv = patch.evaluate_2nd_derivative_vv(u, v);
+
+            const auto du_prev = patch.evaluate_derivative_u(u_prev, v);
+            const auto du_next = patch.evaluate_derivative_u(u_next, v);
+            const auto dv_prev = patch.evaluate_derivative_v(u, v_prev);
+            const auto dv_next = patch.evaluate_derivative_v(u, v_next);
+
+            for (int k=0; k<dim; k++) {
+                REQUIRE(duu[k]*(u_next-u_prev) == Approx(du_next[k] - du_prev[k]).margin(tol));
+                REQUIRE(dvv[k]*(v_next-v_prev) == Approx(dv_next[k] - dv_prev[k]).margin(tol));
+            }
+
+            const auto duv = patch.evaluate_2nd_derivative_uv(u, v);
+
+            const auto du_v_prev = patch.evaluate_derivative_u(u, v_prev);
+            const auto du_v_next = patch.evaluate_derivative_u(u, v_next);
+            const auto dv_u_prev = patch.evaluate_derivative_v(u_prev, v);
+            const auto dv_u_next = patch.evaluate_derivative_v(u_next, v);
+
+            for (int k=0; k<dim; k++) {
+                REQUIRE(duv[k]*(v_next-v_prev) == Approx(du_v_next[k] - du_v_prev[k]).margin(tol));
+                REQUIRE(duv[k]*(u_next-u_prev) == Approx(dv_u_next[k] - dv_u_prev[k]).margin(tol));
+            }
+        }
+    }
+}
+
+template<typename PatchType>
+void validate_derivative_patches(const PatchType patch, int u_samples, int v_samples,
+        const typename PatchType::Scalar tol=1e-6) {
+    const auto u_min = patch.get_u_lower_bound();
+    const auto u_max = patch.get_u_upper_bound();
+    const auto v_min = patch.get_v_lower_bound();
+    const auto v_max = patch.get_v_upper_bound();
+
+    const auto du_patch = patch.compute_du_patch();
+    const auto dv_patch = patch.compute_dv_patch();
+
+    // Three ways of computing duv.
+    const auto duv_patch = du_patch.compute_dv_patch();
+    const auto dvu_patch = dv_patch.compute_du_patch();
+    const auto duv_patch_explicit = patch.compute_duv_patch();
+
+    for (int i=0; i<=u_samples; i++) {
+        const auto u = i * (u_max-u_min) / u_samples + u_min;
+        for (int j=0; j<=v_samples; j++) {
+            const auto v = j * (v_max-v_min) / v_samples + v_min;
+
+            auto du = patch.evaluate_derivative_u(u, v);
+            auto dv = patch.evaluate_derivative_v(u, v);
+
+            auto du_p = du_patch.evaluate(u, v);
+            auto dv_p = dv_patch.evaluate(u, v);
+
+            auto duv_0 = duv_patch.evaluate(u, v);
+            auto duv_1 = dvu_patch.evaluate(u, v);
+            auto duv_2 = duv_patch_explicit.evaluate(u, v);
+
+            REQUIRE((du - du_p).norm() == Approx(0.0).margin(tol));
+            REQUIRE((dv - dv_p).norm() == Approx(0.0).margin(tol));
+
+            REQUIRE((duv_0 - duv_2).norm() == Approx(0.0).margin(tol));
+            REQUIRE((duv_1 - duv_2).norm() == Approx(0.0).margin(tol));
         }
     }
 }
@@ -264,6 +330,40 @@ void validate_iso_curves(const PatchType& patch, int num_samples=10) {
             auto p2 = v_curve.evaluate(v);
             REQUIRE((p-p1).norm() == Approx(0.0).margin(1e-6));
             REQUIRE((p-p2).norm() == Approx(0.0).margin(1e-6));
+        }
+    }
+}
+
+template<typename CurveType>
+void validate_approximate_inverse_evaluation(const CurveType& curve, int num_samples) {
+    const auto t_min = curve.get_domain_lower_bound();
+    const auto t_max = curve.get_domain_upper_bound();
+    for (int i=0; i<=num_samples; i++) {
+        const auto t = i * (t_max - t_min) / num_samples + t_min;
+        const auto q = curve.evaluate(t);
+        const auto t2 = curve.approximate_inverse_evaluate(q, t_min, t_max);
+        const auto p = curve.evaluate(t2);
+        REQUIRE((p-q).norm() == Approx(0.0).margin(1e-12));
+    }
+}
+
+template<typename PatchType>
+void validate_inverse_evaluation(const PatchType& patch,
+        int u_samples, int v_samples) {
+    const auto u_min = patch.get_u_lower_bound();
+    const auto u_max = patch.get_u_upper_bound();
+    const auto v_min = patch.get_v_lower_bound();
+    const auto v_max = patch.get_v_upper_bound();
+
+    for (int i=0; i<=u_samples; i++) {
+        for (int j=0; j<=v_samples; j++) {
+            const auto u = i * (u_max-u_min) / (u_samples) + u_min;
+            const auto v = j * (v_max-v_min) / (v_samples) + v_min;
+
+            const auto q = patch.evaluate(u, v);
+            const auto uv = patch.inverse_evaluate(q, u_min, u_max, v_min, v_max);
+            const auto p = patch.evaluate(uv[0], uv[1]);
+            REQUIRE((p-q).norm() == Approx(0.0).margin(1e-12));
         }
     }
 }

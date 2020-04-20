@@ -35,6 +35,10 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
             REQUIRE(new_curve.get_degree() == 1);
             assert_same(curve, new_curve, 10);
         }
+
+        SECTION("Approximate inverse evaluation") {
+            validate_approximate_inverse_evaluation(curve, 10);
+        }
     }
 
     SECTION("Generic degree 1") {
@@ -65,6 +69,10 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
             auto new_curve = curve.elevate_degree();
             REQUIRE(new_curve.get_degree() == 2);
             assert_same(curve, new_curve, 10);
+        }
+
+        SECTION("Approximate inverse evaluation") {
+            validate_approximate_inverse_evaluation(curve, 10);
         }
     }
 
@@ -98,14 +106,7 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
         }
 
         SECTION("Approximate inverse evaluation") {
-            auto t = curve.approximate_inverse_evaluate({1.5, 1.1});
-            REQUIRE(t == Approx(0.5));
-
-            t = curve.approximate_inverse_evaluate({0.0, -1.0});
-            REQUIRE(t == Approx(0.0));
-
-            t = curve.approximate_inverse_evaluate({3.1, 0.0});
-            REQUIRE(t == Approx(1.0));
+            validate_approximate_inverse_evaluation(curve, 10);
         }
 
         SECTION("Derivative") {
@@ -187,14 +188,7 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
         }
 
         SECTION("Approximate inverse evaluation") {
-            auto t = curve.approximate_inverse_evaluate({1.5, 1.1});
-            REQUIRE(t == Approx(0.5));
-
-            t = curve.approximate_inverse_evaluate({0.0, -1.0});
-            REQUIRE(t == Approx(0.0));
-
-            t = curve.approximate_inverse_evaluate({3.1, 0.0});
-            REQUIRE(t == Approx(1.0));
+            validate_approximate_inverse_evaluation(curve, 10);
         }
 
         SECTION("Derivative") {
@@ -388,6 +382,10 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
             auto new_curve = curve.elevate_degree();
             REQUIRE(new_curve.get_degree() == 3);
             assert_same(curve, new_curve, 10);
+        }
+
+        SECTION("Approximate inverse evaluation") {
+            validate_approximate_inverse_evaluation(curve, 10);
         }
     }
 

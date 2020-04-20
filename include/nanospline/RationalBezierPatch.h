@@ -57,6 +57,68 @@ class RationalBezierPatch final : public PatchBase<_Scalar, _dim> {
                 / p[_dim];
         }
 
+        Point evaluate_2nd_derivative_uu(Scalar u, Scalar v) const override {
+            validate_initialization();
+            constexpr Scalar tol = std::numeric_limits<Scalar>::epsilon();
+            const auto p0 = m_homogeneous.evaluate(u, v);
+            const auto du = m_homogeneous.evaluate_derivative_u(u, v);
+            const auto duu = m_homogeneous.evaluate_2nd_derivative_uu(u, v);
+
+            const Point Auu = duu.template head<_dim>();
+            const Scalar wuu = duu[_dim];
+            const Scalar w = p0[_dim];
+            if (w <= tol) return Point::Zero();
+
+            const Point S = p0.template head<_dim>() / w;
+            const Point Su = evaluate_derivative_u(u, v);
+            const Scalar wu = du[_dim];
+
+            return (Auu - Su * wu * 2 - S * wuu) / w;
+        }
+
+        Point evaluate_2nd_derivative_vv(Scalar u, Scalar v) const override {
+            validate_initialization();
+            constexpr Scalar tol = std::numeric_limits<Scalar>::epsilon();
+
+            const auto p0 = m_homogeneous.evaluate(u, v);
+            const auto dv = m_homogeneous.evaluate_derivative_v(u, v);
+            const auto dvv = m_homogeneous.evaluate_2nd_derivative_vv(u, v);
+
+            const Point Avv = dvv.template segment<_dim>(0);
+            const Scalar wvv = dvv[_dim];
+            const Scalar w = p0[_dim];
+            if (w <= tol) return Point::Zero();
+
+            const Point S = p0.template segment<_dim>(0) / w;
+            const Point Sv = evaluate_derivative_v(u, v);
+            const Scalar wv = dv[_dim];
+
+            return (Avv - Sv * wv * 2 - S * wvv) / w;
+        }
+
+        Point evaluate_2nd_derivative_uv(Scalar u, Scalar v) const override {
+            validate_initialization();
+            constexpr Scalar tol = std::numeric_limits<Scalar>::epsilon();
+
+            const auto p0 = m_homogeneous.evaluate(u, v);
+            const auto du = m_homogeneous.evaluate_derivative_u(u, v);
+            const auto dv = m_homogeneous.evaluate_derivative_v(u, v);
+            const auto duv = m_homogeneous.evaluate_2nd_derivative_uv(u, v);
+
+            const Point Auv = duv.template segment<_dim>(0);
+            const Scalar wuv = duv[_dim];
+            const Point S = p0.template segment<_dim>(0) / p0[_dim];
+            const Scalar w = p0[_dim];
+            if (w <= tol) return Point::Zero();
+
+            const Scalar wu = du[_dim];
+            const Scalar wv = dv[_dim];
+            const Point Su = evaluate_derivative_u(u, v);
+            const Point Sv = evaluate_derivative_v(u, v);
+
+            return (Auv - S*wuv - wu*Sv - wv*Su) / w;
+        }
+
         void initialize() override {
             typename BezierPatchHomogeneous::ControlGrid ctrl_pts(
                     Base::m_control_grid.rows(), _dim+1);
@@ -69,6 +131,23 @@ class RationalBezierPatch final : public PatchBase<_Scalar, _dim> {
             m_homogeneous.set_degree_v(Base::get_degree_v());
             m_homogeneous.initialize();
         }
+
+        Scalar get_u_lower_bound() const override {
+            return 0.0;
+        }
+
+        Scalar get_v_lower_bound() const override {
+            return 0.0;
+        }
+
+        Scalar get_u_upper_bound() const override {
+            return 1.0;
+        }
+
+        Scalar get_v_upper_bound() const override {
+            return 1.0;
+        }
+
 
     public:
         const Weights get_weights() const {
@@ -83,22 +162,6 @@ class RationalBezierPatch final : public PatchBase<_Scalar, _dim> {
         template<typename Derived>
         void set_weights(Eigen::PlainObjectBase<Derived>&& weights) {
             m_weights.swap(weights);
-        }
-
-        Scalar get_u_lower_bound() const {
-            return 0.0;
-        }
-
-        Scalar get_v_lower_bound() const {
-            return 0.0;
-        }
-
-        Scalar get_u_upper_bound() const {
-            return 1.0;
-        }
-
-        Scalar get_v_upper_bound() const {
-            return 1.0;
         }
 
         IsoCurveU compute_iso_curve_u(Scalar v) const {
