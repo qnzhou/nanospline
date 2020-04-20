@@ -41,6 +41,7 @@ TEST_CASE("BeizerPatch", "[nonrational][bezier_patch]") {
 
         validate_derivative(patch, 10, 10);
         validate_derivative_patches(patch, 10, 10);
+        validate_inverse_evaluation(patch, 10, 10);
     }
 
     SECTION("Bilinear patch non-planar") {
@@ -74,6 +75,7 @@ TEST_CASE("BeizerPatch", "[nonrational][bezier_patch]") {
         validate_iso_curves(patch, 10);
         validate_derivative(patch, 10, 10);
         validate_derivative_patches(patch, 10, 10);
+        validate_inverse_evaluation(patch, 10, 10);
     }
 
     SECTION("Cubic patch") {
@@ -99,5 +101,6 @@ TEST_CASE("BeizerPatch", "[nonrational][bezier_patch]") {
         validate_derivative(patch, 10, 10);
         validate_derivative_patches(patch, 10, 10);
         validate_iso_curves(patch, 10);
+        validate_inverse_evaluation(patch, 10, 10);
     }
 }

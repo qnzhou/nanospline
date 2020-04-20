@@ -48,6 +48,7 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]") {
         validate_iso_curves(patch, 10);
         validate_derivative(patch, 10, 10);
         validate_derivative_patches(patch, 10, 10);
+        validate_inverse_evaluation(patch, 10, 10);
     }
 
     SECTION("Cubic patch") {
@@ -69,6 +70,7 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]") {
         validate_iso_curves(patch, 10);
         validate_derivative(patch, 10, 10);
         validate_derivative_patches(patch, 10, 10);
+        validate_inverse_evaluation(patch, 10, 10);
     }
 
     SECTION("Degree 1 patch") {
@@ -94,6 +96,7 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]") {
         validate_iso_curves(patch, 10);
         validate_derivative(patch, 10, 10);
         validate_derivative_patches(patch, 10, 10);
+        validate_inverse_evaluation(patch, 10, 10);
     }
 
     SECTION("Mixed degree") {
@@ -141,6 +144,7 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]") {
         validate_iso_curves(patch, 10);
         validate_derivative(patch, 10, 10);
         validate_derivative_patches(patch, 10, 10);
+        validate_inverse_evaluation(patch, 10, 10);
     }
 
     SECTION("Debug example") {
@@ -179,6 +183,7 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]") {
         validate_iso_curves(patch, 10);
         validate_derivative(patch, 10, 10);
         validate_derivative_patches(patch, 10, 10);
+        validate_inverse_evaluation(patch, 10, 10);
 
         // Out of bound extrapolation.
         const auto p0 = patch.evaluate(1.5707963267948966, -16.000000000000011);

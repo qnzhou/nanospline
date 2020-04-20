@@ -34,10 +34,13 @@ class PatchBase {
                 const Scalar max_u,
                 const Scalar min_v,
                 const Scalar max_v) const {
+            constexpr Scalar TOL =
+                std::numeric_limits<Scalar>::epsilon() * 100;
             const int num_samples = std::max(m_degree_u, m_degree_v) + 1;
             UVPoint uv = approximate_inverse_evaluate(p, num_samples,
                     min_u, max_u, min_v, max_v);
-            return uv;
+            return newton_raphson(p, uv, 10, TOL,
+                    min_u, max_u, min_v, max_v);
         }
 
     public:
@@ -103,7 +106,7 @@ class PatchBase {
             for (int i=0; i<=num_samples; i++) {
                 const Scalar u = i * (max_u-min_u) / num_samples + min_u;
                 for (int j=0; j<=num_samples; j++) {
-                    const Scalar v = i * (max_v-min_v) / num_samples + min_v;
+                    const Scalar v = j * (max_v-min_v) / num_samples + min_v;
                     const Point q = this->evaluate(u, v);
                     const auto dist = (p-q).squaredNorm();
                     if (dist < min_dist) {
@@ -127,19 +130,57 @@ class PatchBase {
             }
         }
 
-        //UVPoint newton_raphson(
-        //        const Point& p,
-        //        UVPoint uv,
-        //        const int num_iterations,
-        //        const Scalar tol,
-        //        const Scalar min_u,
-        //        const Scalar max_u,
-        //        const Scalar min_v,
-        //        const Scalar max_v) const {
-        //    for (int i=0; i<num_iterations; i++) {
-        //        const Point r = this->evaluate(uv[0], uv[1]) - p;
-        //    }
-        //}
+        UVPoint newton_raphson(
+                const Point& p,
+                const UVPoint uv,
+                const int num_iterations,
+                const Scalar tol,
+                const Scalar min_u,
+                const Scalar max_u,
+                const Scalar min_v,
+                const Scalar max_v) const {
+            Scalar u = uv[0];
+            Scalar v = uv[1];
+            UVPoint prev_uv = uv;
+            Scalar prev_dist = std::numeric_limits<Scalar>::max();
+            for (int i=0; i<num_iterations; i++) {
+                const Point r = this->evaluate(u, v) - p;
+                const Scalar dist = r.norm();
+                if (dist < tol) {
+                    break;
+                }
+                if (dist > prev_dist) {
+                    // Ops, Newton Raphson diverged...
+                    // Use the best result so far.
+                    return prev_uv;
+                }
+                prev_dist = dist;
+                prev_uv = {u, v};
+
+                const Point Su = this->evaluate_derivative_u(u, v);
+                const Point Sv = this->evaluate_derivative_v(u, v);
+                const Point Suu = this->evaluate_2nd_derivative_uu(u, v);
+                const Point Svv = this->evaluate_2nd_derivative_vv(u, v);
+                const Point Suv = this->evaluate_2nd_derivative_uv(u, v);
+
+                Eigen::Matrix<Scalar, 2, 2> J;
+                J << Su.squaredNorm() + r.dot(Suu), Su.dot(Sv) + r.dot(Suv),
+                     Sv.dot(Su) + r.dot(Suv), Sv.squaredNorm() + r.dot(Svv);
+                Eigen::Matrix<Scalar, 2, 1> kappa;
+                kappa << -r.dot(Su), -r.dot(Sv);
+
+                Eigen::Matrix<Scalar, 2, 1> delta = J.inverse() * kappa;
+
+                u += delta[0];
+                v += delta[1];
+
+                if (u < min_u) u = min_u;
+                if (u > max_u) u = max_u;
+                if (v < min_v) v = min_v;
+                if (v > max_v) v = max_v;
+            }
+            return {u, v};
+        }
 
     protected:
         int m_degree_u = -1;
