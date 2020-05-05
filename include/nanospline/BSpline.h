@@ -19,6 +19,9 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
         using Point = typename Base::Point;
         using ControlPoints = typename Base::ControlPoints;
         using KnotVector = typename Base::KnotVector;
+        // Note that BlossomVector has the same length as KnotVector; typedef is
+        // just for clarity
+        using BlossomVector= typename Base::KnotVector;
 
     public:
         BSpline() = default;
@@ -43,6 +46,14 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
         }
 
     public:
+
+        void get_knot_span_control_points(int curve_degree, int knot_span,
+                                         ControlPoints &control_pts) const {
+            for (int i=0; i<=curve_degree; i++) {
+                int index = i+ knot_span - curve_degree;
+                control_pts.row(i) = Base::m_control_points.row(index);
+            }
+        }
         Point evaluate(Scalar t) const override {
             Base::validate_curve();
             const int p = Base::get_degree();
@@ -52,18 +63,32 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
                     Base::m_control_points.rows() + p + 1);
 
             ControlPoints ctrl_pts(p+1, _dim);
-            for (int i=0; i<=p; i++) {
-                ctrl_pts.row(i) = Base::m_control_points.row(i+k-p);
-            }
+            get_knot_span_control_points(p, k, ctrl_pts);
 
-            deBoor(t, p, k, ctrl_pts);
-            return ctrl_pts.row(p);
+            return deBoor(t, p, k, ctrl_pts);
         }
 
         Scalar inverse_evaluate(const Point& p) const override {
             throw not_implemented_error("Too complex, sigh");
         }
 
+        void get_derivative_coefficients(int curve_degree, int knot_span,
+                                         ControlPoints &control_pts) const {
+          int num_control_points = curve_degree + 1;
+          for (int i = 0; i < num_control_points; i++) {
+            int index = i + knot_span + 1;
+
+            const Scalar diff = Base::m_knots[index] -
+                                Base::m_knots[index - num_control_points];
+
+            Scalar alpha = 0.0;
+            if (diff > 0) {
+              alpha = num_control_points / diff;
+            }
+            control_pts.row(i) =
+                alpha * (control_pts.row(i + 1) - control_pts.row(i));
+          }
+        }
         Point evaluate_derivative(Scalar t) const override {
             Base::validate_curve();
             const int p = Base::get_degree();
@@ -75,21 +100,15 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             assert(Base::m_knots[k+1] >= t);
 
             if (p == 0) return Point::Zero();
+            
+            // Only uses the first p rows
+            ControlPoints ctrl_pts(p+1, _dim);
+            get_knot_span_control_points(p, k, ctrl_pts);
 
-            ControlPoints ctrl_pts(p, _dim);
-            for(int i=0; i<p; i++) {
-                const Scalar diff = Base::m_knots[i+k+1] - Base::m_knots[i+k-p+1];
-                Scalar alpha = 0.0;
-                if (diff > 0) {
-                    alpha = p / diff;
-                }
-                ctrl_pts.row(i) = alpha * (
-                        Base::m_control_points.row(i+k-p+1) -
-                        Base::m_control_points.row(i+k-p));
-            }
+            int deriv_degree = p-1;
+            get_derivative_coefficients(deriv_degree, k, ctrl_pts);
 
-            deBoor(t, p-1, k, ctrl_pts);
-            return ctrl_pts.row(p-1);
+            return deBoor(t, deriv_degree, k, ctrl_pts);
         }
 
         Point evaluate_2nd_derivative(Scalar t) const override {
@@ -103,33 +122,18 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             assert(Base::m_knots[k+1] >= t);
 
             if (p <= 1) return Point::Zero();
+            
+            // Only uses the first p rows
+            ControlPoints ctrl_pts(p+1, _dim);
+            int deriv_degree = p-1;
+            int deriv2_degree = p-2;
+            
+            get_knot_span_control_points(p, k, ctrl_pts);
+            get_derivative_coefficients(deriv_degree, k, ctrl_pts);
+            get_derivative_coefficients(deriv2_degree, k, ctrl_pts);
 
-            ControlPoints ctrl_pts(p, _dim);
-
-            // First derivative control pts.
-            for(int i=0; i<p; i++) {
-                const Scalar diff = Base::m_knots[i+k+1] - Base::m_knots[i+k-p+1];
-                Scalar alpha = 0.0;
-                if (diff > 0) {
-                    alpha = p / diff;
-                }
-                ctrl_pts.row(i) = alpha * (
-                        Base::m_control_points.row(i+k-p+1) -
-                        Base::m_control_points.row(i+k-p));
-            }
-
-            // Second derivative control pts.
-            for (int i=0; i<p-1; i++) {
-                const Scalar diff = Base::m_knots[i+k+1] - Base::m_knots[i+k-p+2];
-                Scalar alpha = 0.0;
-                if (diff > 0) {
-                    alpha = (p-1) / diff;
-                }
-                ctrl_pts.row(i) = alpha * (ctrl_pts.row(i+1) - ctrl_pts.row(i));
-            }
-
-            deBoor(t, p-2, k, ctrl_pts);
-            return ctrl_pts.row(p-2);
+            return deBoor(t, deriv2_degree, k, ctrl_pts);
+            
         }
 
         std::vector<Scalar> compute_inflections (
@@ -385,11 +389,12 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
 
     private:
         template<typename Derived>
-        void deBoor(Scalar t, int p, int k,
+        void blossom(BlossomVector blossom_vector, int p, int k,
                 Eigen::PlainObjectBase<Derived>& ctrl_pts) const {
             assert(ctrl_pts.rows() >= p+1);
 
             for (int r=1; r<=p; r++) {
+                Scalar t = blossom_vector(r - 1);
                 for (int j=p; j>=r; j--) {
                     const Scalar diff =
                         Base::m_knots[j+1+k-r] - Base::m_knots[j+k-p];
@@ -402,6 +407,20 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
                         alpha * ctrl_pts.row(j);
                 }
             }
+        }
+        template<typename Derived>
+        Point deBoor(Scalar t, int p, int k,
+                Eigen::PlainObjectBase<Derived>& ctrl_pts) const {
+            if (p > 0) {
+
+                // Set t_i=t for all blossom evaluation points
+                BlossomVector blossom_vector(Base::get_degree());
+                blossom_vector.setConstant(t);
+
+                // Evaluate the blossom
+                blossom(blossom_vector, p, k, ctrl_pts);
+            }
+            return ctrl_pts.row(p);
         }
 
         void combine_Beziers(const std::vector<Bezier<_Scalar, _dim, _degree, _generic>>& beziers,
