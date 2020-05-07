@@ -14,6 +14,7 @@ namespace nanospline {
 template<typename _Scalar, int _dim=3, int _degree=3, bool _generic=_degree<0 >
 class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
     public:
+        using ThisType = BSpline<_Scalar, _dim, _degree, false>;
         using Base = BSplineBase<_Scalar, _dim, _degree, _generic>;
         using Scalar = typename Base::Scalar;
         using Point = typename Base::Point;
@@ -297,6 +298,73 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             return res;
         }
 
+    /*std::vector<ThisType> split(Scalar t) {
+        //using ThisType = BSpline<Scalar, dim, degree, generic>;
+        if(!in_domain(t)) {
+            throw invalid_setting_error("Parameter not inside of the domain.");
+        }
+        if (t == Base::get_domain_lower_bound()) {
+            return std::vector<ThisType>{*this};
+        }
+        if (t == Base::get_domain_upper_bound()) {
+            return std::vector<ThisType>{*this};
+        }
+
+        const auto d = Base::get_degree();
+        {
+            const auto& knots = Base::get_knots();
+            const int k = Base::locate_span(t);
+            const int s = (t == knots[k]) ? Base::get_multiplicity(k) : 0;
+
+            if (d > s) {
+                Base::insert_knot(t, d - s);
+            }
+        }
+
+        const auto& ctrl_pts = Base::get_control_points();
+        const int n = static_cast<int>(ctrl_pts.rows()-1);
+        const auto& knots = Base::get_knots();
+        const int m = static_cast<int>(knots.rows()-1);
+        const int k = Base::locate_span(t);
+
+        typename ThisType::ControlPoints ctrl_pts_1(k-d+1, _dim);
+        ctrl_pts_1 = ctrl_pts.topRows(k-d+1);
+
+        typename ThisType::ControlPoints ctrl_pts_2(n-k+d+1, _dim);
+        ctrl_pts_2 = ctrl_pts.bottomRows(n-k+d+1);
+
+        typename ThisType::KnotVector knots_1(k+2,1);
+        knots_1.segment(0, k+1) = knots.segment(0, k+1);
+        knots_1[k+1] = knots_1[k];
+
+        typename ThisType::KnotVector knots_2(m-k+d+1);
+        knots_2.segment(1, m-k+d) = knots.segment(k-d+1, m-k+d);
+        knots_2[0] = knots_2[1];
+
+        std::vector<ThisType> results(2);
+        results[0].set_control_points(std::move(ctrl_pts_1));
+        results[1].set_control_points(std::move(ctrl_pts_2));
+        results[0].set_knots(std::move(knots_1));
+        results[1].set_knots(std::move(knots_2));
+
+        return results;
+    }*/
+
+
+        
+        /**
+         * Extract a subcurve in range [t0, t1].
+         */
+        ThisType subcurve(Scalar t0, Scalar t1) const {
+            if (t0 > t1) {
+                throw invalid_setting_error("t0 must be smaller than t1");
+            }
+            if (t0 < 0 || t0 > 1 || t1 < 0 || t1 > 1) {
+                throw invalid_setting_error("Invalid range");
+            }
+            return split(t0)[1].split(t1)[0];
+        }
+
     public:
         std::tuple<std::vector<Bezier<Scalar, _dim, _degree, _generic>>, std::vector<Scalar>>
         convert_to_Bezier() const {
@@ -396,11 +464,12 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             for (int r=1; r<=p; r++) {
                 Scalar t = blossom_vector(r - 1);
                 for (int j=p; j>=r; j--) {
+                    int index = j+k;
                     const Scalar diff =
-                        Base::m_knots[j+1+k-r] - Base::m_knots[j+k-p];
+                        Base::m_knots[index+1-r] - Base::m_knots[index-p];
                     Scalar alpha = 0.0;
                     if (diff > 0) {
-                        alpha = (t - Base::m_knots[j+k-p]) / diff;
+                        alpha = (t - Base::m_knots[index-p]) / diff;
                     }
 
                     ctrl_pts.row(j) = (1.0-alpha) * ctrl_pts.row(j-1) +

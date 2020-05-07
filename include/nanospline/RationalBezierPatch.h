@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Eigen/Core>
 #include <nanospline/PatchBase.h>
 #include <nanospline/RationalBezier.h>
 #include <nanospline/BezierPatch.h>
@@ -29,6 +30,17 @@ class RationalBezierPatch final : public PatchBase<_Scalar, _dim> {
         }
 
     public:
+        int num_control_points_u() const {
+            return m_homogeneous.num_control_points_u();
+        }
+        int num_control_points_v() const {
+            return m_homogeneous.num_control_points_v();
+        }
+        Point get_control_point(int i, int j) const override {
+            Eigen::Matrix<Scalar, 1, _dim+1> control_point = m_homogeneous.get_control_point(i,j);
+            return control_point.head(_dim);
+        }
+
         Point evaluate(Scalar u, Scalar v) const override {
             validate_initialization();
             const auto p = m_homogeneous.evaluate(u, v);

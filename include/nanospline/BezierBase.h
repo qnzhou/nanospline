@@ -26,6 +26,12 @@ class BezierBase : public CurveBase<_Scalar, _dim> {
         virtual Point evaluate_derivative(Scalar t) const override =0;
         virtual Point evaluate_2nd_derivative(Scalar t) const override =0;
 
+        virtual bool in_domain(Scalar t) const {
+            constexpr Scalar eps = std::numeric_limits<Scalar>::epsilon();
+            const Scalar t_min = 0.;
+            const Scalar t_max = 1.;
+            return (t >= t_min - eps) && (t <= t_max + eps);
+        }
         virtual Scalar approximate_inverse_evaluate(const Point& p,
                 const Scalar lower=0.0,
                 const Scalar upper=1.0,

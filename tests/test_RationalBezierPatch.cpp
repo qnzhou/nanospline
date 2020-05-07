@@ -44,6 +44,7 @@ TEST_CASE("RationalBezierPatch", "[rational][rational_bezier_patch]") {
 
         validate_derivative(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
+        validate_inverse_evaluation_3d(patch, 10, 10);
     }
 
     SECTION("Cubic patch") {
@@ -82,6 +83,7 @@ TEST_CASE("RationalBezierPatch", "[rational][rational_bezier_patch]") {
         validate_derivative(patch, 10, 10);
         validate_iso_curves(patch, 10);
         validate_inverse_evaluation(patch, 10, 10);
+        validate_inverse_evaluation_3d(patch, 10, 10);
     }
 
 }

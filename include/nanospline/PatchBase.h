@@ -3,6 +3,7 @@
 #include <array>
 #include <cassert>
 #include <Eigen/Core>
+#include <nanospline/Exceptions.h>
 
 namespace nanospline {
 
@@ -27,6 +28,10 @@ class PatchBase {
         virtual Scalar get_u_upper_bound() const =0;
         virtual Scalar get_v_lower_bound() const =0;
         virtual Scalar get_v_upper_bound() const =0;
+        virtual Point get_control_point(int i, int j) const =0;
+        virtual int num_control_points_u() const = 0;
+        virtual int num_control_points_v() const = 0;
+
 
     public:
         virtual UVPoint inverse_evaluate(const Point& p,
@@ -39,11 +44,39 @@ class PatchBase {
             const int num_samples = std::max(m_degree_u, m_degree_v) + 1;
             UVPoint uv = approximate_inverse_evaluate(p, num_samples,
                     min_u, max_u, min_v, max_v);
-            return newton_raphson(p, uv, 10, TOL,
+            return newton_raphson(p, uv, 20, TOL,
                     min_u, max_u, min_v, max_v);
         }
 
     public:
+        int num_control_points() const{
+            return num_control_points_u() * num_control_points_v();
+        }
+
+        bool in_domain_u(Scalar u) const {
+            constexpr Scalar eps = std::numeric_limits<Scalar>::epsilon();
+            const Scalar u_min = get_u_lower_bound();
+            const Scalar u_max = get_u_upper_bound();
+            return (u >= u_min - eps) && (u <= u_max + eps);
+        }
+
+        bool in_domain_v(Scalar v) const {
+            constexpr Scalar eps = std::numeric_limits<Scalar>::epsilon();
+            const Scalar v_min = get_v_lower_bound();
+            const Scalar v_max = get_v_upper_bound();
+            return (v >= v_min - eps) && (v <= v_max + eps);
+        }
+        bool is_endpoint_u(Scalar u){
+            return u == get_u_lower_bound() || u == get_u_upper_bound();
+        }
+        
+        bool is_endpoint_v(Scalar v){
+            return v == get_v_lower_bound() || v == get_v_upper_bound();
+        }
+        bool in_domain(Scalar u, Scalar v) const {
+            return in_domain_u(u) && in_domain_v(v);
+        }
+
         void set_degree_u(int degree) {
             m_degree_u = degree;
         }
@@ -66,6 +99,17 @@ class PatchBase {
             return m_control_grid;
         }
 
+        bool is_split_input_valid(Scalar u, Scalar v) const{
+            if(!in_domain(u,v)) {
+                throw invalid_setting_error("Parameter not inside of the domain.");
+            }
+            if(is_endpoint_u(u) || is_endpoint_v(v)){
+                return false;
+            } else {
+                return true;
+            }
+        }
+        
         /**
          * Control grid presents a 2D grid of control points.  It is linearized
          * in V-major.  I.e. Let C_uv denotes the control point at (u, v), then
@@ -101,6 +145,18 @@ class PatchBase {
                 const Scalar min_v,
                 const Scalar max_v,
                 const int level=3) const {
+            // 1. find closest control point
+            // TODO implement get_control_point(i,j)
+            
+            // Control points c_{i+/-1,j+/-1} bound the domain
+            // 2. find subdomain corresponding to control point subdomain boundary
+            // TODO implement get_greville_abcissa
+            
+            // 3. split curve to find ctrl points on subdomain
+            // TODO implement patch split in parent class
+            
+            // repeat recursively
+           
             UVPoint uv(min_u, min_v);
             Scalar min_dist = std::numeric_limits<Scalar>::max();
             for (int i=0; i<=num_samples; i++) {
@@ -142,19 +198,23 @@ class PatchBase {
             Scalar u = uv[0];
             Scalar v = uv[1];
             UVPoint prev_uv = uv;
-            Scalar prev_dist = std::numeric_limits<Scalar>::max();
+            //Scalar prev_dist = std::numeric_limits<Scalar>::max();
             for (int i=0; i<num_iterations; i++) {
                 const Point r = this->evaluate(u, v) - p;
                 const Scalar dist = r.norm();
                 if (dist < tol) {
                     break;
                 }
+                /*
+                 // Converges ok if left alone, could be a result of a poor
+                 // initial guess
                 if (dist > prev_dist) {
                     // Ops, Newton Raphson diverged...
                     // Use the best result so far.
                     return prev_uv;
                 }
-                prev_dist = dist;
+                //prev_dist = dist;
+                */
                 prev_uv = {u, v};
 
                 const Point Su = this->evaluate_derivative_u(u, v);

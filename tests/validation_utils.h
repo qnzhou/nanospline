@@ -1,8 +1,11 @@
 #pragma once
+#include <Eigen/src/Core/Matrix.h>
 #include <catch2/catch.hpp>
 #include <limits>
-#include <iostream>
 #include <nanospline/hodograph.h>
+#include <iostream>
+using std::cout;
+using std::endl;
 
 namespace nanospline {
 
@@ -57,6 +60,39 @@ void assert_same(const CurveType1& curve1, const CurveType2& curve2, int num_sam
         REQUIRE((p1-p2).norm() == Approx(0.0).margin(tol));
     }
 }
+
+template<typename PatchType1, typename PatchType2,
+    typename std::enable_if<std::is_same<
+        typename PatchType1::Scalar,
+        typename PatchType2::Scalar>::value,
+        int>::type =0 >
+void assert_same(const PatchType1& patch1, const PatchType2& patch2, int num_samples,
+        const typename PatchType1::Scalar u_min_1,
+        const typename PatchType1::Scalar u_max_1,
+        const typename PatchType1::Scalar v_min_1,
+        const typename PatchType1::Scalar v_max_1,
+        const typename PatchType1::Scalar u_min_2,
+        const typename PatchType1::Scalar u_max_2,
+        const typename PatchType1::Scalar v_min_2,
+        const typename PatchType1::Scalar v_max_2,
+        const typename PatchType1::Scalar tol=1e-6) {
+  using Scalar = typename PatchType1::Scalar;
+
+  Eigen::Matrix<Scalar, Eigen::Dynamic, 1> samples_v1, samples_v2, samples_u1, samples_u2;
+  samples_u1.setLinSpaced(num_samples + 2, u_min_1, u_max_1);
+  samples_v1.setLinSpaced(num_samples + 2, v_min_1, v_max_1);
+  samples_u2.setLinSpaced(num_samples + 2, u_min_2, u_max_2);
+  samples_v2.setLinSpaced(num_samples + 2, v_min_2, v_max_2);
+  for (int i = 0; i < num_samples + 2; i++) {
+    for (int j = 0; j < num_samples + 2; j++) {
+      const auto p1 = patch1.evaluate(samples_u1[i], samples_v1[j]);
+      const auto p2 = patch2.evaluate(samples_u2[i], samples_v2[j]);
+      REQUIRE((p1 - p2).norm() == Approx(0.0).margin(tol));
+    }
+  }
+}
+
+
 
 /**
  * Validate derivative computation using finite difference.
@@ -366,6 +402,37 @@ void validate_inverse_evaluation(const PatchType& patch,
             REQUIRE((p-q).norm() == Approx(0.0).margin(1e-12));
         }
     }
+
+}
+template<typename PatchType>
+void validate_inverse_evaluation_3d(const PatchType& patch,
+        int u_samples, int v_samples) {
+    const auto u_min = patch.get_u_lower_bound();
+    const auto u_max = patch.get_u_upper_bound();
+    const auto v_min = patch.get_v_lower_bound();
+    const auto v_max = patch.get_v_upper_bound();
+
+    for (int i=0; i<=u_samples; i++) {
+        for (int j=0; j<=v_samples; j++) {
+            const auto u = i * (u_max-u_min) / (u_samples) + u_min;
+            const auto v = j * (v_max-v_min) / (v_samples) + v_min;
+
+            auto q = patch.evaluate(u, v);
+            auto q_u = patch.evaluate_derivative_u(u, v);
+            auto q_v = patch.evaluate_derivative_v(u, v);
+            auto n = q_u.cross(q_v);
+            n = n/n.norm();
+            q = q + .05*n;
+            const auto uv = patch.inverse_evaluate(q, u_min, u_max, v_min, v_max);
+            const auto p = patch.evaluate(uv[0], uv[1]);
+            auto true_uv(uv);
+            true_uv[0] = u;
+            true_uv[1] = v;
+            REQUIRE((p-q).norm() == Approx(0.05).margin(1e-15));
+            REQUIRE((true_uv - uv).norm() == Approx(0.0).margin(1e-14));
+        }
+    }
+
 }
 
 

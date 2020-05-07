@@ -49,6 +49,7 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]") {
         validate_derivative(patch, 10, 10);
         validate_derivative_patches(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
+        validate_inverse_evaluation_3d(patch, 10, 10);
     }
 
     SECTION("Cubic patch") {
@@ -71,6 +72,7 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]") {
         validate_derivative(patch, 10, 10);
         validate_derivative_patches(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
+        validate_inverse_evaluation_3d(patch, 10, 10);
     }
 
     SECTION("Degree 1 patch") {
@@ -97,6 +99,7 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]") {
         validate_derivative(patch, 10, 10);
         validate_derivative_patches(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
+        //validate_inverse_evaluation_3d(patch, 10, 10);
     }
 
     SECTION("Mixed degree") {

@@ -24,6 +24,7 @@ class Bezier final : public BezierBase<_Scalar, _dim, _degree, _generic> {
         using BlossomVector= typename Base::BlossomVector;
 
       public:
+        Bezier() = default;
         Point evaluate(Scalar t) const override {
 
           int curve_degree = Base::get_degree();
@@ -190,13 +191,14 @@ class Bezier final : public BezierBase<_Scalar, _dim, _degree, _generic> {
         /**
          * Split a curve in halves at t.
          */
-        std::array<ThisType, 2> split(Scalar t) const {
-            assert(t >= 0);
-            assert(t <= 1);
+        std::vector<ThisType> split(Scalar t) const {
+            if (!this->is_split_point_valid(t)) {
+                return std::vector<ThisType>{*this};
+            }
+           
             // Copy intentionally.
             auto ctrl_pts = Base::get_control_points();
             const auto d = Base::get_degree();
-
             ControlPoints ctrl_pts_1(d+1, _dim);
             ControlPoints ctrl_pts_2(d+1, _dim);
 
@@ -208,10 +210,18 @@ class Bezier final : public BezierBase<_Scalar, _dim, _degree, _generic> {
                 }
             }
 
-            std::array<ThisType, 2> results;
+            std::vector<ThisType> results(2, ThisType());
             results[0].set_control_points(std::move(ctrl_pts_1));
             results[1].set_control_points(std::move(ctrl_pts_2));
-
+            return results;
+        }
+        std::vector<ThisType> _split(Scalar t) const {
+            assert(t >= Scalar(0));
+            assert(t <=  Scalar(1));
+            
+            std::vector<ThisType> results(2, ThisType());
+            results[0] = subcurve(Scalar(0.), t);
+            results[1] = subcurve(t,Scalar(1.));
             return results;
         }
 
@@ -751,9 +761,10 @@ class Bezier<_Scalar, _dim, 3, false> final : public BezierBase<_Scalar, _dim, 3
         }
 
     public:
-        std::array<ThisType, 2> split(Scalar t) const {
-            assert(t >= 0);
-            assert(t <= 1);
+        std::vector<ThisType> split(Scalar t) const {
+            if (!this->is_split_point_valid(t)) {
+                return std::vector<ThisType>{*this};
+            }
             // Copy intentionally.
             auto ctrl_pts = Base::get_control_points();
 
@@ -768,7 +779,7 @@ class Bezier<_Scalar, _dim, 3, false> final : public BezierBase<_Scalar, _dim, 3
                 }
             }
 
-            std::array<ThisType, 2> results;
+            std::vector<ThisType> results(2, ThisType());
             results[0].set_control_points(std::move(ctrl_pts_1));
             results[1].set_control_points(std::move(ctrl_pts_2));
 
@@ -782,10 +793,20 @@ class Bezier<_Scalar, _dim, 3, false> final : public BezierBase<_Scalar, _dim, 3
             if (t0 > t1) {
                 throw invalid_setting_error("t0 must be smaller than t1");
             }
-            if (t0 < 0 || t0 > 1 || t1 < 0 || t1 > 1) {
-                throw invalid_setting_error("Invalid range");
+            if(this->is_split_point_valid(t0) && this->is_split_point_valid(t1)){
             }
-            return split(t0)[1].split(t1)[0];
+            bool t0_is_endpt = t0 == this->get_domain_lower_bound();
+            bool t1_is_endpt = t1 == this->get_domain_lower_bound();
+            
+            if(t0_is_endpt && t1_is_endpt){
+                return *this;  // identity: return the current curve
+            } else if(t0_is_endpt){
+                return split(t1)[0];  // curve from [0, t1]
+            } else if (t1_is_endpt){
+                return split(t0)[1];  // curve from [t0, 1]
+            } else {
+                return split(t0)[1].split(t1)[0];
+            }
         }
 
         Bezier<_Scalar, _dim, 4, false> elevate_degree() const {

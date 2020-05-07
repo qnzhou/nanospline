@@ -52,6 +52,7 @@ TEST_CASE("NURBSPatch", "[rational][bspline_patch]") {
 
         validate_derivative(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
+        validate_inverse_evaluation_3d(patch, 10, 10);
     }
 
     SECTION("Cubic patch") {
@@ -86,6 +87,7 @@ TEST_CASE("NURBSPatch", "[rational][bspline_patch]") {
         validate_iso_curves(patch, 10);
         validate_derivative(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
+        validate_inverse_evaluation_3d(patch, 10, 10);
     }
 
     SECTION("Mixed degree") {
