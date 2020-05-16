@@ -17,6 +17,7 @@ class BezierBase : public CurveBase<_Scalar, _dim> {
         using Scalar = _Scalar;
         using Point = Eigen::Matrix<Scalar, 1, _dim>;
         using ControlPoints = Eigen::Matrix<Scalar, _generic?Eigen::Dynamic:_degree+1, _dim>;
+        using BlossomVector = Eigen::Matrix<Scalar, _generic?Eigen::Dynamic:_degree, 1>;
 
     public:
         virtual ~BezierBase()=default;

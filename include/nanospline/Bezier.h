@@ -21,38 +21,64 @@ class Bezier final : public BezierBase<_Scalar, _dim, _degree, _generic> {
         using Scalar = typename Base::Scalar;
         using Point = typename Base::Point;
         using ControlPoints = typename Base::ControlPoints;
+        using BlossomVector= typename Base::BlossomVector;
 
-    public:
+      public:
         Point evaluate(Scalar t) const override {
-            const auto control_pts = deBoor(t, Base::get_degree());
-            return control_pts.row(0);
+
+          int curve_degree = Base::get_degree();
+          ControlPoints control_pts(Base::m_control_points);
+          return deBoor(t, curve_degree, control_pts);
         }
 
-        Scalar inverse_evaluate(const Point& p) const override {
-            throw not_implemented_error("Too complex, sigh");
+        Scalar inverse_evaluate(const Point &p) const override {
+          throw not_implemented_error("Too complex, sigh");
+        }
+
+        void get_derivative_coefficients(int curve_degree,
+                                         ControlPoints &control_pts) const {
+          int deriv_degree = curve_degree - 1;
+
+          for (int i = 0; i < deriv_degree + 1; i++) {
+            control_pts.row(i) =
+                curve_degree * (control_pts.row(i + 1) - control_pts.row(i));
+          }
         }
 
         Point evaluate_derivative(Scalar t) const override {
-            const auto degree = Base::get_degree();
-            assert(degree >= 0);
-            if (degree == 0) {
-                return Point::Zero();
-            } else {
-                const auto control_pts = deBoor(t, degree-1);
-                return (control_pts.row(1) - control_pts.row(0))*degree;
-            }
+          const auto curve_degree = Base::get_degree();
+          assert(curve_degree >= 0);
+
+          if (curve_degree == 0)
+            return Point::Zero();
+
+          const int deriv_degree = curve_degree - 1;
+          
+          // Get control points defining the derivative 
+          ControlPoints control_pts(Base::m_control_points);
+          get_derivative_coefficients(curve_degree, control_pts);
+          
+          // Evaluate the derivative curve
+          return deBoor(t, deriv_degree, control_pts);
         }
 
         Point evaluate_2nd_derivative(Scalar t) const override {
-            const auto degree = Base::get_degree();
-            assert(degree >= 0);
-            if (degree <= 1) {
+            const auto curve_degree = Base::get_degree();
+            assert(curve_degree >= 0);
+
+            if (curve_degree <= 1)
                 return Point::Zero();
-            } else {
-                const auto control_pts = deBoor(t, degree-2);
-                return (control_pts.row(2) + control_pts.row(0) - 2 * control_pts.row(1))
-                    * degree * (degree-1);
-            }
+
+            const int deriv_degree = curve_degree - 1;
+            const int deriv2_degree = curve_degree - 2;
+
+            // Get control points defining the second derivative 
+            ControlPoints control_pts(Base::m_control_points);
+            get_derivative_coefficients(curve_degree, control_pts);
+            get_derivative_coefficients(deriv_degree, control_pts);
+            
+            // Evaluate the second derivative curve
+            return deBoor(t, deriv2_degree, control_pts);
         }
 
         std::vector<Scalar> compute_inflections (
@@ -193,13 +219,42 @@ class Bezier final : public BezierBase<_Scalar, _dim, _degree, _generic> {
          * Extract a subcurve in range [t0, t1].
          */
         ThisType subcurve(Scalar t0, Scalar t1) const {
-            if (t0 > t1) {
-                throw invalid_setting_error("t0 must be smaller than t1");
+          if (t0 > t1) {
+            throw invalid_setting_error("t0 must be smaller than t1");
+          }
+          if (t0 < 0 || t0 > 1 || t1 < 0 || t1 > 1) {
+            throw invalid_setting_error("Invalid range");
+          }
+          // To get the coefficients of a subcurve defined on a subdomain
+          // [t0,t1], each coefficient is given by a blossom:
+          //    c_i = b[t0, ..., t0, t1, ..., t1]
+          //             |________|   |________|
+          //              =degree-i       =i
+          // for i = 0, ... ,degree
+
+          const auto curve_degree = Base::get_degree();
+          ControlPoints subcurve_control_pts(curve_degree + 1, _dim);
+
+          for (int i = 0; i < curve_degree + 1; i++) {
+
+            // Form the blossom vector [t0, ..., t0, t1, ..., t1]
+            BlossomVector blossom_vector(curve_degree);
+            blossom_vector.setConstant(t1);
+
+            for (int j = 0; j < i; j++) {
+              blossom_vector(j) = t0;
             }
-            if (t0 < 0 || t0 > 1 || t1 < 0 || t1 > 1) {
-                throw invalid_setting_error("Invalid range");
-            }
-            return split(t0)[1].split(t1)[0];
+            // Evaluate the blossom
+            ControlPoints control_points(Base::m_control_points);
+            blossom(blossom_vector, curve_degree, control_points);
+
+            subcurve_control_pts.row(curve_degree-i) = control_points.row(curve_degree);
+          }
+
+          ThisType subcurve;
+          subcurve.set_control_points(subcurve_control_pts);
+
+          return subcurve;
         }
 
         /**
@@ -228,24 +283,43 @@ class Bezier final : public BezierBase<_Scalar, _dim, _degree, _generic> {
         }
 
     private:
-        ControlPoints deBoor(Scalar t, int num_recurrsions) const {
-            const auto degree = Base::get_degree();
-            if (num_recurrsions < 0 || num_recurrsions > degree) {
-                throw invalid_setting_error(
-                        "Number of de Boor recurrsion cannot exceeds degree");
-            }
-
-            if (num_recurrsions == 0) {
-                return Base::m_control_points;
-            } else {
-                ControlPoints ctrl_pts = deBoor(t, num_recurrsions-1);
-                assert(ctrl_pts.rows() >= degree+1-num_recurrsions);
-                for (int i=0; i<degree+1-num_recurrsions; i++) {
-                    ctrl_pts.row(i) = (1.0-t) * ctrl_pts.row(i) + t * ctrl_pts.row(i+1);
-                }
-                return ctrl_pts;
-            }
+      void blossom(BlossomVector blossom_vector, int degree,
+                   ControlPoints &control_pts) const {
+        // Unfurl the standard de Boor recursion into two loops:
+        // if degree == 0
+        //   return c_i
+        // else:
+        //   return t*c_i + (1-t)*c_{i-1}
+        // The outer loop corresponds to the recursion; we build the final value
+        // in a bottom-up fashion. The base case degree==0 is implicitly
+        // performed because the control points are given as input.
+        // We then interpolate between (degree - rec_step) control points.
+        // After (degree) interpolations, the final value lives in
+        // control_pts(degree).
+        for (int rec_step = 1; rec_step <= degree; rec_step++) {
+          for (int j = degree; j >= rec_step; j--) {
+            Scalar t = blossom_vector(rec_step - 1);
+            control_pts.row(j) =
+                t * control_pts.row(j) + (1. - t) * control_pts.row(j - 1);
+          }
         }
+      }
+
+      Point deBoor(Scalar t, int degree, ControlPoints &control_pts) const {
+        // This function returns the degree+1 control points of a Bezier curve
+        // of degree "degree" after applying "degree" iterations of deBoor's
+        // algorithm
+        if (degree > 0) {
+
+          // Set t_i=t for all blossom evaluation points
+          BlossomVector blossom_vector(Base::get_degree());
+          blossom_vector.setConstant(t);
+
+          // Evaluate the blossom
+          blossom(blossom_vector, degree, control_pts);
+        }
+        return control_pts.row(degree);
+      }
 };
 
 template<typename _Scalar, int _dim>
