@@ -330,7 +330,7 @@ class BSplineBase : public CurveBase<_Scalar, _dim> {
                     m_knots.rows() - m_control_points.rows() - 1);
         }
 
-        bool in_domain(Scalar t) const {
+        bool in_domain(Scalar t) const override {
             constexpr Scalar eps = std::numeric_limits<Scalar>::epsilon();
             const int p = get_degree();
             const int num_knots = static_cast<int>(m_knots.rows());
@@ -339,12 +339,12 @@ class BSplineBase : public CurveBase<_Scalar, _dim> {
             return (t >= t_min - eps) && (t <= t_max + eps);
         }
 
-        Scalar get_domain_lower_bound() const {
+        Scalar get_domain_lower_bound() const override {
             const int p = get_degree();
             return m_knots[p];
         }
 
-        Scalar get_domain_upper_bound() const {
+        Scalar get_domain_upper_bound() const override {
             const int p = get_degree();
             const int num_knots = static_cast<int>(m_knots.rows());
             return m_knots[num_knots-p-1];

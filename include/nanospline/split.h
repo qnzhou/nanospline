@@ -20,15 +20,9 @@ std::vector<Bezier<Scalar, dim, degree, generic>> split(const Bezier<Scalar, dim
     }
     if (t == curve.get_domain_lower_bound()) {
         return std::vector<CurveType>{curve};
-//        std::vector<CurveType> results;
-//        results.push_back(curve);
-//        return results;
     }
     if (t == curve.get_domain_upper_bound()) {
         return std::vector<CurveType>{curve};
-//        std::vector<CurveType> results;
-//        results.push_back(curve);
-//        return results;
     }
     auto r = curve.split(t);
     return {r[0], r[1]};

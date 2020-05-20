@@ -75,7 +75,7 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
 
         void get_derivative_coefficients(int curve_degree, int knot_span,
                                          ControlPoints &control_pts) const {
-          int num_control_points = curve_degree + 1;
+          int num_control_points = curve_degree + 1; // TODO is this right?
           for (int i = 0; i < num_control_points; i++) {
             int index = i + knot_span + 1;
 

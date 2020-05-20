@@ -428,8 +428,8 @@ void validate_inverse_evaluation_3d(const PatchType& patch,
             auto true_uv(uv);
             true_uv[0] = u;
             true_uv[1] = v;
-            REQUIRE((p-q).norm() == Approx(0.05).margin(1e-15));
-            REQUIRE((true_uv - uv).norm() == Approx(0.0).margin(1e-14));
+            REQUIRE((p-q).norm() == Approx(0.05).margin(1e-11));
+            REQUIRE((true_uv - uv).norm() == Approx(0.0).margin(1e-8));
         }
     }
 

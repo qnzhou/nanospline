@@ -4,7 +4,8 @@
 #include <cassert>
 #include <Eigen/Core>
 #include <nanospline/Exceptions.h>
-
+#include <iostream>
+using namespace std;
 namespace nanospline {
 
 template<typename _Scalar, int _dim>
@@ -198,14 +199,13 @@ class PatchBase {
             Scalar u = uv[0];
             Scalar v = uv[1];
             UVPoint prev_uv = uv;
-            //Scalar prev_dist = std::numeric_limits<Scalar>::max();
+            Scalar prev_dist = std::numeric_limits<Scalar>::max();
             for (int i=0; i<num_iterations; i++) {
                 const Point r = this->evaluate(u, v) - p;
                 const Scalar dist = r.norm();
                 if (dist < tol) {
                     break;
                 }
-                /*
                  // Converges ok if left alone, could be a result of a poor
                  // initial guess
                 if (dist > prev_dist) {
@@ -213,8 +213,7 @@ class PatchBase {
                     // Use the best result so far.
                     return prev_uv;
                 }
-                //prev_dist = dist;
-                */
+                prev_dist = dist;
                 prev_uv = {u, v};
 
                 const Point Su = this->evaluate_derivative_u(u, v);

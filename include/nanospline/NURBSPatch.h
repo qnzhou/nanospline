@@ -30,10 +30,10 @@ class NURBSPatch final : public PatchBase<_Scalar, _dim> {
         }
 
     public:
-        int num_control_points_u() const {
+        int num_control_points_u() const override {
             return m_homogeneous.num_control_points_u();
         }
-        int num_control_points_v() const {
+        int num_control_points_v() const override {
             return m_homogeneous.num_control_points_v();
         }
         Point get_control_point(int i, int j) const override {

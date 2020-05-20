@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <nanospline/PatchBase.h>
 #include <nanospline/BSpline.h>
 #include <nanospline/split.h>
@@ -165,8 +166,9 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
                     num_control_points_u(),_dim);
             
             std::vector<IsoCurveV> iso_curves_v = get_all_iso_curves_v();
+             
             for (int i=0; i<num_control_points_u(); i++) {
-                IsoCurveV iso_curve = iso_curves_v[i];
+                IsoCurveV iso_curve = iso_curves_v[static_cast<size_t>(i)];
                 control_points_u.row(i) = iso_curve.evaluate(v);
             }
 
@@ -177,14 +179,13 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
         }
 
         IsoCurveV compute_iso_curve_v(Scalar u) const {
-            const auto num_v_knots = m_knots_v.size();
-            const int degree_v = Base::get_degree_v();
 
             typename IsoCurveV::ControlPoints control_points_v(
-                    num_v_knots-degree_v-1, _dim);
+                    num_control_points_v(), _dim);
             std::vector<IsoCurveU> iso_curves_u = get_all_iso_curves_u();
-            for (int j=0; j<num_v_knots-degree_v-1; j++) {
-                IsoCurveU iso_curve = iso_curves_u[j];
+            
+            for (int j=0; j<num_control_points_v(); j++) {
+                IsoCurveU iso_curve = iso_curves_u[static_cast<size_t>(j)];
                 control_points_v.row(j) = iso_curve.evaluate(u);
             }
 
@@ -260,20 +261,20 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
 
 
 
-        Point get_control_point(int ui, int vj) const {
+        Point get_control_point(int ui, int vj) const override {
             //const auto degree_v = Base::get_degree_v();
             //const auto row_size = m_knots_v.size() - degree_v - 1;
             //return Base::m_control_grid.row(ui*row_size + vj);
             return Base::m_control_grid.row( control_point_linear_index(ui,vj));
         }
 
-        int num_control_points_u() const{
+        int num_control_points_u() const override {
             const auto num_u_knots = get_num_knots_u();
             const int degree_u = Base::get_degree_u();
             return num_u_knots - degree_u - 1;
         }
         
-        int num_control_points_v() const{
+        int num_control_points_v() const override {
             const int num_v_knots = get_num_knots_v();
             const int degree_v = Base::get_degree_v();
             return num_v_knots - degree_v - 1;
@@ -350,61 +351,155 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
         
     public:
         // Split a patch into two patches along the vertical line at u
-        std::vector<ThisType> split_u(Scalar u) {
-            if(!this->in_domain_u(u)) {
-                throw invalid_setting_error("Parameter not inside of the domain.");
-            }
-          if (this->is_endpoint_u(u)){ // no split required
-              return std::vector<ThisType>{*this};
-          }
-          
-          const int num_split_patches = 2; // splitting one patch into two
-          std::vector<IsoCurveU> iso_curves_u = get_all_iso_curves_u();
-
-          // Initialize control grids of final split patches
-          std::vector<ControlGrid> split_control_pts_u(num_split_patches, 
-                  ControlGrid(this->num_control_points(), _dim));
-
-          KnotVector split_knots_less_than_u;
-          KnotVector split_knots_greater_than_u;
-          KnotVector split_knots_v = get_knots_v(); // v-knots are the same
-          for (int vj = 0; vj < num_control_points_v(); vj++) {
-            // split each isocurve
-            IsoCurveU iso_curve = iso_curves_u[vj];
-            std::vector<IsoCurveU> split_iso_curves = nanospline::split(iso_curve, u);
-            if (vj == 0) {
-              // all split curves have the same knot sequence, just grab one
-              // of them
-              split_knots_less_than_u = split_iso_curves[0].get_knots();
-              split_knots_greater_than_u = split_iso_curves[1].get_knots();
-            }
-            // Copy control points of each split curve to its proper place in
-            // the final control grid
-            for (int ci = 0; ci < num_split_patches; ci++) {
-              const auto &ctrl_pts = split_iso_curves[ci].get_control_points();
-
-              for (int ui = 0; ui < num_control_points_u(); ui++) {
-                int index = control_point_linear_index(ui, vj);
-                split_control_pts_u[ci].row(index) = ctrl_pts.row(ui);
-              }
-            }
-          }
-
-          // Initialize split patches with results
-          ThisType patch_less_than_u;
-          ThisType patch_greater_than_u;
-          patch_less_than_u.set_control_grid(split_control_pts_u[0]);
-          patch_less_than_u.set_knots_u(split_knots_less_than_u);
-          patch_less_than_u.set_knots_v(split_knots_v);
-
-          patch_greater_than_u.set_control_grid(split_control_pts_u[1]);
-          patch_greater_than_u.set_knots_u(split_knots_greater_than_u);
-          patch_greater_than_u.set_knots_v(split_knots_v);
-
-          return {patch_less_than_u, patch_greater_than_u};
+      std::vector<ThisType> split_u(Scalar u) {
+        if (!this->in_domain_u(u)) {
+          throw invalid_setting_error("Parameter not inside of the domain.");
         }
-        std::vector<ThisType> split_v(Scalar v) {
+        if (this->is_endpoint_u(u)) { // no split required
+          return std::vector<ThisType>{*this};
+        }
+
+        const size_t num_split_patches = 2; // splitting one patch into two
+
+        // split each isocurve
+        std::vector<IsoCurveU> iso_curves_u = get_all_iso_curves_u();
+        std::vector<std::vector<IsoCurveU>> split_iso_curves;
+        split_iso_curves.reserve(static_cast<size_t>(num_control_points_v()));
+
+        for (int vj = 0; vj < num_control_points_v(); vj++) {
+          IsoCurveU iso_curve = iso_curves_u[static_cast<size_t>(vj)];
+          std::vector<IsoCurveU> iso_curve_parts =
+              nanospline::split(iso_curve, u);
+          split_iso_curves.push_back(iso_curve_parts);
+        }
+
+        // all split curves have the same knot sequence, degree, and number of
+        // control points; just grab the values from one of them
+        vector<IsoCurveU> reference_split_curves = split_iso_curves[0];
+
+        // Initialize control grids of final split patches
+        std::vector<ControlGrid> split_control_pts_u;
+        for (const auto ref_curve : reference_split_curves) {
+          int num_ctrl_pts =
+              static_cast<int>(ref_curve.get_control_points().rows());
+
+          split_control_pts_u.push_back(
+              ControlGrid(num_ctrl_pts * num_control_points_v(), _dim));
+        }
+        for (int vj = 0; vj < num_control_points_v(); vj++) {
+
+          std::vector<IsoCurveU> iso_curve_parts = split_iso_curves[static_cast<size_t>(vj)];
+          // Copy control points of each split curve to its proper place in
+          // the final control grid
+          for (size_t ci = 0; ci < num_split_patches; ci++) {
+            const auto &ctrl_pts = iso_curve_parts[ci].get_control_points();
+            const int num_split_ctrl_pts_u = static_cast<int>(ctrl_pts.rows());
+
+            for (int ui = 0; ui < num_split_ctrl_pts_u; ui++) {
+              int index = control_point_linear_index(ui, vj);
+              split_control_pts_u[ci].row(index) = ctrl_pts.row(ui);
+            }
+          }
+        }
+
+        // Initialize resulting split curves
+        vector<ThisType> results(num_split_patches, ThisType());
+        for (size_t ci = 0; ci < num_split_patches; ci++) {
+          IsoCurveU ref_curve = reference_split_curves[ci];
+          ThisType split_patch;
+          split_patch.set_control_grid(split_control_pts_u[ci]);
+          split_patch.set_knots_u(ref_curve.get_knots());
+          split_patch.set_knots_v(get_knots_v());
+
+          if (_degree_u < 0 || _degree_v < 0) {
+            split_patch.set_degree_u(ref_curve.get_degree());
+            split_patch.set_degree_v(Base::get_degree_v());
+          }
+          results[ci] = split_patch;
+        }
+        return results;
+      }
+      
+
+      std::vector<ThisType> split_v(Scalar v) {
+        if (!this->in_domain_v(v)) {
+          throw invalid_setting_error("Parameter not inside of the domain.");
+        }
+        if (this->is_endpoint_v(v)) { // no split required
+          return std::vector<ThisType>{*this};
+        }
+
+        const size_t num_split_patches = 2; // splitting one patch into two
+
+        // split each isocurve
+        std::vector<IsoCurveV> iso_curves_v = get_all_iso_curves_v();
+        std::vector<std::vector<IsoCurveV>> split_iso_curves;
+        split_iso_curves.reserve(static_cast<size_t>(num_control_points_u()));
+
+        for (int ui = 0; ui < num_control_points_u(); ui++) {
+          IsoCurveV iso_curve = iso_curves_v[static_cast<size_t>(ui)];
+          std::vector<IsoCurveV> iso_curve_parts = nanospline::split(iso_curve, v);
+          split_iso_curves.push_back(iso_curve_parts);
+        }
+
+        // all split curves have the same knot sequence, degree, and number of
+        // control points; just grab the values from one of them
+        vector<IsoCurveV> reference_split_curves = split_iso_curves[0];
+
+        // Initialize control grids of final split patches
+        std::vector<ControlGrid> split_control_pts_v;
+        for (const auto ref_curve : reference_split_curves) {
+          int num_ctrl_pts =
+              static_cast<int>(ref_curve.get_control_points().rows());
+
+          split_control_pts_v.push_back(
+              ControlGrid(num_ctrl_pts * num_control_points_u(), _dim));
+        }
+        for (int ui = 0; ui < num_control_points_u(); ui++) {
+
+          std::vector<IsoCurveU> iso_curve_parts = split_iso_curves[static_cast<size_t>(ui)];
+          // Copy control points of each split curve to its proper place in
+          // the final control grid
+          for (size_t ci = 0; ci < num_split_patches; ci++) {
+            const auto &ctrl_pts = iso_curve_parts[ci].get_control_points();
+            const int num_split_ctrl_pts_v = static_cast<int>(ctrl_pts.rows());
+
+            for (int vj = 0; vj < num_split_ctrl_pts_v; vj++) {
+              int index = control_point_linear_index(ui, vj);
+              split_control_pts_v[ci].row(index) = ctrl_pts.row(vj);
+            }
+          }
+        }
+
+        // Initialize resulting split curves
+        vector<ThisType> results(num_split_patches, ThisType());
+        for (size_t ci = 0; ci < num_split_patches; ci++) {
+          IsoCurveU ref_curve = reference_split_curves[ci];
+          ThisType split_patch;
+          split_patch.set_control_grid(split_control_pts_v[ci]);
+          split_patch.set_knots_v(ref_curve.get_knots());
+          split_patch.set_knots_u(get_knots_u());
+
+          if (_degree_u < 0 || _degree_v < 0) {
+            split_patch.set_degree_v(ref_curve.get_degree());
+            split_patch.set_degree_u(Base::get_degree_u());
+          }
+          results[ci] = split_patch;
+        }
+        return results;
+      }
+        
+        /*std::vector<ThisType> split_v(Scalar v) {
             if(!this->in_domain_v(v)) {
+              cout.precision(16);
+              cout << "not in domain.. " <<  ", " << v << ", " <<  
+              "in/out: " << ", " <<  this->in_domain_v(v) << endl;
+                  cout << "v_min,v_max: " << this->get_v_lower_bound() << ", " << this->get_v_upper_bound() << endl;
+            constexpr Scalar eps = std::numeric_limits<Scalar>::epsilon();
+            //const Scalar v_min = get_v_lower_bound();
+            //const Scalar v_max = get_v_upper_bound();
+            //return (u >= v_min - eps) && (u <= v_max + eps);
+              cout << "v_min,v_max +- eps: " << this->get_v_lower_bound() -eps << ", " << this->get_v_upper_bound()+eps << endl;
                 throw invalid_setting_error("Parameter not inside of the domain.");
             }
           if (this->is_endpoint_v(v)){ // no split required
@@ -453,12 +548,28 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
           patch_greater_than_v.set_control_grid(split_control_pts_v[1]);
           patch_greater_than_v.set_knots_u(split_knots_u);
           patch_greater_than_v.set_knots_v(split_knots_greater_than_v);
+          
+          if(_degree_u <= 0 || _degree_v <= 0){
+              patch_less_than_v.set_degree_u(Base::get_degree_u());
+              patch_less_than_v.set_degree_v(Base::get_degree_v());
+              patch_greater_than_v.set_degree_v(Base::get_degree_v());
+              patch_greater_than_v.set_degree_u(Base::get_degree_u());
+          }
 
           return {patch_less_than_v, patch_greater_than_v};
-        }
+        }*/
 
         std::vector<ThisType> split(Scalar u, Scalar v) {
           if (!this->in_domain(u, v)) {
+              cout.precision(16);
+              cout << "not in domain.. " << u << ", " << v << ", " <<  
+              "in/out: " <<this->in_domain_u(u) << ", " <<  this->in_domain_v(v) << endl;
+                  cout << "v_min,v_max: " << this->get_v_lower_bound() << ", " << this->get_v_upper_bound() << endl;
+            constexpr Scalar eps = std::numeric_limits<Scalar>::epsilon();
+            //const Scalar v_min = get_v_lower_bound();
+            //const Scalar v_max = get_v_upper_bound();
+            //return (u >= v_min - eps) && (u <= v_max + eps);
+              cout << "v_min,v_max +- eps: " << this->get_v_lower_bound() -eps << ", " << this->get_v_upper_bound()+eps << endl;
             throw invalid_setting_error("Parameter not inside of the domain.");
           }
           if (this->is_endpoint_u(u) &&

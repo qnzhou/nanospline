@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <nanospline/PatchBase.h>
 #include <nanospline/split.h>
 #include <nanospline/Bezier.h>
@@ -107,7 +108,7 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
             
             std::vector<IsoCurveV> iso_curves_v = get_all_iso_curves_v();
             for (int i=0; i < num_control_points_u(); i++) {
-                IsoCurveV iso_curve_v = iso_curves_v[i];
+                IsoCurveV iso_curve_v = iso_curves_v[size_t(i)];
                 control_points_u.row(i) = iso_curve_v.evaluate(v);
             }
 
@@ -121,7 +122,7 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
             
             std::vector<IsoCurveU> iso_curves_u = get_all_iso_curves_u();
             for (int i=0; i < num_control_points_v(); i++) {
-                IsoCurveU iso_curve = iso_curves_u[i];
+                IsoCurveU iso_curve = iso_curves_u[size_t(i)];
                 control_points_v.row(i) = iso_curve.evaluate(u);
             }
             IsoCurveV iso_curve_v;
@@ -208,14 +209,14 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
         }
 
 
-        Point get_control_point(int ui, int vj) const {
+        Point get_control_point(int ui, int vj) const override {
             return Base::m_control_grid.row(ui*num_control_points_v()+vj);
         }
-        int num_control_points_u() const{
+        int num_control_points_u() const override {
             const int degree_u = Base::get_degree_u();
             return degree_u + 1;
         }
-        int num_control_points_v() const{
+        int num_control_points_v() const override {
             const int degree_v = Base::get_degree_v();
             return degree_v + 1;
         }
@@ -283,12 +284,12 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
 
           for (int vj = 0; vj < num_control_points_v(); vj++) {
             // split each isocurve
-            IsoCurveU iso_curve = iso_curves_u[vj];
+            IsoCurveU iso_curve = iso_curves_u[static_cast<size_t>(vj)];
             std::vector<IsoCurveU> split_iso_curves = nanospline::split(iso_curve, u);
 
             // Copy control points of each split curve to its proper place in
             // the final control grid
-            for (int ci = 0; ci < num_split_patches; ci++) {
+            for (size_t ci = 0; ci < num_split_patches; ci++) {
               const auto &ctrl_pts = split_iso_curves[ci].get_control_points();
 
               for (int ui = 0; ui < num_control_points_u(); ui++) {
@@ -318,12 +319,12 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
 
           for (int ui = 0; ui < num_control_points_u(); ui++) {
             // split each isocurve
-            IsoCurveV iso_curve = iso_curves_v[ui];
+            IsoCurveV iso_curve = iso_curves_v[static_cast<size_t>(ui)];
             std::vector<IsoCurveV> split_iso_curves = iso_curve.split(v);
 
             // Copy control points of each split curve to its proper place in
             // the final control grid
-            for (int ci = 0; ci < num_split_patches; ci++) {
+            for (size_t ci = 0; ci < num_split_patches; ci++) {
               auto ctrl_pts = split_iso_curves[ci].get_control_points();
 
               for (int vj = 0; vj < num_control_points_v(); vj++) {
