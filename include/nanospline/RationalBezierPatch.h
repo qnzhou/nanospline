@@ -17,6 +17,7 @@ class RationalBezierPatch final : public PatchBase<_Scalar, _dim> {
         using Base = PatchBase<_Scalar, _dim>;
         using Scalar = typename Base::Scalar;
         using Point = typename Base::Point;
+        using ThisType = RationalBezierPatch<_Scalar, _dim, _degree_u, _degree_v>;
         using ControlGrid = typename Base::ControlGrid;
         using Weights = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
         using BezierPatchHomogeneous = BezierPatch<Scalar, _dim+1, _degree_u, _degree_v>;
@@ -143,6 +144,16 @@ class RationalBezierPatch final : public PatchBase<_Scalar, _dim> {
             m_homogeneous.set_degree_v(Base::get_degree_v());
             m_homogeneous.initialize();
         }
+        
+        void set_homogeneous(const BezierPatchHomogeneous& homogeneous) {
+            const auto ctrl_pts = homogeneous.get_control_grid();
+            m_homogeneous = homogeneous;
+            m_weights = ctrl_pts.template rightCols<1>();
+            Base::m_control_grid =
+                ctrl_pts.template leftCols<_dim>().array().colwise()
+                / m_weights.array();
+            validate_initialization();
+        }
 
         Scalar get_u_lower_bound() const override {
             return 0.0;
@@ -193,6 +204,43 @@ class RationalBezierPatch final : public PatchBase<_Scalar, _dim> {
         const BezierPatchHomogeneous& get_homogeneous() const {
             return m_homogeneous;
         }
+        
+        std::vector<ThisType> split_u(Scalar u){
+            const auto parts = m_homogeneous.split_u(u);
+            std::vector<ThisType> results;
+            results.reserve(2);
+            for (const auto& c : parts) {
+                results.emplace_back();
+                results.back().set_homogeneous(c);
+            }
+            return results;
+
+        }
+        
+        std::vector<ThisType> split_v(Scalar v){
+            const auto parts = m_homogeneous.split_v(v);
+            std::vector<ThisType> results;
+            results.reserve(2);
+            for (const auto& c : parts) {
+                results.emplace_back();
+                results.back().set_homogeneous(c);
+            }
+            return results;
+
+        }
+        
+        std::vector<ThisType> split(Scalar u, Scalar v){
+            const auto parts = m_homogeneous.split(u,v);
+            std::vector<ThisType> results;
+            results.reserve(4);
+            for (const auto& c : parts) {
+                results.emplace_back();
+                results.back().set_homogeneous(c);
+            }
+            return results;
+
+        }
+
 
     protected:
         std::tuple<Point, Scalar> get_control_point_and_weight(int ui, int vj) const {

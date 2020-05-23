@@ -33,9 +33,6 @@ std::vector<RationalBezier<Scalar, dim, degree, generic>> split(const RationalBe
     using CurveType = RationalBezier<Scalar, dim, degree, generic>;
     const auto homogeneous = curve.get_homogeneous();
     const auto parts = split(homogeneous, t);
-    //std::vector<CurveType> results(2);
-    //results[0].set_homogeneous(parts[0]);
-    //results[1].set_homogeneous(parts[1]);
     std::vector<CurveType> results;
     results.reserve(2);
     for (const auto& c : parts) {

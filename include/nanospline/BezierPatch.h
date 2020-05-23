@@ -100,7 +100,7 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
         Scalar get_v_upper_bound() const override {
             return 1.0;
         }
-
+        
 
     public:
         IsoCurveU compute_iso_curve_u(Scalar v) const {
@@ -320,7 +320,7 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
           for (int ui = 0; ui < num_control_points_u(); ui++) {
             // split each isocurve
             IsoCurveV iso_curve = iso_curves_v[static_cast<size_t>(ui)];
-            std::vector<IsoCurveV> split_iso_curves = iso_curve.split(v);
+            std::vector<IsoCurveV> split_iso_curves = nanospline::split(iso_curve, v);
 
             // Copy control points of each split curve to its proper place in
             // the final control grid

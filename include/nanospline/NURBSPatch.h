@@ -17,6 +17,7 @@ class NURBSPatch final : public PatchBase<_Scalar, _dim> {
         using Scalar = typename Base::Scalar;
         using Point = typename Base::Point;
         using ControlGrid = typename Base::ControlGrid;
+        using ThisType = NURBSPatch<_Scalar, _dim, _degree_u, _degree_v>;
         using Weights = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
         using KnotVector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
         using BSplinePatchHomogeneous = BSplinePatch<Scalar, _dim+1, _degree_u, _degree_v>;
@@ -232,6 +233,54 @@ class NURBSPatch final : public PatchBase<_Scalar, _dim> {
 
         const BSplinePatchHomogeneous& get_homogeneous() const {
             return m_homogeneous;
+        }
+        
+        void set_homogeneous(const BSplinePatchHomogeneous& homogeneous) {
+            const auto ctrl_pts = homogeneous.get_control_grid();
+            m_homogeneous = homogeneous;
+            m_weights = ctrl_pts.template rightCols<1>();
+            Base::m_control_grid =
+                ctrl_pts.template leftCols<_dim>().array().colwise()
+                / m_weights.array();
+            m_knots_u = homogeneous.get_knots_u();
+            m_knots_v = homogeneous.get_knots_v();
+            validate_initialization();
+        }
+        
+        std::vector<ThisType> split_u(Scalar u){
+            const auto parts = m_homogeneous.split_u(u);
+            std::vector<ThisType> results;
+            results.reserve(2);
+            for (const auto& c : parts) {
+                results.emplace_back();
+                results.back().set_homogeneous(c);
+            }
+            return results;
+
+        }
+        
+        std::vector<ThisType> split_v(Scalar v){
+            const auto parts = m_homogeneous.split_v(v);
+            std::vector<ThisType> results;
+            results.reserve(2);
+            for (const auto& c : parts) {
+                results.emplace_back();
+                results.back().set_homogeneous(c);
+            }
+            return results;
+
+        }
+        
+        std::vector<ThisType> split(Scalar u, Scalar v){
+            const auto parts = m_homogeneous.split(u,v);
+            std::vector<ThisType> results;
+            results.reserve(4);
+            for (const auto& c : parts) {
+                results.emplace_back();
+                results.back().set_homogeneous(c);
+            }
+            return results;
+
         }
 
     private:
