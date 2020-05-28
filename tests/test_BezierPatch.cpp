@@ -44,7 +44,6 @@ TEST_CASE("BeizerPatch", "[nonrational][bezier_patch]") {
         validate_inverse_evaluation(patch, 10, 10);
         validate_inverse_evaluation_3d(patch, 10, 10);
     }
-
     SECTION("Bilinear patch non-planar") {
         BezierPatch<Scalar, 3, 1, 1> patch;
         Eigen::Matrix<Scalar, 4, 3> control_grid;
@@ -73,13 +72,12 @@ TEST_CASE("BeizerPatch", "[nonrational][bezier_patch]") {
         REQUIRE(p_mid[1] == Approx(0.5));
         REQUIRE(p_mid[2] == Approx(0.5));
 
-        validate_iso_curves(patch, 10);
-        validate_derivative(patch, 10, 10);
-        validate_derivative_patches(patch, 10, 10);
+        //validate_iso_curves(patch, 10);
+        //validate_derivative(patch, 10, 10);
+        //validate_derivative_patches(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
         validate_inverse_evaluation_3d(patch, 10, 10);
     }
-
     SECTION("Cubic patch") {
         BezierPatch<Scalar, 3, 3, 3> patch;
         Eigen::Matrix<Scalar, 16, 3> control_grid;

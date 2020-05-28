@@ -15,6 +15,7 @@ class PatchBase {
         using Point = Eigen::Matrix<Scalar, 1, _dim>;
         using UVPoint = Eigen::Matrix<Scalar, 1, 2>;
         using ControlGrid = Eigen::Matrix<Scalar, Eigen::Dynamic, _dim>;
+        using ThisType = PatchBase<_Scalar,_dim>;
 
     public:
         virtual ~PatchBase() = default;
@@ -32,7 +33,15 @@ class PatchBase {
         virtual Point get_control_point(int i, int j) const =0;
         virtual int num_control_points_u() const = 0;
         virtual int num_control_points_v() const = 0;
+        virtual UVPoint get_control_point_preimage(int i, int j) const = 0;
 
+        /*virtual UVPoint approximate_inverse_evaluate(const Point& p,
+                const int num_samples,
+                const Scalar min_u,
+                const Scalar max_u,
+                const Scalar min_v,
+                const Scalar max_v,
+                const int level=3) const = 0;*/
 
     public:
         virtual UVPoint inverse_evaluate(const Point& p,
@@ -44,7 +53,7 @@ class PatchBase {
                 std::numeric_limits<Scalar>::epsilon() * 100;
             const int num_samples = std::max(m_degree_u, m_degree_v) + 1;
             UVPoint uv = approximate_inverse_evaluate(p, num_samples,
-                    min_u, max_u, min_v, max_v);
+                    min_u, max_u, min_v, max_v, 8);
             return newton_raphson(p, uv, 20, TOL,
                     min_u, max_u, min_v, max_v);
         }
@@ -67,11 +76,11 @@ class PatchBase {
             const Scalar v_max = get_v_upper_bound();
             return (v >= v_min - eps) && (v <= v_max + eps);
         }
-        bool is_endpoint_u(Scalar u){
+        bool is_endpoint_u(Scalar u) const {
             return u == get_u_lower_bound() || u == get_u_upper_bound();
         }
         
-        bool is_endpoint_v(Scalar v){
+        bool is_endpoint_v(Scalar v) const {
             return v == get_v_lower_bound() || v == get_v_upper_bound();
         }
         bool in_domain(Scalar u, Scalar v) const {
@@ -139,25 +148,14 @@ class PatchBase {
         }
 
     protected:
-        UVPoint approximate_inverse_evaluate(const Point& p,
+        UVPoint virtual approximate_inverse_evaluate(const Point& p,
                 const int num_samples,
                 const Scalar min_u,
                 const Scalar max_u,
                 const Scalar min_v,
                 const Scalar max_v,
                 const int level=3) const {
-            // 1. find closest control point
-            // TODO implement get_control_point(i,j)
             
-            // Control points c_{i+/-1,j+/-1} bound the domain
-            // 2. find subdomain corresponding to control point subdomain boundary
-            // TODO implement get_greville_abcissa
-            
-            // 3. split curve to find ctrl points on subdomain
-            // TODO implement patch split in parent class
-            
-            // repeat recursively
-           
             UVPoint uv(min_u, min_v);
             Scalar min_dist = std::numeric_limits<Scalar>::max();
             for (int i=0; i<=num_samples; i++) {
@@ -178,7 +176,7 @@ class PatchBase {
             } else {
                 const auto delta_u = (max_u-min_u) / num_samples;
                 const auto delta_v = (max_v-min_v) / num_samples;
-                return approximate_inverse_evaluate(p, num_samples,
+                return PatchBase::approximate_inverse_evaluate(p, num_samples,
                         std::max(uv[0]-delta_u, min_u),
                         std::min(uv[0]+delta_u, max_u),
                         std::max(uv[1]-delta_v, min_v),

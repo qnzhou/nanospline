@@ -395,6 +395,7 @@ template<typename _Scalar, int _dim>
 class Bezier<_Scalar, _dim, 1, false> final : public BezierBase<_Scalar, _dim, 1, false> {
     public:
         using Base = BezierBase<_Scalar, _dim, 1, false>;
+        using ThisType = Bezier<_Scalar, _dim, 1, false>;
         using Scalar = typename Base::Scalar;
         using Point = typename Base::Point;
         using ControlPoints = typename Base::ControlPoints;
@@ -452,12 +453,38 @@ class Bezier<_Scalar, _dim, 1, false> final : public BezierBase<_Scalar, _dim, 1
             new_curve.set_control_points(std::move(ctrl_pts));
             return new_curve;
         }
+        
+        std::vector<ThisType> split(Scalar t) const {
+            if (!this->is_split_point_valid(t)) {
+                return std::vector<ThisType>{*this};
+            }
+            // Copy intentionally.
+            auto ctrl_pts = Base::get_control_points();
+
+            ControlPoints ctrl_pts_1(2, _dim);
+            ControlPoints ctrl_pts_2(2, _dim);
+
+            for (int i=0; i<=1; i++) {
+                ctrl_pts_1.row(i) = ctrl_pts.row(0);
+                ctrl_pts_2.row(1-i) = ctrl_pts.row(1-i);
+                for (int j=0; j<1-i; j++) {
+                    ctrl_pts.row(j) = (1.0-t) * ctrl_pts.row(j) + t * ctrl_pts.row(j+1);
+                }
+            }
+
+            std::vector<ThisType> results(2, ThisType());
+            results[0].set_control_points(std::move(ctrl_pts_1));
+            results[1].set_control_points(std::move(ctrl_pts_2));
+
+            return results;
+        }
 };
 
 template<typename _Scalar, int _dim>
 class Bezier<_Scalar, _dim, 2, false> final : public BezierBase<_Scalar, _dim, 2, false> {
     public:
         using Base = BezierBase<_Scalar, _dim, 2, false>;
+        using ThisType = Bezier<_Scalar, _dim, 2, false>;
         using Scalar = typename Base::Scalar;
         using Point = typename Base::Point;
         using ControlPoints = typename Base::ControlPoints;
@@ -588,6 +615,31 @@ class Bezier<_Scalar, _dim, 2, false> final : public BezierBase<_Scalar, _dim, 2
             ctrl_pts.row(3) = Base::m_control_points.row(2);
             new_curve.set_control_points(std::move(ctrl_pts));
             return new_curve;
+        }
+        
+        std::vector<ThisType> split(Scalar t) const {
+            if (!this->is_split_point_valid(t)) {
+                return std::vector<ThisType>{*this};
+            }
+            // Copy intentionally.
+            auto ctrl_pts = Base::get_control_points();
+
+            ControlPoints ctrl_pts_1(3, _dim);
+            ControlPoints ctrl_pts_2(3, _dim);
+
+            for (int i=0; i<=2; i++) {
+                ctrl_pts_1.row(i) = ctrl_pts.row(0);
+                ctrl_pts_2.row(2-i) = ctrl_pts.row(2-i);
+                for (int j=0; j<2-i; j++) {
+                    ctrl_pts.row(j) = (1.0-t) * ctrl_pts.row(j) + t * ctrl_pts.row(j+1);
+                }
+            }
+
+            std::vector<ThisType> results(2, ThisType());
+            results[0].set_control_points(std::move(ctrl_pts_1));
+            results[1].set_control_points(std::move(ctrl_pts_2));
+
+            return results;
         }
 };
 
@@ -796,7 +848,7 @@ class Bezier<_Scalar, _dim, 3, false> final : public BezierBase<_Scalar, _dim, 3
             if(this->is_split_point_valid(t0) && this->is_split_point_valid(t1)){
             }
             bool t0_is_endpt = t0 == this->get_domain_lower_bound();
-            bool t1_is_endpt = t1 == this->get_domain_lower_bound();
+            bool t1_is_endpt = t1 == this->get_domain_upper_bound();
             
             if(t0_is_endpt && t1_is_endpt){
                 return *this;  // identity: return the current curve

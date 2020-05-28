@@ -16,6 +16,7 @@ class RationalBezierPatch final : public PatchBase<_Scalar, _dim> {
 
         using Base = PatchBase<_Scalar, _dim>;
         using Scalar = typename Base::Scalar;
+        using UVPoint = typename Base::UVPoint;
         using Point = typename Base::Point;
         using ThisType = RationalBezierPatch<_Scalar, _dim, _degree_u, _degree_v>;
         using ControlGrid = typename Base::ControlGrid;
@@ -36,6 +37,9 @@ class RationalBezierPatch final : public PatchBase<_Scalar, _dim> {
         }
         int num_control_points_v() const override {
             return m_homogeneous.num_control_points_v();
+        }
+        UVPoint get_control_point_preimage(int i, int j) const override {
+            return m_homogeneous.get_control_point_preimage(i, j);
         }
         Point get_control_point(int i, int j) const override {
             Eigen::Matrix<Scalar, 1, _dim+1> control_point = m_homogeneous.get_control_point(i,j);
@@ -238,6 +242,62 @@ class RationalBezierPatch final : public PatchBase<_Scalar, _dim> {
                 results.back().set_homogeneous(c);
             }
             return results;
+
+        }
+        
+        UVPoint approximate_inverse_evaluate(const Point& p,
+                const int num_samples,
+                const Scalar min_u,
+                const Scalar max_u,
+                const Scalar min_v,
+                const Scalar max_v,
+                const int level=3) const {
+            
+            // 1. find closest control point
+            Scalar min_dist = std::numeric_limits<Scalar>::max();
+            int i_min, j_min;
+            for (int ui = 0; ui < num_control_points_u(); ui++) {
+              for (int vj = 0; vj < num_control_points_v(); vj++) {
+                  Point control_point = get_control_point(ui, vj);
+                 const auto dist = (p - control_point).squaredNorm();
+                 cout << dist << ", " << min_dist << endl;
+                 //cout << "dist < min_dist: " << int(dist < min_dist )<< endl;
+
+                 if(dist < min_dist){
+                     min_dist = dist;
+                     i_min = ui;
+                     j_min = vj;
+
+                 }
+              }
+            }
+            if (level <= 0) {
+                return get_control_point_preimage(i_min, j_min);
+
+            } else {
+
+            // Control points c_{i+/-1,j+/-1} bound the domain
+            // 2. find subdomain corresponding to control point subdomain boundary
+            UVPoint uv_min = get_control_point_preimage(
+                    i_min > 0 ? i_min-1: i_min,
+                    j_min > 0 ? j_min-1: j_min);
+            UVPoint uv_max = get_control_point_preimage(
+                    i_min < num_control_points_u() ? i_min+1 : i_min,
+                    j_min < num_control_points_v() ? j_min+1 : j_min);
+            cout << "min, max:  " << uv_min << ", " << uv_max << endl;
+            // 3. split curve to find ctrl points on subdomain
+            // TODO implement patch split in parent class
+            
+            // repeat recursively
+            // TODO remap solution up through affine subdomain transformations
+                return approximate_inverse_evaluate(p, num_samples,
+                        std::max(uv_min(0), min_u),
+                        std::min(uv_max(0), max_u),
+                        std::max(uv_min(1), min_v),
+                        std::min(uv_max(1), max_v),
+                        level-1);
+            }
+
 
         }
 

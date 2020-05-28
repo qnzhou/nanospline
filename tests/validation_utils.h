@@ -399,7 +399,7 @@ void validate_inverse_evaluation(const PatchType& patch,
             const auto q = patch.evaluate(u, v);
             const auto uv = patch.inverse_evaluate(q, u_min, u_max, v_min, v_max);
             const auto p = patch.evaluate(uv[0], uv[1]);
-            REQUIRE((p-q).norm() == Approx(0.0).margin(1e-12));
+            REQUIRE((p-q).norm() == Approx(0.0).margin(1e-13));
         }
     }
 
@@ -428,7 +428,7 @@ void validate_inverse_evaluation_3d(const PatchType& patch,
             auto true_uv(uv);
             true_uv[0] = u;
             true_uv[1] = v;
-            REQUIRE((p-q).norm() == Approx(0.05).margin(1e-11));
+            REQUIRE((p-q).norm() == Approx(0.05).margin(1e-13));
             REQUIRE((true_uv - uv).norm() == Approx(0.0).margin(1e-8));
         }
     }
