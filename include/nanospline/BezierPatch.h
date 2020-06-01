@@ -468,7 +468,8 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
             
             // 1. find closest control point
             Scalar min_dist = std::numeric_limits<Scalar>::max();
-            int i_min, j_min;
+            int i_min =0;
+            int j_min =0;
             for (int ui = 0; ui < num_control_points_u(); ui++) {
               for (int vj = 0; vj < num_control_points_v(); vj++) {
                   Point control_point = get_control_point(ui, vj);

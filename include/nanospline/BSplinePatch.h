@@ -125,13 +125,13 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
           UVPoint preimage;
           preimage.setZero();
           for (int k = 0; k < Base::get_degree_u(); k++) {
-            preimage(0) += m_knots_u[i + k];
+            preimage(0) += m_knots_u[1+i + k];
           }
-          preimage(0) = preimage(0) / Base::get_degree_u();
+          preimage(0) = preimage(0) / Scalar(Base::get_degree_u());
           for (int k = 0; k < Base::get_degree_v(); k++) {
-            preimage(1) += m_knots_v[j + k];
+            preimage(1) += m_knots_v[1+j + k];
           }
-          preimage(1) = preimage(1) / Base::get_degree_v();
+          preimage(1) = preimage(1) / Scalar(Base::get_degree_v());
           return preimage;
         }
 
@@ -412,6 +412,7 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
 
             for (int ui = 0; ui < num_split_ctrl_pts_u; ui++) {
               int index = control_point_linear_index(ui, vj);
+              //int index = ui*(num_split_ctrl_pts_u) + vj;//control_point_linear_index(ui, vj);
               split_control_pts_u[ci].row(index) = ctrl_pts.row(ui);
             }
           }
@@ -445,7 +446,6 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
         }
 
         const size_t num_split_patches = 2; // splitting one patch into two
-
         // split each isocurve
         std::vector<IsoCurveV> iso_curves_v = get_all_iso_curves_v();
         std::vector<std::vector<IsoCurveV>> split_iso_curves;
@@ -480,11 +480,14 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
             const int num_split_ctrl_pts_v = static_cast<int>(ctrl_pts.rows());
 
             for (int vj = 0; vj < num_split_ctrl_pts_v; vj++) {
-              int index = control_point_linear_index(ui, vj);
+              int index = ui*(num_split_ctrl_pts_v) + vj;//control_point_linear_index(ui, vj);
+              //int index = control_point_linear_index(ui, vj);
+            
               split_control_pts_v[ci].row(index) = ctrl_pts.row(vj);
             }
           }
         }
+
 
         // Initialize resulting split curves
         vector<ThisType> results(num_split_patches, ThisType());
@@ -559,14 +562,16 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
           if (u_min > u_max) {
             throw invalid_setting_error("u_min must be smaller than u_max");
           }
-          if (u_min < 0 || u_min > 1 || u_max < 0 || u_max > 1) {
+          
+          if(!this->in_domain_u(u_min) || !this->in_domain_u(u_max)) {
             throw invalid_setting_error("Invalid range in subcurve: u");
           }
+         
           if (v_min > v_max) {
             throw invalid_setting_error("v_min must be smaller than v_max");
           }
-          if (v_min < 0 || v_min > 1 || v_max < 0 || v_max > 1) {
-            throw invalid_setting_error("Invalid range in subcurve: u");
+          if(!this->in_domain_v(v_min) || !this->in_domain_v(v_max)) {
+            throw invalid_setting_error("Invalid range in subcurve: v");
           }
           //if (this->is_endpoint_u(u) &&
           //this->is_endpoint_v(v)) { // no splitting required
@@ -620,12 +625,13 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
             // point doesn't restrict the search at all; default to the parent
             // class function based on sampling where resolution isn't an issue
             if (Base::get_degree_u() < 2 || Base::get_degree_v() < 2){
-                return Base::approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v);
+                return Base::approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v, level);
             }
             
             // 1. find closest control point
             Scalar min_dist = std::numeric_limits<Scalar>::max();
-            int i_min, j_min;
+            int i_min =0;
+            int j_min =0;
             for (int ui = 0; ui < num_control_points_u(); ui++) {
               for (int vj = 0; vj < num_control_points_v(); vj++) {
                   Point control_point = get_control_point(ui, vj);
@@ -652,7 +658,6 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
             UVPoint uv_max = get_control_point_preimage(
                     i_min < num_control_points_u() -1? i_min+1 : i_min,
                     j_min < num_control_points_v() -1? j_min+1 : j_min);
-            
             // 3. split a subcurve to find closest ctrl points on subdomain
             ThisType patch = subpatch(uv_min(0), uv_max(0), uv_min(1), uv_max(1));
 
@@ -660,8 +665,8 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
             UVPoint uv =  patch.approximate_inverse_evaluate(p, num_samples,
             uv_min(0), uv_max(0), uv_min(1), uv_max(1), level-1);
             // remap solution up through affine subdomain transformations
-            uv(0) = (uv_max(0)-uv_min(0))*uv(0) + uv_min(0);
-            uv(1) = (uv_max(1)-uv_min(1))*uv(1) + uv_min(1);
+            //uv(0) = (uv_max(0)-uv_min(0))*uv(0) + uv_min(0);
+            //uv(1) = (uv_max(1)-uv_min(1))*uv(1) + uv_min(1);
 
             return uv;
             }

@@ -8,7 +8,9 @@
 #include <nanospline/Exceptions.h>
 #include <nanospline/BSplineBase.h>
 #include <nanospline/Bezier.h>
-
+#include <iostream>
+using std::cout;
+using std::endl;
 namespace nanospline {
 
 template<typename _Scalar, int _dim=3, int _degree=3, bool _generic=_degree<0 >

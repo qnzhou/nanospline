@@ -53,7 +53,7 @@ class PatchBase {
                 std::numeric_limits<Scalar>::epsilon() * 100;
             const int num_samples = std::max(m_degree_u, m_degree_v) + 1;
             UVPoint uv = approximate_inverse_evaluate(p, num_samples,
-                    min_u, max_u, min_v, max_v, 8);
+                    min_u, max_u, min_v, max_v, 10);
             return newton_raphson(p, uv, 20, TOL,
                     min_u, max_u, min_v, max_v);
         }
