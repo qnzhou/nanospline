@@ -3,9 +3,6 @@
 #include <catch2/catch.hpp>
 #include <limits>
 #include <nanospline/hodograph.h>
-#include <iostream>
-using std::cout;
-using std::endl;
 
 namespace nanospline {
 
@@ -130,7 +127,6 @@ void validate_derivatives(const CurveType& curve, int num_samples,
             const auto diff = t1-t0;
             auto p0 = curve.evaluate(t0);
             auto p1 = curve.evaluate(t1);
-            //std::cout << d*diff << " : " << p1-p0 << std::endl;
             REQUIRE(d[0]*diff == Approx(p1[0]-p0[0]).margin(tol));
             REQUIRE(d[1]*diff == Approx(p1[1]-p0[1]).margin(tol));
         }

@@ -91,9 +91,9 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]") {
         patch.set_knots_v(knots_v);
         patch.initialize();
 
-//        validate_iso_curves(patch, 10);
-//        validate_derivative(patch, 10, 10);
-//        validate_derivative_patches(patch, 10, 10);
+        validate_iso_curves(patch, 10);
+        validate_derivative(patch, 10, 10);
+        validate_derivative_patches(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
         validate_inverse_evaluation_3d(patch, 10,10);
     }

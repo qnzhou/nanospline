@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Eigen/Core>
-#include <iostream>
 #include <limits>
 
 #include <nanospline/CurveBase.h>

@@ -8,8 +8,7 @@
 #include <nanospline/RationalBezier.h>
 #include <nanospline/BSpline.h>
 #include <nanospline/NURBS.h>
-using std::cout;
-using std::endl;
+
 namespace nanospline {
 
 template<typename Scalar, int dim, int degree, bool generic>

@@ -1,11 +1,12 @@
 #pragma once
 
-#include <array>
-#include <cassert>
+#include <utility>
+#include <vector>
 #include <Eigen/Core>
 #include <nanospline/Exceptions.h>
-#include <iostream>
-using namespace std;
+#include <nanospline/split.h>
+
+
 namespace nanospline {
 
 template<typename _Scalar, int _dim>
@@ -35,13 +36,6 @@ class PatchBase {
         virtual int num_control_points_v() const = 0;
         virtual UVPoint get_control_point_preimage(int i, int j) const = 0;
 
-        /*virtual UVPoint approximate_inverse_evaluate(const Point& p,
-                const int num_samples,
-                const Scalar min_u,
-                const Scalar max_u,
-                const Scalar min_v,
-                const Scalar max_v,
-                const int level=3) const = 0;*/
 
     public:
         virtual UVPoint inverse_evaluate(const Point& p,
@@ -59,6 +53,14 @@ class PatchBase {
         }
 
     public:
+
+
+        // Translate (i,j) control point indexing into a linear index. Note that
+        // control points are ordered in v-major order
+        int control_point_linear_index(int i, int j) const {
+            return i*(num_control_points_v()) + j;
+        }
+        
         int num_control_points() const{
             return num_control_points_u() * num_control_points_v();
         }
@@ -109,17 +111,6 @@ class PatchBase {
             return m_control_grid;
         }
 
-        bool is_split_input_valid(Scalar u, Scalar v) const{
-            if(!in_domain(u,v)) {
-                throw invalid_setting_error("Parameter not inside of the domain.");
-            }
-            if(is_endpoint_u(u) || is_endpoint_v(v)){
-                return false;
-            } else {
-                return true;
-            }
-        }
-        
         /**
          * Control grid presents a 2D grid of control points.  It is linearized
          * in V-major.  I.e. Let C_uv denotes the control point at (u, v), then
@@ -204,8 +195,7 @@ class PatchBase {
                 if (dist < tol) {
                     break;
                 }
-                 // Converges ok if left alone, could be a result of a poor
-                 // initial guess
+
                 if (dist > prev_dist) {
                     // Ops, Newton Raphson diverged...
                     // Use the best result so far.
@@ -237,6 +227,25 @@ class PatchBase {
                 if (v > max_v) v = max_v;
             }
             return {u, v};
+        }
+
+        std::pair<int, int> find_closest_control_point(Point p) const {
+          Scalar min_dist = std::numeric_limits<Scalar>::max();
+          int i_min = 0;
+          int j_min = 0;
+          for (int ui = 0; ui < num_control_points_u(); ui++) {
+            for (int vj = 0; vj < num_control_points_v(); vj++) {
+
+              Point control_point = get_control_point(ui, vj);
+              const auto dist = (p - control_point).squaredNorm();
+              if (dist < min_dist) {
+                min_dist = dist;
+                i_min = ui;
+                j_min = vj;
+              }
+            }
+          }
+          return std::pair<int, int>(i_min, j_min);
         }
 
     protected:

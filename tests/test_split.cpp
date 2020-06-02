@@ -516,7 +516,6 @@ TEST_CASE("Test patch splitting", "[split][patch]"){
         const int degree_v = 4;
         const int dim = 3;
         const int num_control_pts = (degree_u+1)*(degree_v+1);
-        // TODO bug in Catch preventing a loop to try multiple random patches.
         std::random_device rd;
         std::mt19937 generator(rd());
         std::uniform_real_distribution<Scalar> dist(0, 1);

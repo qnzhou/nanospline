@@ -10,7 +10,6 @@
 TEST_CASE("NURBSPatch", "[rational][bspline_patch]") {
     using namespace nanospline;
     using Scalar = double;
-
     SECTION("Bilinear patch non-planar") {
         NURBSPatch<Scalar, 3, 1, 1> patch;
         Eigen::Matrix<Scalar, 4, 3> control_grid;
@@ -66,7 +65,7 @@ TEST_CASE("NURBSPatch", "[rational][bspline_patch]") {
         patch.set_control_grid(control_grid);
         Eigen::Matrix<Scalar, 8, 1> knots_u, knots_v;
         knots_u << 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0;
-        knots_v << 0.0, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 2.5;
+        knots_v << 0.0, 0.0, 0.0, 0.0, 2.5, 2.5, 2.5, 2.5;
         patch.set_knots_u(knots_u);
         patch.set_knots_v(knots_v);
 
@@ -88,6 +87,55 @@ TEST_CASE("NURBSPatch", "[rational][bspline_patch]") {
         validate_derivative(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
         validate_inverse_evaluation_3d(patch, 10, 10);
+    }
+    SECTION("Cubic spline"){
+        // BUG splitting NURBS patches can vary the size of the number of weights of  
+        // the resulting patches, which is templated to match the number of
+        // control points. Needs -1, -1 for degree in order to compile.
+        NURBSPatch<Scalar, 3, -1,-1> patch;
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 3> control_grid(64, 3);
+        for (int i=0; i<8; i++) {
+            for (int j=0; j<8; j++) {
+                control_grid.row(i*8+j) << j, i, ((i+j)%2==0)?-1:1;
+            }
+        }
+        patch.set_control_grid(control_grid);
+        
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots_u(12,1); 
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots_v(12,1);
+
+        knots_u << 0.0, 0.0, 0.0, 0.0, .25, .5, .75, .9, 1.0, 1.0, 1.0, 1.0;
+        knots_v << 0.0, 0.0, 0.0, 0.0, .25, 1., 1.5, 1.9, 2.5, 2.5, 2.5, 2.5;
+
+        patch.set_knots_u(knots_u);
+        patch.set_knots_v(knots_v);
+
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> weights(64, 1); 
+        weights.setOnes();
+        SECTION("Uniform weight") {
+            weights.setConstant(2.0);
+        }
+        SECTION("Non-uniform weight") {
+          std::random_device rd;
+          std::mt19937 generator(rd());
+          std::uniform_int_distribution<int> dist(0, 63);
+          for (int i = 0; i < 20; i++) {
+            weights[dist(generator)] = 2.;
+          }
+        }
+
+        patch.set_weights(weights);
+        patch.set_degree_u(3);
+        patch.set_degree_v(3);
+        patch.initialize();
+
+        REQUIRE(patch.get_degree_u() == 3);
+        REQUIRE(patch.get_degree_v() == 3);
+
+        validate_iso_curves(patch, 10);
+        validate_derivative(patch, 10, 10);
+        validate_inverse_evaluation(patch, 10, 10);
+        validate_inverse_evaluation_3d(patch, 10,10);
     }
 
     SECTION("Mixed degree") {

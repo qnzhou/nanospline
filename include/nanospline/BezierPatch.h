@@ -1,15 +1,8 @@
 #pragma once
 
-#include <cstddef>
 #include <nanospline/PatchBase.h>
-#include <nanospline/split.h>
 #include <nanospline/Bezier.h>
-#include <nanospline/Exceptions.h>
-#include <vector>
-#include <iostream>
 
-        using std::cout;
-        using std::endl;
 namespace nanospline {
 
 template<typename _Scalar, int _dim=3,
@@ -101,6 +94,7 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
         Scalar get_v_upper_bound() const override {
             return 1.0;
         }
+
         UVPoint get_control_point_preimage(int i, int j) const  override {
             UVPoint preimage;
             preimage << Scalar(i)/Scalar(Base::get_degree_u()), 
@@ -217,7 +211,7 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
 
 
         Point get_control_point(int ui, int vj) const override {
-            return Base::m_control_grid.row(ui*num_control_points_v()+vj);
+            return Base::m_control_grid.row(Base::control_point_linear_index(ui,vj));
         }
         int num_control_points_u() const override {
             const int degree_u = Base::get_degree_u();
@@ -229,12 +223,6 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
         }
     private: 
 
-        // Translate (i,j) control point indexing into a linear index. Note that
-        // control points are ordered in v-major order
-        int control_point_linear_index(int i, int j) const {
-            return i*(num_control_points_v()) + j;
-        }
-        
         // Construct the implicit isocurves determined by each column of control points
         // i.e. fixed values of u. This copies these columns into
         // individual matrices of control points and returns the resulting
@@ -281,13 +269,20 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
         
         // Split a patch into two patches along the vertical line at u
         std::vector<ThisType> split_u(Scalar u) const {
-            // TODO domain checking
+          if (!Base::in_domain_u(u)) {
+            throw invalid_setting_error("Parameter not inside of the domain.");
+          }
+          if (Base::is_endpoint_u(u)) { // no split required
+            return std::vector<ThisType>{*this};
+          }
+
           const int num_split_patches = 2; // splitting one patch into two
           std::vector<IsoCurveU> iso_curves_u = get_all_iso_curves_u();
 
           // Initialize control grids of final split patches
-          std::vector<ControlGrid> split_control_pts_u(num_split_patches, 
-                  ControlGrid(this->num_control_points(), _dim));
+          std::vector<ControlGrid> split_control_pts_u(
+                  num_split_patches, ControlGrid(Base::num_control_points(), _dim)
+              );
 
           for (int vj = 0; vj < num_control_points_v(); vj++) {
             // split each isocurve
@@ -300,7 +295,7 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
               const auto &ctrl_pts = split_iso_curves[ci].get_control_points();
 
               for (int ui = 0; ui < num_control_points_u(); ui++) {
-                int index = control_point_linear_index(ui, vj);
+                int index = Base::control_point_linear_index(ui, vj);
                 split_control_pts_u[ci].row(index) = ctrl_pts.row(ui);
               }
             }
@@ -314,20 +309,26 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
           return {patch_less_than_u, patch_greater_than_u};
         }
 
-        // Split a patch into two patches along the horizontal line at v 
+        // Split a patch into two patches along the horizontal line at v
         std::vector<ThisType> split_v(Scalar v) const {
-            // TODO domain checking
+          if (!Base::in_domain_v(v)) {
+            throw invalid_setting_error("Parameter not inside of the domain.");
+          }
+          if (Base::is_endpoint_v(v)) { // no split required
+            return std::vector<ThisType>{*this};
+          }
           const int num_split_patches = 2; // splitting one patch into two
 
           std::vector<IsoCurveV> iso_curves_v = get_all_iso_curves_v();
 
-          std::vector<ControlGrid> split_control_pts_v(num_split_patches, 
-                  ControlGrid(this->num_control_points(), _dim));
+          std::vector<ControlGrid> split_control_pts_v(
+              num_split_patches, ControlGrid(Base::num_control_points(), _dim));
 
           for (int ui = 0; ui < num_control_points_u(); ui++) {
             // split each isocurve
             IsoCurveV iso_curve = iso_curves_v[static_cast<size_t>(ui)];
-            std::vector<IsoCurveV> split_iso_curves = nanospline::split(iso_curve, v);
+            std::vector<IsoCurveV> split_iso_curves =
+                nanospline::split(iso_curve, v);
 
             // Copy control points of each split curve to its proper place in
             // the final control grid
@@ -335,7 +336,7 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
               auto ctrl_pts = split_iso_curves[ci].get_control_points();
 
               for (int vj = 0; vj < num_control_points_v(); vj++) {
-                int index = control_point_linear_index(ui, vj);
+                int index = Base::control_point_linear_index(ui, vj);
                 split_control_pts_v[ci].row(index) = ctrl_pts.row(vj);
               }
             }
@@ -349,171 +350,143 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
           return {patch_less_than_v, patch_greater_than_v};
         }
 
-    public: 
-        std::vector<ThisType> split(Scalar u, Scalar v) const {
-          if (this->is_endpoint_u(u) &&
-              this->is_endpoint_v(v)) { // no splitting required
-            return std::vector<ThisType>{*this};
+    public:
+      std::vector<ThisType> split(Scalar u, Scalar v) const {
+        if (Base::is_endpoint_u(u) &&
+            Base::is_endpoint_v(v)) { // no splitting required
+          return std::vector<ThisType>{*this};
 
-          } else if (this->is_endpoint_u(u)) { // no need to split along u
-            return split_v(v);
+        } else if (Base::is_endpoint_u(u)) { // no need to split along u
+          return split_v(v);
 
-          } else if (this->is_endpoint_v(v)) { // no need to split along v
-            return split_u(u);
+        } else if (Base::is_endpoint_v(v)) { // no need to split along v
+          return split_u(u);
 
-          } else {
+        } else {
 
-            // 1. split in u direction
-            std::vector<ThisType> split_patches = split_u(u);
-            ThisType less_than_u = split_patches[0];
-            ThisType greater_than_u = split_patches[1];
+          // 1. split in u direction
+          std::vector<ThisType> split_patches = split_u(u);
+          ThisType less_than_u = split_patches[0];
+          ThisType greater_than_u = split_patches[1];
 
-            // 2. Split each subpatch patch at v
+          // 2. Split each subpatch patch at v
 
-            std::vector<ThisType> split_patches_less_than_u =
-                less_than_u.split_v(v);
+          std::vector<ThisType> split_patches_less_than_u =
+              less_than_u.split_v(v);
 
-            std::vector<ThisType> split_patches_greater_than_u =
-                greater_than_u.split_v(v);
+          std::vector<ThisType> split_patches_greater_than_u =
+              greater_than_u.split_v(v);
 
-            // 3. Reorder. The patch is split into 4 patches returned in the
-            // following order:
-            //
-            //   |-----------|
-            //   |  1  |  3  |
-            // ^ |-----*-----| *= split point (u,v)
-            // | |  0  |  2  |
-            // v |-----------|
-            //    u ->
+          // 3. Reorder. The patch is split into 4 patches returned in the
+          // following order:
+          //
+          //   |-----------|
+          //   |  1  |  3  |
+          // ^ |-----*-----| *= split point (u,v)
+          // | |  0  |  2  |
+          // v |-----------|
+          //    u ->
 
-            ThisType less_than_u_less_than_v = split_patches_less_than_u[0];
-            ThisType less_than_u_greater_than_v = split_patches_less_than_u[1];
-            ThisType greater_than_u_less_than_v =
-                split_patches_greater_than_u[0];
-            ThisType greater_than_u_greater_than_v =
-                split_patches_greater_than_u[1];
+          ThisType less_than_u_less_than_v       = split_patches_less_than_u[0];
+          ThisType less_than_u_greater_than_v    = split_patches_less_than_u[1];
+          ThisType greater_than_u_less_than_v    = split_patches_greater_than_u[0];
+          ThisType greater_than_u_greater_than_v = split_patches_greater_than_u[1];
 
-            return {less_than_u_less_than_v, less_than_u_greater_than_v,
-                    greater_than_u_less_than_v, greater_than_u_greater_than_v};
-          }
+          return {less_than_u_less_than_v, less_than_u_greater_than_v,
+                  greater_than_u_less_than_v, greater_than_u_greater_than_v};
         }
+      }
 
         ThisType subpatch(Scalar u_min, Scalar u_max, Scalar v_min,
                           Scalar v_max) const {
           if (u_min > u_max) {
             throw invalid_setting_error("u_min must be smaller than u_max");
           }
-          if (u_min < 0 || u_min > 1 || u_max < 0 || u_max > 1) {
+          if (!Base::in_domain_u(u_min) || !Base::in_domain_u(u_max)) {
             throw invalid_setting_error("Invalid range in subcurve: u");
           }
+
           if (v_min > v_max) {
             throw invalid_setting_error("v_min must be smaller than v_max");
           }
-          if (v_min < 0 || v_min > 1 || v_max < 0 || v_max > 1) {
-            throw invalid_setting_error("Invalid range in subcurve: u");
+          if (!Base::in_domain_v(v_min) || !Base::in_domain_v(v_max)) {
+            throw invalid_setting_error("Invalid range in subcurve: v");
           }
-          //if (this->is_endpoint_u(u) &&
-          //this->is_endpoint_v(v)) { // no splitting required
-          ThisType greater_than_umin;
-          ThisType greater_than_umin_less_umax;
-          ThisType greater_than_vmin;
-          ThisType greater_than_vmin_less_vmax;
-          
+          // Note: conditionals are for bound checking to avoid redundant splits
           // 1. Split patch in u direction at u_min; take the patch on >= u_min
-          if (this->is_endpoint_u(u_min)){
-              greater_than_umin = *this;
-          } else {
-              greater_than_umin = split_u(u_min)[1];
-          }
-          
+          ThisType greater_than_umin =
+              Base::is_endpoint_u(u_min) ? *this : split_u(u_min)[1];
+
           // 2. Split patch on >= u_min at u_max in u dir; take the patch <=
-          if (this->is_endpoint_u(u_max)){
-              greater_than_umin_less_umax = greater_than_umin;
-          } else {
-            greater_than_umin_less_umax = greater_than_umin.split_u(u_max)[0];
-          }
+          // u_max
+          ThisType greater_than_umin_less_umax =
+              Base::is_endpoint_u(u_max) ? greater_than_umin
+                                         : greater_than_umin.split_u(u_max)[0];
 
           // 3. Split patch on u_min <= u <= umax at v_min  in the v dir, take
-          if (this->is_endpoint_v(v_min)) {
-              greater_than_vmin = greater_than_umin_less_umax;
-          } else {
-            greater_than_vmin = greater_than_umin_less_umax.split_v(v_min)[1];
-          } 
+          // the patch >= v_min
+          ThisType greater_than_vmin =
+              Base::is_endpoint_v(v_min)
+                  ? greater_than_umin_less_umax
+                  : greater_than_umin_less_umax.split_v(v_min)[1];
 
           // 4. Split patch  at v_max in the v dir, take the patch <= v_max
-          if(this->is_endpoint_v(v_max)){
-              greater_than_vmin_less_vmax = greater_than_vmin;
-          } else {
-            greater_than_vmin_less_vmax = greater_than_vmin.split_v(v_max)[0];
-          }
-          
+          ThisType greater_than_vmin_less_vmax =
+              Base::is_endpoint_v(v_max) ? greater_than_vmin
+                                         : greater_than_vmin.split_v(v_max)[0];
+
           return greater_than_vmin_less_vmax;
         }
 
-        UVPoint approximate_inverse_evaluate(
-                const Point& p,
-                const int num_samples,
-                const Scalar min_u,
-                const Scalar max_u,
-                const Scalar min_v,
-                const Scalar max_v,
-                const int level=15) const override {
-            
-            // Only two control points at the endpoints, so finding the closest
-            // point doesn't restrict the search at all; default to the parent
-            // class function based on sampling where resolution isn't an issue
-            if (Base::get_degree_u() < 2 || Base::get_degree_v() < 2){
-                return Base::approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v);
-            }
-            
-            // 1. find closest control point
-            Scalar min_dist = std::numeric_limits<Scalar>::max();
-            int i_min =0;
-            int j_min =0;
-            for (int ui = 0; ui < num_control_points_u(); ui++) {
-              for (int vj = 0; vj < num_control_points_v(); vj++) {
-                  Point control_point = get_control_point(ui, vj);
-                 const auto dist = (p - control_point).squaredNorm();
+        UVPoint approximate_inverse_evaluate(const Point &p, const int num_samples,
+                                     const Scalar min_u, const Scalar max_u,
+                                     const Scalar min_v, const Scalar max_v,
+                                     const int level = 15) const override {
 
-                 if(dist < min_dist){
-                     min_dist = dist;
-                     i_min = ui;
-                     j_min = vj;
+          // Only two control points at the endpoints, so finding the closest
+          // point doesn't restrict the search at all; default to the parent
+          // class function based on sampling where resolution isn't an issue
+          if (Base::get_degree_u() < 2 || Base::get_degree_v() < 2) {
+            return Base::approximate_inverse_evaluate(p, num_samples, min_u,
+                                                      max_u, min_v, max_v);
+          }
 
-                 }
-              }
-            }
-            if (level <= 0) {
-                return get_control_point_preimage(i_min, j_min);
+          // 1. find closest control point
+          auto closest_control_pt_index = Base::find_closest_control_point(p);
+          int i_min = closest_control_pt_index.first;
+          int j_min = closest_control_pt_index.second;
 
-            } else {
+          if (level <= 0) {
+            return get_control_point_preimage(i_min, j_min);
 
-            // Control points c_{i+/-1,j+/-1} bound the domain
-            // 2. find subdomain corresponding to control point subdomain boundary
+          } else {
+
+            // 2. Control points c_{i+/-1,j+/-1} bound the domain containing our
+            // desired initial guess; find subdomain corresponding to control
+            // point subdomain boundary
+            // Conditionals for bound checking
             UVPoint uv_min = get_control_point_preimage(
-                    i_min > 0 ? i_min-1: i_min,
-                    j_min > 0 ? j_min-1: j_min);
+                i_min > 0 ? i_min - 1 : i_min, j_min > 0 ? j_min - 1 : j_min);
             UVPoint uv_max = get_control_point_preimage(
-                    i_min < num_control_points_u() -1? i_min+1 : i_min,
-                    j_min < num_control_points_v() -1? j_min+1 : j_min);
-            
-            // 3. split a subcurve to find closest ctrl points on subdomain
-            ThisType patch = subpatch(uv_min(0), uv_max(0), uv_min(1), uv_max(1));
+                i_min < num_control_points_u() - 1 ? i_min + 1 : i_min,
+                j_min < num_control_points_v() - 1 ? j_min + 1 : j_min);
 
-            // repeat recursively
-            UVPoint uv =  patch.approximate_inverse_evaluate(p, num_samples,
-            uv_min(0), uv_max(0), uv_min(1), uv_max(1), level-1);
-            // remap solution up through affine subdomain transformations
-            uv(0) = (uv_max(0)-uv_min(0))*uv(0) + uv_min(0);
-            uv(1) = (uv_max(1)-uv_min(1))*uv(1) + uv_min(1);
+            // 3. split a subcurve to find closest ctrl points on subdomain
+            ThisType patch =
+                subpatch(uv_min(0), uv_max(0), uv_min(1), uv_max(1));
+
+            // 4. repeat recursively
+            UVPoint uv = patch.approximate_inverse_evaluate(
+                p, num_samples, uv_min(0), uv_max(0), uv_min(1), uv_max(1),
+                level - 1);
+
+            // 5. remap solution up through affine subdomain transformations
+            uv(0) = (uv_max(0) - uv_min(0)) * uv(0) + uv_min(0);
+            uv(1) = (uv_max(1) - uv_min(1)) * uv(1) + uv_min(1);
 
             return uv;
-            }
-
-
+          }
         }
-
-
 };
 
 } // namespace nanospline

@@ -45,8 +45,7 @@ class NURBSPatch final : public PatchBase<_Scalar, _dim> {
         }
 
         Point get_control_point(int i, int j) const override {
-            Eigen::Matrix<Scalar, 1, _dim+1> control_point = m_homogeneous.get_control_point(i,j);
-            return control_point.head(_dim);
+            return Base::m_control_grid.row(Base::control_point_linear_index(i,j));
         }
 
         Point evaluate(Scalar u, Scalar v) const override {
@@ -160,25 +159,29 @@ class NURBSPatch final : public PatchBase<_Scalar, _dim> {
         }
 
         Scalar get_u_lower_bound() const override {
-            const int degree_u = Base::get_degree_u();
-            return m_knots_u[degree_u];
+            return m_homogeneous.get_u_lower_bound();
+//            const int degree_u = Base::get_degree_u();
+//            return m_knots_u[degree_u];
         }
 
         Scalar get_v_lower_bound() const override {
-            const int degree_v = Base::get_degree_v();
-            return m_knots_v[degree_v];
+            return m_homogeneous.get_v_lower_bound();
+//            const int degree_v = Base::get_degree_v();
+//            return m_knots_v[degree_v];
         }
 
         Scalar get_u_upper_bound() const override {
-            const auto num_knots = static_cast<int>(m_knots_u.rows());
-            const int degree_u = Base::get_degree_u();
-            return m_knots_u[num_knots-degree_u-1];
+            return m_homogeneous.get_u_upper_bound();
+//            const auto num_knots = static_cast<int>(m_knots_u.rows());
+//            const int degree_u = Base::get_degree_u();
+//            return m_knots_u[num_knots-degree_u-1];
         }
 
         Scalar get_v_upper_bound() const override {
-            const auto num_knots = static_cast<int>(m_knots_v.rows());
-            const int degree_v = Base::get_degree_v();
-            return m_knots_v[num_knots-degree_v-1];
+            return m_homogeneous.get_v_upper_bound();
+//            const auto num_knots = static_cast<int>(m_knots_v.rows());
+//            const int degree_v = Base::get_degree_v();
+//            return m_knots_v[num_knots-degree_v-1];
         }
 
     public:
@@ -251,6 +254,8 @@ class NURBSPatch final : public PatchBase<_Scalar, _dim> {
                 / m_weights.array();
             m_knots_u = homogeneous.get_knots_u();
             m_knots_v = homogeneous.get_knots_v();
+            Base::m_degree_u = homogeneous.get_degree_u();
+            Base::m_degree_v = homogeneous.get_degree_v();
             validate_initialization();
         }
         
@@ -289,60 +294,58 @@ class NURBSPatch final : public PatchBase<_Scalar, _dim> {
             return results;
 
         }
-        UVPoint approximate_inverse_evaluate(const Point& p,
-                const int num_samples,
-                const Scalar min_u,
-                const Scalar max_u,
-                const Scalar min_v,
-                const Scalar max_v,
-                const int level=3) const {
-            
-            // 1. find closest control point
-            Scalar min_dist = std::numeric_limits<Scalar>::max();
-            int i_min, j_min;
-            for (int ui = 0; ui < num_control_points_u(); ui++) {
-              for (int vj = 0; vj < num_control_points_v(); vj++) {
-                  Point control_point = get_control_point(ui, vj);
-                 const auto dist = (p - control_point).squaredNorm();
-                 cout << dist << ", " << min_dist << endl;
-                 //cout << "dist < min_dist: " << int(dist < min_dist )<< endl;
 
-                 if(dist < min_dist){
-                     min_dist = dist;
-                     i_min = ui;
-                     j_min = vj;
+        ThisType subpatch(Scalar u_min, Scalar u_max, Scalar v_min,
+                          Scalar v_max) const {
+          const auto c = m_homogeneous.subpatch(u_min, u_max, v_min, v_max);
+          ThisType result;
+          result.set_homogeneous(c);
+          return result;
+        }
 
-                 }
-              }
-            }
-            if (level <= 0) {
-                return get_control_point_preimage(i_min, j_min);
+        UVPoint approximate_inverse_evaluate(const Point &p, const int num_samples,
+                                     const Scalar min_u, const Scalar max_u,
+                                     const Scalar min_v, const Scalar max_v,
+                                     const int level = 3) const override {
 
-            } else {
+          // Only two control points at the endpoints, so finding the closest
+          // point doesn't restrict the search at all; default to the parent
+          // class function based on sampling where resolution isn't an issue
+          if (Base::get_degree_u() < 2 || Base::get_degree_v() < 2) {
+            return Base::approximate_inverse_evaluate(p, num_samples, min_u,
+                                                      max_u, min_v, max_v);
+          }
 
-            // Control points c_{i+/-1,j+/-1} bound the domain
-            // 2. find subdomain corresponding to control point subdomain boundary
+          // 1. find closest control point
+          auto closest_control_pt_index = Base::find_closest_control_point(p);
+          int i_min = closest_control_pt_index.first;
+          int j_min = closest_control_pt_index.second;
+
+          if (level <= 0) {
+            return get_control_point_preimage(i_min, j_min);
+
+          } else {
+            // 2. Control points c_{i+/-1,j+/-1} bound the domain containing our
+            // desired initial guess; find subdomain corresponding to control
+            // point subdomain boundary
+            // Conditionals for bound checking
             UVPoint uv_min = get_control_point_preimage(
-                    i_min > 0 ? i_min-1: i_min,
-                    j_min > 0 ? j_min-1: j_min);
+                i_min > 0 ? i_min - 1 : i_min, 
+                j_min > 0 ? j_min - 1 : j_min);
             UVPoint uv_max = get_control_point_preimage(
-                    i_min < num_control_points_u() ? i_min+1 : i_min,
-                    j_min < num_control_points_v() ? j_min+1 : j_min);
-            cout << "min, max:  " << uv_min << ", " << uv_max << endl;
-            // 3. split curve to find ctrl points on subdomain
-            // TODO implement patch split in parent class
-            
+                i_min < num_control_points_u() - 1 ? i_min + 1 : i_min,
+                j_min < num_control_points_v() - 1 ? j_min + 1 : j_min);
+
+            // 3. split a subcurve to find closest ctrl points on subdomain
+            ThisType patch = subpatch(uv_min(0), uv_max(0), uv_min(1), uv_max(1));
             // repeat recursively
-            // TODO remap solution up through affine subdomain transformations
-                return approximate_inverse_evaluate(p, num_samples,
-                        std::max(uv_min(0), min_u),
-                        std::min(uv_max(0), max_u),
-                        std::max(uv_min(1), min_v),
-                        std::min(uv_max(1), max_v),
-                        level-1);
-            }
+            UVPoint uv = patch.approximate_inverse_evaluate(p, num_samples, 
+                    uv_min(0), uv_max(0), uv_min(1), uv_max(1), level - 1);
 
+            // no need to remap coordinates for splines
 
+            return uv;
+          }
         }
 
     private:
