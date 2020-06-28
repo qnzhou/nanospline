@@ -14,6 +14,7 @@ namespace nanospline {
 template<typename _Scalar, int _dim=3, int _degree=3, bool _generic=_degree<0 >
 class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
     public:
+        using ThisType = BSpline<_Scalar, _dim, _degree, false>;
         using Base = BSplineBase<_Scalar, _dim, _degree, _generic>;
         using Scalar = typename Base::Scalar;
         using Point = typename Base::Point;
@@ -74,7 +75,7 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
 
         void get_derivative_coefficients(int curve_degree, int knot_span,
                                          ControlPoints &control_pts) const {
-          int num_control_points = curve_degree + 1;
+          int num_control_points = curve_degree + 1; // TODO is this right?
           for (int i = 0; i < num_control_points; i++) {
             int index = i + knot_span + 1;
 
@@ -297,6 +298,19 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             return res;
         }
 
+        /**
+         * Extract a subcurve in range [t0, t1].
+         */
+        ThisType subcurve(Scalar t0, Scalar t1) const {
+            if (t0 > t1) {
+                throw invalid_setting_error("t0 must be smaller than t1");
+            }
+            if (t0 < 0 || t0 > 1 || t1 < 0 || t1 > 1) {
+                throw invalid_setting_error("Invalid range");
+            }
+            return split(t0)[1].split(t1)[0];
+        }
+
     public:
         std::tuple<std::vector<Bezier<Scalar, _dim, _degree, _generic>>, std::vector<Scalar>>
         convert_to_Bezier() const {
@@ -396,11 +410,12 @@ class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic> {
             for (int r=1; r<=p; r++) {
                 Scalar t = blossom_vector(r - 1);
                 for (int j=p; j>=r; j--) {
+                    int index = j+k;
                     const Scalar diff =
-                        Base::m_knots[j+1+k-r] - Base::m_knots[j+k-p];
+                        Base::m_knots[index+1-r] - Base::m_knots[index-p];
                     Scalar alpha = 0.0;
                     if (diff > 0) {
-                        alpha = (t - Base::m_knots[j+k-p]) / diff;
+                        alpha = (t - Base::m_knots[index-p]) / diff;
                     }
 
                     ctrl_pts.row(j) = (1.0-alpha) * ctrl_pts.row(j-1) +

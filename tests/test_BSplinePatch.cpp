@@ -49,6 +49,7 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]") {
         validate_derivative(patch, 10, 10);
         validate_derivative_patches(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
+        validate_inverse_evaluation_3d(patch, 5, 5);
     }
 
     SECTION("Cubic patch") {
@@ -62,7 +63,8 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]") {
         patch.set_control_grid(control_grid);
         Eigen::Matrix<Scalar, 8, 1> knots_u, knots_v;
         knots_u << 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0;
-        knots_v << 0.0, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 2.5;
+        knots_v << 0.0, 0.0, 0.0, 0.0, 2.5, 2.5, 2.5, 2.5;
+        //knots_v << 0.0, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 2.5;
         patch.set_knots_u(knots_u);
         patch.set_knots_v(knots_v);
         patch.initialize();
@@ -71,8 +73,30 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]") {
         validate_derivative(patch, 10, 10);
         validate_derivative_patches(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
+        validate_inverse_evaluation_3d(patch, 5,5);
     }
+    SECTION("Cubic spline") {
+        BSplinePatch<Scalar, 3, 3, 3> patch;
+        Eigen::Matrix<Scalar, 64, 3> control_grid;
+        for (int i=0; i<8; i++) {
+            for (int j=0; j<8; j++) {
+                control_grid.row(i*8+j) << j, i, ((i+j)%2==0)?-1:1;
+            }
+        }
+        patch.set_control_grid(control_grid);
+        Eigen::Matrix<Scalar, 12, 1> knots_u, knots_v;
+        knots_u << 0.0, 0.0, 0.0, 0.0, .25, .5, .75, .9, 1.0, 1.0, 1.0, 1.0;
+        knots_v << 0.0, 0.0, 0.0, 0.0, .25, 1., 1.5, 1.9, 2.5, 2.5, 2.5, 2.5;
+        patch.set_knots_u(knots_u);
+        patch.set_knots_v(knots_v);
+        patch.initialize();
 
+        validate_iso_curves(patch, 10);
+        validate_derivative(patch, 10, 10);
+        validate_derivative_patches(patch, 10, 10);
+        validate_inverse_evaluation(patch, 10, 10);
+        validate_inverse_evaluation_3d(patch, 10,10);
+    }
     SECTION("Degree 1 patch") {
         BSplinePatch<Scalar, 3, -1, -1> patch;
         Eigen::Matrix<Scalar, Eigen::Dynamic, 3> control_grid(4, 3);
@@ -97,6 +121,7 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]") {
         validate_derivative(patch, 10, 10);
         validate_derivative_patches(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
+        validate_inverse_evaluation_3d(patch, 5, 5);
     }
 
     SECTION("Mixed degree") {

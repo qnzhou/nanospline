@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "nanospline/PatchBase.h"
 #include <nanospline/Exceptions.h>
 #include <nanospline/Bezier.h>
 #include <nanospline/RationalBezier.h>
@@ -12,6 +13,16 @@ namespace nanospline {
 
 template<typename Scalar, int dim, int degree, bool generic>
 std::vector<Bezier<Scalar, dim, degree, generic>> split(const Bezier<Scalar, dim, degree, generic>& curve, Scalar t) {
+    using CurveType = Bezier<Scalar, dim, degree, generic>;
+    if(!curve.in_domain(t)) {
+        throw invalid_setting_error("Parameter not inside of the domain.");
+    }
+    if (t == curve.get_domain_lower_bound()) {
+        return std::vector<CurveType>{curve};
+    }
+    if (t == curve.get_domain_upper_bound()) {
+        return std::vector<CurveType>{curve};
+    }
     auto r = curve.split(t);
     return {r[0], r[1]};
 }
@@ -21,9 +32,12 @@ std::vector<RationalBezier<Scalar, dim, degree, generic>> split(const RationalBe
     using CurveType = RationalBezier<Scalar, dim, degree, generic>;
     const auto homogeneous = curve.get_homogeneous();
     const auto parts = split(homogeneous, t);
-    std::vector<CurveType> results(2);
-    results[0].set_homogeneous(parts[0]);
-    results[1].set_homogeneous(parts[1]);
+    std::vector<CurveType> results;
+    results.reserve(2);
+    for (const auto& c : parts) {
+        results.emplace_back();
+        results.back().set_homogeneous(c);
+    }
     return results;
 }
 
@@ -94,5 +108,4 @@ std::vector<NURBS<Scalar, dim, degree, generic>> split(NURBS<Scalar, dim, degree
     }
     return results;
 }
-
 }

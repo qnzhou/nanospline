@@ -1,13 +1,12 @@
 #pragma once
 
-#include <cassert>
 #include <cmath>
 #include <limits>
 #include <vector>
 #include <memory>
 
 #include <Eigen/Core>
-
+#include <nanospline/Exceptions.h>
 namespace nanospline {
 
 template<typename _Scalar, int _dim>
@@ -23,7 +22,9 @@ class CurveBase {
         virtual Scalar inverse_evaluate(const Point& p) const =0;
         virtual Point evaluate_derivative(Scalar t) const =0;
         virtual Point evaluate_2nd_derivative(Scalar t) const =0;
-
+        virtual bool in_domain(Scalar t) const =0;
+        virtual Scalar get_domain_lower_bound() const =0;
+        virtual Scalar get_domain_upper_bound() const =0;
         virtual Scalar approximate_inverse_evaluate(const Point& p,
                 const Scalar lower=0.0,
                 const Scalar upper=1.0,
@@ -42,7 +43,6 @@ class CurveBase {
                 const Scalar upper=1.0) const =0;
 
         virtual void write(std::ostream &out) const =0;
-
         virtual Scalar get_turning_angle(Scalar t0, Scalar t1) const {
             if (_dim != 2) {
                 throw std::runtime_error(
@@ -70,6 +70,17 @@ class CurveBase {
         }
 
     public:
+      bool is_split_point_valid(Scalar t) const {
+        if (!in_domain(t)) {
+          throw invalid_setting_error("Parameter not inside of the domain.");
+        }
+        if (t == get_domain_lower_bound() || t == get_domain_upper_bound()) {
+          return false;
+        } else {
+          return true;
+        }
+      }
+
         Point evaluate_curvature(Scalar t) const {
             const auto d1 = evaluate_derivative(t);
             const auto d2 = evaluate_2nd_derivative(t);

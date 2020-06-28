@@ -15,7 +15,9 @@ class RationalBezierPatch final : public PatchBase<_Scalar, _dim> {
 
         using Base = PatchBase<_Scalar, _dim>;
         using Scalar = typename Base::Scalar;
+        using UVPoint = typename Base::UVPoint;
         using Point = typename Base::Point;
+        using ThisType = RationalBezierPatch<_Scalar, _dim, _degree_u, _degree_v>;
         using ControlGrid = typename Base::ControlGrid;
         using Weights = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
         using BezierPatchHomogeneous = BezierPatch<Scalar, _dim+1, _degree_u, _degree_v>;
@@ -29,6 +31,21 @@ class RationalBezierPatch final : public PatchBase<_Scalar, _dim> {
         }
 
     public:
+        int num_control_points_u() const override {
+            return m_homogeneous.num_control_points_u();
+        }
+        int num_control_points_v() const override {
+            return m_homogeneous.num_control_points_v();
+        }
+
+        UVPoint get_control_point_preimage(int i, int j) const override {
+            return m_homogeneous.get_control_point_preimage(i, j);
+        }
+
+        Point get_control_point(int i, int j) const override {
+            return Base::m_control_grid.row(Base::control_point_linear_index(i,j));
+        }
+
         Point evaluate(Scalar u, Scalar v) const override {
             validate_initialization();
             const auto p = m_homogeneous.evaluate(u, v);
@@ -131,21 +148,31 @@ class RationalBezierPatch final : public PatchBase<_Scalar, _dim> {
             m_homogeneous.set_degree_v(Base::get_degree_v());
             m_homogeneous.initialize();
         }
+        
+        void set_homogeneous(const BezierPatchHomogeneous& homogeneous) {
+            const auto ctrl_pts = homogeneous.get_control_grid();
+            m_homogeneous = homogeneous;
+            m_weights = ctrl_pts.template rightCols<1>();
+            Base::m_control_grid =
+                ctrl_pts.template leftCols<_dim>().array().colwise()
+                / m_weights.array();
+            validate_initialization();
+        }
 
         Scalar get_u_lower_bound() const override {
-            return 0.0;
+            return m_homogeneous.get_u_lower_bound();
         }
 
         Scalar get_v_lower_bound() const override {
-            return 0.0;
+            return m_homogeneous.get_v_lower_bound();
         }
 
         Scalar get_u_upper_bound() const override {
-            return 1.0;
+            return m_homogeneous.get_u_upper_bound();
         }
 
         Scalar get_v_upper_bound() const override {
-            return 1.0;
+            return m_homogeneous.get_v_upper_bound();
         }
 
 
@@ -180,6 +207,99 @@ class RationalBezierPatch final : public PatchBase<_Scalar, _dim> {
 
         const BezierPatchHomogeneous& get_homogeneous() const {
             return m_homogeneous;
+        }
+        
+        std::vector<ThisType> split_u(Scalar u){
+            const auto parts = m_homogeneous.split_u(u);
+            std::vector<ThisType> results;
+            results.reserve(2);
+            for (const auto& c : parts) {
+                results.emplace_back();
+                results.back().set_homogeneous(c);
+            }
+            return results;
+
+        }
+        
+        std::vector<ThisType> split_v(Scalar v){
+            const auto parts = m_homogeneous.split_v(v);
+            std::vector<ThisType> results;
+            results.reserve(2);
+            for (const auto& c : parts) {
+                results.emplace_back();
+                results.back().set_homogeneous(c);
+            }
+            return results;
+
+        }
+        
+        std::vector<ThisType> split(Scalar u, Scalar v){
+            const auto parts = m_homogeneous.split(u,v);
+            std::vector<ThisType> results;
+            results.reserve(4);
+            for (const auto& c : parts) {
+                results.emplace_back();
+                results.back().set_homogeneous(c);
+            }
+            return results;
+
+        }
+        ThisType subpatch(Scalar u_min, Scalar u_max, Scalar v_min,
+                          Scalar v_max) const {
+            const auto c = m_homogeneous.subpatch(u_min, u_max,v_min, v_max);
+            ThisType result;
+                result.set_homogeneous(c);
+            return result;
+
+        }
+
+        UVPoint approximate_inverse_evaluate(const Point &p, const int num_samples,
+                                     const Scalar min_u, const Scalar max_u,
+                                     const Scalar min_v, const Scalar max_v,
+                                     const int level = 3) const override {
+
+          // Only two control points at the endpoints, so finding the closest
+          // point doesn't restrict the search at all; default to the parent
+          // class function based on sampling where resolution isn't an issue
+          if (Base::get_degree_u() < 2 || Base::get_degree_v() < 2) {
+            return Base::approximate_inverse_evaluate(p, num_samples, min_u,
+                                                      max_u, min_v, max_v);
+          }
+
+          // 1. find closest control point
+          auto closest_control_pt_index = Base::find_closest_control_point(p);
+          int i_min = closest_control_pt_index.first;
+          int j_min = closest_control_pt_index.second;
+
+          if (level <= 0) {
+            return get_control_point_preimage(i_min, j_min);
+
+          } else {
+
+            // 2. Control points c_{i+/-1,j+/-1} bound the domain containing our
+            // desired initial guess; find subdomain corresponding to control
+            // point subdomain boundary
+            // Conditionals for bound checking
+            UVPoint uv_min = get_control_point_preimage(
+                i_min > 0 ? i_min - 1 : i_min, 
+                j_min > 0 ? j_min - 1 : j_min);
+            UVPoint uv_max = get_control_point_preimage(
+                i_min < num_control_points_u() - 1 ? i_min + 1 : i_min,
+                j_min < num_control_points_v() - 1 ? j_min + 1 : j_min);
+
+            // 3. split a subcurve to find closest ctrl points on subdomain
+            ThisType patch = subpatch(uv_min(0), uv_max(0), uv_min(1), uv_max(1));
+            
+            // repeat recursively
+            UVPoint uv = patch.approximate_inverse_evaluate(p, num_samples, 
+                    uv_min(0), uv_max(0), uv_min(1), uv_max(1), level - 1);
+
+            // remap solution up through affine subdomain transformations
+            uv(0) = (uv_max(0) - uv_min(0)) * uv(0) + uv_min(0);
+            uv(1) = (uv_max(1) - uv_min(1)) * uv(1) + uv_min(1);
+
+            return uv;
+          }
         }
 
     protected:
