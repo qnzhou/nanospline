@@ -3,7 +3,8 @@ set(CMAKE_CXX_STANDARD 11)
 
 project(nanospline)
 
-option(HIGH_DEGREE_SUPPORT "With high degree polynomial solver support" OFF)
+option(NANOSPLINE_HIGH_DEGREE_SUPPORT "With high degree polynomial solver support" OFF)
+option(NANOSPLINE_BUILD_TESTS "Build Tests" ON)
 
 include(FetchContent)
 include(cmake/Eigen3.cmake)
@@ -31,27 +32,28 @@ else()
 endif()
 
 
-file(GLOB TEST_FILES "${PROJECT_SOURCE_DIR}/tests/*.cpp")
-add_executable(nanospline_test ${TEST_FILES})
-target_link_libraries(nanospline_test nanospline Catch2::Catch2)
+if (NANOSPLINE_BUILD_TESTS)
+    file(GLOB TEST_FILES "${PROJECT_SOURCE_DIR}/tests/*.cpp")
+    add_executable(nanospline_test ${TEST_FILES})
+    target_link_libraries(nanospline_test nanospline Catch2::Catch2)
 
-if(NOT MSVC)
-    target_compile_options(nanospline_test PRIVATE -Wconversion -Wall -Werror)
-else()
-    target_compile_options(nanospline_test PRIVATE "/MP")
-    target_compile_definitions(nanospline_test PRIVATE -D_USE_MATH_DEFINES)
+    if(NOT MSVC)
+        target_compile_options(nanospline_test PRIVATE -Wconversion -Wall -Werror)
+    else()
+        target_compile_options(nanospline_test PRIVATE "/MP")
+        target_compile_definitions(nanospline_test PRIVATE -D_USE_MATH_DEFINES)
+    endif()
+
+    if (SANITIZE_ADDRESS OR
+            SANITIZE_LINK_STATIC OR
+            SANITIZE_MEMORY OR
+            SANITIZE_THREAD OR
+            SANITIZE_UNDEFINED)
+        add_sanitizers(nanospline)
+        add_sanitizers(nanospline_test)
+    endif()
+
+    add_custom_target(run_unit_tests
+        COMMAND nanospline_test
+        DEPENDS nanospline_test)
 endif()
-
-if (SANITIZE_ADDRESS OR
-        SANITIZE_LINK_STATIC OR
-        SANITIZE_MEMORY OR
-        SANITIZE_THREAD OR
-        SANITIZE_UNDEFINED)
-    add_sanitizers(nanospline)
-    add_sanitizers(nanospline_test)
-endif()
-
-add_custom_target(run_unit_tests
-    COMMAND nanospline_test
-    DEPENDS nanospline_test)
-
