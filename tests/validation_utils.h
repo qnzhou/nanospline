@@ -1,5 +1,5 @@
 #pragma once
-#include <Eigen/src/Core/Matrix.h>
+#include <Eigen/Core>
 #include <catch2/catch.hpp>
 #include <limits>
 #include <nanospline/hodograph.h>
