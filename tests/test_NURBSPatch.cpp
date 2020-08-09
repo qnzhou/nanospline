@@ -88,8 +88,9 @@ TEST_CASE("NURBSPatch", "[rational][bspline_patch]") {
         validate_inverse_evaluation(patch, 10, 10);
         validate_inverse_evaluation_3d(patch, 10, 10);
     }
+
     SECTION("Cubic spline"){
-        // BUG splitting NURBS patches can vary the size of the number of weights of  
+        // BUG splitting NURBS patches can vary the size of the number of weights of
         // the resulting patches, which is templated to match the number of
         // control points. Needs -1, -1 for degree in order to compile.
         NURBSPatch<Scalar, 3, -1,-1> patch;
@@ -100,8 +101,8 @@ TEST_CASE("NURBSPatch", "[rational][bspline_patch]") {
             }
         }
         patch.set_control_grid(control_grid);
-        
-        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots_u(12,1); 
+
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots_u(12,1);
         Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots_v(12,1);
 
         knots_u << 0.0, 0.0, 0.0, 0.0, .25, .5, .75, .9, 1.0, 1.0, 1.0, 1.0;
@@ -110,18 +111,18 @@ TEST_CASE("NURBSPatch", "[rational][bspline_patch]") {
         patch.set_knots_u(knots_u);
         patch.set_knots_v(knots_v);
 
-        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> weights(64, 1); 
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> weights(64, 1);
         weights.setOnes();
         SECTION("Uniform weight") {
             weights.setConstant(2.0);
         }
         SECTION("Non-uniform weight") {
-          std::random_device rd;
-          std::mt19937 generator(rd());
-          std::uniform_int_distribution<int> dist(0, 63);
-          for (int i = 0; i < 20; i++) {
-            weights[dist(generator)] = 2.;
-          }
+            std::random_device rd;
+            std::mt19937 generator(rd());
+            std::uniform_int_distribution<int> dist(0, 63);
+            for (int i = 0; i < 20; i++) {
+                weights[dist(generator)] = 2.;
+            }
         }
 
         patch.set_weights(weights);
@@ -167,19 +168,19 @@ TEST_CASE("NURBSPatch", "[rational][bspline_patch]") {
         patch.set_weights(weights);
         Eigen::Matrix<Scalar, Eigen::Dynamic, 1> u_knots(10, 1);
         Eigen::Matrix<Scalar, Eigen::Dynamic, 1> v_knots(4, 1);
-        u_knots << 0.0, 
-                   0.0, 
-                   0.0, 
-                   2.0943951023931953, 
-                   2.0943951023931953, 
-                   4.1887902047863905, 
-                   4.1887902047863905, 
-                   6.283185307179586, 
-                   6.283185307179586, 
+        u_knots << 0.0,
+                   0.0,
+                   0.0,
+                   2.0943951023931953,
+                   2.0943951023931953,
+                   4.1887902047863905,
+                   4.1887902047863905,
+                   6.283185307179586,
+                   6.283185307179586,
                    6.283185307179586;
-        v_knots << -10.573884999451131, 
-                   -10.573884999451131, 
-                   2.12611500054887, 
+        v_knots << -10.573884999451131,
+                   -10.573884999451131,
+                   2.12611500054887,
                    2.12611500054887;
         patch.set_knots_u(u_knots);
         patch.set_knots_v(v_knots);

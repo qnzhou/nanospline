@@ -400,6 +400,7 @@ void validate_inverse_evaluation(const PatchType& patch,
     }
 
 }
+
 template<typename PatchType>
 void validate_inverse_evaluation_3d(const PatchType& patch,
         int u_samples, int v_samples) {
