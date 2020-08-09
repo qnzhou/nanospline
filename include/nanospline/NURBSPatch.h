@@ -160,28 +160,18 @@ class NURBSPatch final : public PatchBase<_Scalar, _dim> {
 
         Scalar get_u_lower_bound() const override {
             return m_homogeneous.get_u_lower_bound();
-//            const int degree_u = Base::get_degree_u();
-//            return m_knots_u[degree_u];
         }
 
         Scalar get_v_lower_bound() const override {
             return m_homogeneous.get_v_lower_bound();
-//            const int degree_v = Base::get_degree_v();
-//            return m_knots_v[degree_v];
         }
 
         Scalar get_u_upper_bound() const override {
             return m_homogeneous.get_u_upper_bound();
-//            const auto num_knots = static_cast<int>(m_knots_u.rows());
-//            const int degree_u = Base::get_degree_u();
-//            return m_knots_u[num_knots-degree_u-1];
         }
 
         Scalar get_v_upper_bound() const override {
             return m_homogeneous.get_v_upper_bound();
-//            const auto num_knots = static_cast<int>(m_knots_v.rows());
-//            const int degree_v = Base::get_degree_v();
-//            return m_knots_v[num_knots-degree_v-1];
         }
 
     public:

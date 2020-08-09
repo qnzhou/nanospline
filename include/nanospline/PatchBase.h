@@ -139,7 +139,7 @@ class PatchBase {
         }
 
     protected:
-        UVPoint virtual approximate_inverse_evaluate(const Point& p,
+        virtual UVPoint approximate_inverse_evaluate(const Point& p,
                 const int num_samples,
                 const Scalar min_u,
                 const Scalar max_u,
@@ -230,22 +230,22 @@ class PatchBase {
         }
 
         std::pair<int, int> find_closest_control_point(Point p) const {
-          Scalar min_dist = std::numeric_limits<Scalar>::max();
-          int i_min = 0;
-          int j_min = 0;
-          for (int ui = 0; ui < num_control_points_u(); ui++) {
-            for (int vj = 0; vj < num_control_points_v(); vj++) {
+            Scalar min_dist = std::numeric_limits<Scalar>::max();
+            int i_min = 0;
+            int j_min = 0;
+            for (int ui = 0; ui < num_control_points_u(); ui++) {
+                for (int vj = 0; vj < num_control_points_v(); vj++) {
 
-              Point control_point = get_control_point(ui, vj);
-              const auto dist = (p - control_point).squaredNorm();
-              if (dist < min_dist) {
-                min_dist = dist;
-                i_min = ui;
-                j_min = vj;
-              }
+                    Point control_point = get_control_point(ui, vj);
+                    const auto dist = (p - control_point).squaredNorm();
+                    if (dist < min_dist) {
+                        min_dist = dist;
+                        i_min = ui;
+                        j_min = vj;
+                    }
+                }
             }
-          }
-          return std::pair<int, int>(i_min, j_min);
+            return std::pair<int, int>(i_min, j_min);
         }
 
     protected:
