@@ -247,14 +247,6 @@ class BSplineBase : public CurveBase<_Scalar, _dim> {
             int low = p;
             int high = static_cast<int>(m_knots.rows()-p-1);
 
-            // Handle out of domain cases.
-            if (t < m_knots[low]) {
-                return low;
-            }
-            if (t > m_knots[high]) {
-                return high;
-            }
-
             auto bypass_duplicates_after = [this, num_knots](int i) {
                 while(i+1<num_knots && this->m_knots[i] == this->m_knots[i+1]) {
                     i=i+1;
@@ -269,7 +261,10 @@ class BSplineBase : public CurveBase<_Scalar, _dim> {
                 return i;
             };
 
-            if (t == m_knots[high]) return bypass_duplicates_before(high)-1;
+            // Handle out of domain cases.
+            if (t <= m_knots[low]) return low;
+
+            if (t >= m_knots[high]) return bypass_duplicates_before(high)-1;
 
             int mid = (high+low) / 2;
             while(t < m_knots[mid] || t >= m_knots[mid+1]) {
