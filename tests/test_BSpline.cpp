@@ -45,6 +45,15 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
         SECTION("Degree elevation") {
             REQUIRE_THROWS(curve.elevate_degree());
         }
+
+        SECTION("Out of bound evaluation should extrapolate") {
+            auto p3 = curve.evaluate(-0.1);
+            REQUIRE(p3[0] == Approx(0.0));
+            REQUIRE(p3[1] == Approx(0.0));
+            auto p4 = curve.evaluate(1.1);
+            REQUIRE(p4[0] == Approx(2.0));
+            REQUIRE(p4[1] == Approx(0.0));
+        }
     }
 
     SECTION("Generic degree 1") {
@@ -105,6 +114,15 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
         SECTION("Degree elevation") {
             const auto curve2 = curve.elevate_degree();
             assert_same(curve, curve2, 10);
+        }
+
+        SECTION("Out of bound evaluation should extrapolate") {
+            auto p3 = curve.evaluate(-0.2);
+            REQUIRE(p3[0] == Approx(-1.0));
+            REQUIRE(p3[1] == Approx(0.0));
+            auto p4 = curve.evaluate(1.2);
+            REQUIRE(p4[0] == Approx(4.0));
+            REQUIRE(p4[1] == Approx(0.0));
         }
     }
 
@@ -176,6 +194,15 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
             const auto curve2 = curve.elevate_degree();
             assert_same(curve, curve2, 10);
         }
+
+        SECTION("Out of bound evaluation should extrapolate") {
+            auto p3 = curve.evaluate(-1.0);
+            REQUIRE(p3[0] < 0.0);
+            REQUIRE(p3[1] == Approx(0.0));
+            auto p4 = curve.evaluate(2.0);
+            REQUIRE(p4[0] > 3.0);
+            REQUIRE(p4[1] == Approx(0.0));
+        }
     }
 
     SECTION("Generic degree 3") {
@@ -246,6 +273,15 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
         SECTION("Degree elevation") {
             const auto curve2 = curve.elevate_degree();
             assert_same(curve, curve2, 10);
+        }
+
+        SECTION("Out of bound evaluation should extrapolate") {
+            auto p3 = curve.evaluate(-1.0);
+            REQUIRE(p3[0] < 0.0);
+            REQUIRE(p3[1] == Approx(0.0));
+            auto p4 = curve.evaluate(2.0);
+            REQUIRE(p4[0] > 3.0);
+            REQUIRE(p4[1] == Approx(0.0));
         }
     }
 

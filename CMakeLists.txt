@@ -57,6 +57,14 @@ if (NOT NANOSPLINE_HEADER_ONLY)
     add_library(nanospline::nanospline ALIAS nanospline_forward_decl)
     install(TARGETS nanospline_forward_decl EXPORT nanospline)
     install(DIRECTORY include/nanospline DESTINATION include)
+
+    if (SANITIZE_ADDRESS OR
+            SANITIZE_LINK_STATIC OR
+            SANITIZE_MEMORY OR
+            SANITIZE_THREAD OR
+            SANITIZE_UNDEFINED)
+        add_sanitizers(nanospline)
+    endif()
 else()
     target_compile_definitions(nanospline INTERFACE -DNANOSPLINE_HEADER_ONLY)
     add_library(nanospline::nanospline ALIAS nanospline)
@@ -66,11 +74,14 @@ endif()
 
 
 if (NANOSPLINE_BUILD_TESTS)
+    include(CTest)
+    enable_testing()
     include(cmake/Catch2.cmake)
 
     file(GLOB TEST_FILES "${PROJECT_SOURCE_DIR}/tests/*.cpp")
     add_executable(nanospline_test ${TEST_FILES})
     target_link_libraries(nanospline_test nanospline::nanospline Catch2::Catch2)
+    catch_discover_tests(nanospline_test)
 
     if(NOT MSVC)
         target_compile_options(nanospline_test PRIVATE -Wconversion -Wall -Werror)
@@ -84,7 +95,6 @@ if (NANOSPLINE_BUILD_TESTS)
             SANITIZE_MEMORY OR
             SANITIZE_THREAD OR
             SANITIZE_UNDEFINED)
-        add_sanitizers(nanospline)
         add_sanitizers(nanospline_test)
     endif()
 

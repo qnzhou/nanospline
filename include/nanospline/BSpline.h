@@ -53,11 +53,16 @@ public:
     void get_knot_span_control_points(
         int curve_degree, int knot_span, ControlPoints& control_pts) const
     {
-        for (int i = 0; i <= curve_degree; i++) {
-            int index = i + knot_span - curve_degree;
-            control_pts.row(i) = Base::m_control_points.row(index);
+        int span_index = knot_span - curve_degree;
+        for (int i_control_point = 0; i_control_point <= curve_degree; ++i_control_point) {
+            int control_point_index = span_index + i_control_point;
+            // verify that there are even enough control points to go around
+            assert(control_point_index >= 0);
+            assert(control_point_index < static_cast<int>(Base::m_control_points.rows()));
+            control_pts.row(i_control_point) = Base::m_control_points.row(control_point_index);
         }
     }
+
     Point evaluate(Scalar t) const override
     {
         Base::validate_curve();
@@ -479,6 +484,7 @@ private:
             }
         }
     }
+
     template <typename Derived>
     Point deBoor(Scalar t, int p, int k, Eigen::PlainObjectBase<Derived>& ctrl_pts) const
     {
