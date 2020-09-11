@@ -360,7 +360,7 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
         // Split a patch into two patches along the vertical line at u
       std::vector<ThisType> split_u(Scalar u) const {
         if (!Base::in_domain_u(u)) {
-          throw invalid_setting_error("Parameter not inside of the domain.");
+         invalid_setting_error("Parameter not inside of the domain.");
         }
         if (Base::is_endpoint_u(u)) { // no split required
           return std::vector<ThisType>{*this};
@@ -464,7 +464,7 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
         }
         for (int ui = 0; ui < num_control_points_u(); ui++) {
 
-          std::vector<IsoCurveU> iso_curve_parts =
+          std::vector<IsoCurveV> iso_curve_parts =
               split_iso_curves[static_cast<size_t>(ui)];
           // Copy control points of each split curve to its proper place in
           // the final control grid
@@ -486,7 +486,7 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
         // Initialize resulting split patches
         vector<ThisType> results(num_split_patches, ThisType());
         for (size_t ci = 0; ci < num_split_patches; ci++) {
-          IsoCurveU ref_curve = reference_split_curves[ci];
+          IsoCurveV ref_curve = reference_split_curves[ci];
           ThisType split_patch;
           split_patch.set_control_grid(split_control_pts_v[ci]);
           split_patch.set_knots_v(ref_curve.get_knots());
@@ -636,6 +636,86 @@ class BSplinePatch final : public PatchBase<_Scalar, _dim> {
             // no need to remap coordinates for splines
             return uv;
           }
+        }
+
+        static Eigen::MatrixXd form_least_squares_matrix(int num_control_pts_u,
+                int num_control_pts_v, 
+                Eigen::MatrixXd knots_u,Eigen::MatrixXd knots_v,
+                Eigen::MatrixXd parameters){
+            ThisType __;
+
+            const int num_control_pts = num_control_pts_u * num_control_pts_v;
+            Eigen::MatrixXd basis_func_control_pts(num_control_pts, 1);
+            BSplinePatch<Scalar, 1, _degree_u, _degree_v> basis_function;
+            basis_func_control_pts.setZero();
+            basis_function.set_knots_u(knots_u);
+            basis_function.set_knots_v(knots_v);
+
+            // Suppose we are fitting samples p_0, ..., p_n of a function f, with 
+            // parameter values (u_0,v_0) ..., (u_n,v_n). If B_q^n(u,v) is the 
+            // jth basis function value at (u,v), then 
+            // least_squares_matrix(i,q) = B_q^n(u_i, v_i), 
+            // where q is the linearized index over basis elements: 
+            // q = i*num_control_pts_v + j
+            const int num_constraints = int(parameters.rows());
+            Eigen::MatrixXd least_sqaures_matrix =
+                Eigen::MatrixXd::Zero(num_constraints, num_control_pts);
+
+            for (int j = 0; j < num_control_pts_u; j++) {
+                for (int k = 0; k < num_control_pts_v; k++) {
+                    int index = __.control_point_linear_index(j, k);
+                    basis_func_control_pts.row(index) << 1.;
+                    basis_function.set_control_grid(basis_func_control_pts);
+                    basis_function.initialize();
+                    for (int i = 0; i < num_constraints; i++) {
+                        Scalar u = parameters(i, 0);
+                        Scalar v = parameters(i, 1);
+                        Scalar bezier_value = basis_function.evaluate(u, v)(0);
+                        least_sqaures_matrix(i, index) = bezier_value;
+                    }
+                    basis_func_control_pts.row(index) << 0.;
+                }
+            }
+            return least_sqaures_matrix;
+        }
+
+        static ThisType fit(Eigen::MatrixXd parameters, Eigen::MatrixXd values,
+            int num_control_pts_u, int num_control_pts_v,
+            Eigen::MatrixXd knots_u, Eigen::MatrixXd knots_v) {
+
+            ThisType least_sqaures_fit;
+            least_sqaures_fit.set_knots_u(knots_u);
+            least_sqaures_fit.set_knots_v(knots_v);
+            
+            assert(parameters.rows() == values.rows());
+            assert(parameters.cols() == 2);
+            assert(values.cols() == least_sqaures_fit.get_dim());
+            // Form least squares matrix
+            Eigen::MatrixXd least_sqaures_matrix = form_least_squares_matrix(
+                    num_control_pts_u, num_control_pts_v, knots_u, knots_v, parameters);
+
+            // 2. Least sqaures solve via SVD
+            Eigen::MatrixXd fit_control_points =
+                least_sqaures_matrix.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV)
+                    .solve(values);
+
+            // 3. Store control points in least_sqaures_fit and return
+            least_sqaures_fit.set_control_grid(fit_control_points);
+            least_sqaures_fit.set_knots_u(knots_u);
+            least_sqaures_fit.set_knots_v(knots_v);
+            least_sqaures_fit.initialize();
+            return least_sqaures_fit;
+        }
+
+        void deform(Eigen::MatrixXd parameters, Eigen::MatrixXd changes_in_values) {
+            ThisType least_sqaures_fit = ThisType::fit(parameters, changes_in_values,
+                num_control_points_u(), num_control_points_v(),
+                get_knots_u(), get_knots_v());
+
+            ControlGrid changes_in_control_points = least_sqaures_fit.get_control_grid();
+            ControlGrid updated_control_points = Base::m_control_grid + changes_in_control_points;
+            Base::set_control_grid(updated_control_points);
+            initialize();
         }
 };
 
