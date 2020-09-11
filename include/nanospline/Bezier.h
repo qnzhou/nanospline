@@ -3,10 +3,13 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <iostream>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
+#include <Eigen/src/Core/Matrix.h>
+#include <Eigen/src/QR/CompleteOrthogonalDecomposition.h>
 #include <nanospline/BezierBase.h>
 #include <nanospline/Exceptions.h>
 
@@ -305,6 +308,59 @@ public:
         TargetType new_curve;
         new_curve.set_control_points(std::move(target_ctrl_pts));
         return new_curve;
+    }
+    
+    static Eigen::MatrixXd form_least_squares_matrix(Eigen::MatrixXd parameters){
+         const int num_control_pts = _degree +1;
+
+         Eigen::MatrixXd basis_func_control_pts(num_control_pts, 1);
+         Bezier<Scalar, 1, _degree, false> basis_function;
+         basis_func_control_pts.setZero();
+
+         // Suppose we are fitting samples p_0, ..., p_n of a function f, with 
+         // parameter values t_0, ..., t_n. If B_j^n(t) is the jth basis function
+         // then least_squares_matrix(i,j) = B_j^n(t_i)
+         const int num_constraints = int(parameters.rows());
+         Eigen::MatrixXd least_squares_matrix = Eigen::MatrixXd::Zero(num_constraints, num_control_pts);
+         
+         for (int j = 0; j < num_control_pts; j++) {
+             basis_func_control_pts.row(j) << 1.;
+             basis_function.set_control_points(basis_func_control_pts);
+             for (int i = 0; i < num_constraints; i++) {
+                 Scalar t = parameters(i,0);
+                 Scalar bezier_value = basis_function.evaluate(t)(0);
+                 least_squares_matrix(i,j) = bezier_value;
+             }
+             basis_func_control_pts.row(j) << 0.;
+         }
+         return least_squares_matrix;
+    }
+
+    static ThisType fit( Eigen::MatrixXd parameters, Eigen::MatrixXd values) {
+         ThisType least_squares_fit;
+         assert(parameters.rows() == values.rows());
+         assert(parameters.cols() == 1);
+         assert(values.cols() == least_squares_fit.get_dim());
+         const int num_control_pts = _degree + 1;
+
+         //1. Form least squares matrix .
+         Eigen::MatrixXd least_squares_matrix = form_least_squares_matrix(parameters);
+         
+         // 2. Least squares solve via SVD
+         Eigen::Matrix<Scalar, num_control_pts, _dim> fit_control_points =
+             least_squares_matrix.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(values);
+         
+         // 3. Store control points in least_squares_fit and return
+         least_squares_fit.set_control_points(fit_control_points);
+         return least_squares_fit;
+     }
+
+    void deform( Eigen::MatrixXd parameters, Eigen::MatrixXd changes_in_values) {
+        ThisType least_squares_fit = ThisType::fit(parameters, changes_in_values);
+        
+        ControlPoints changes_in_control_points  = least_squares_fit.get_control_points();
+        ControlPoints updated_control_points = Base::m_control_points + changes_in_control_points;
+        Base::set_control_points(updated_control_points);
     }
 
 private:
