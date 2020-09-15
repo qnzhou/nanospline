@@ -106,8 +106,10 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
             }
 
             SECTION("Inflections") {
+#if NANOSPLINE_SYMPY
                 auto inflections = curve.compute_inflections(0, 1);
                 REQUIRE(inflections.size() == 0);
+#endif
             }
 
             SECTION("Degree elevation") {
@@ -195,13 +197,17 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
             }
 
             SECTION("Inflections") {
+#if NANOSPLINE_SYMPY
                 auto inflections = curve.compute_inflections(0, 1);
                 REQUIRE(inflections.size() == 0);
+#endif
             }
 
             SECTION("Singularities") {
+#if NANOSPLINE_SYMPY
                 auto singular_pts = curve.compute_singularities(0, 1);
                 REQUIRE(singular_pts.size() == 0);
+#endif
             }
 
             SECTION("Degree elevation") {
@@ -212,6 +218,7 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
     }
 
     SECTION("Inflection points") {
+#if NANOSPLINE_SYMPY
         Eigen::Matrix<Scalar, 4, 2> ctrl_pts;
         ctrl_pts << 0.0, 0.0,
                     1.0, 1.0,
@@ -247,9 +254,11 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
         SECTION("Approximate inverse evaluate") {
             validate_approximate_inverse_evaluation(curve, 10);
         }
+#endif
     }
 
     SECTION("Inflection points of closed NURBS curve") {
+#if NANOSPLINE_SYMPY
         Eigen::Matrix<Scalar, 14, 2> ctrl_pts;
         ctrl_pts << 1, 4, .5, 6, 5, 4, 3, 12, 11, 14, 8, 4, 12, 3, 11, 9, 15, 10, 17, 8,
                  1, 4, .5, 6, 5, 4, 3, 12 ;
@@ -289,5 +298,6 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
         SECTION("Approximate inverse evaluate") {
             validate_approximate_inverse_evaluation(curve, 10);
         }
+#endif
     }
 }

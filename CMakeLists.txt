@@ -16,6 +16,7 @@ project(nanospline)
 option(NANOSPLINE_HIGH_DEGREE_SUPPORT "With high degree polynomial solver support" OFF)
 option(NANOSPLINE_BUILD_TESTS "Build Tests" ON)
 option(NANOSPLINE_HEADER_ONLY "Enable header-only mode" ON)
+option(NANOSPLINE_SYMPY "Enable sympy generated code (slow to compile)" OFF)
 
 include(FetchContent)
 include(cmake/Eigen3.cmake)
@@ -31,6 +32,10 @@ add_library(nanospline INTERFACE)
 target_link_libraries(nanospline INTERFACE Eigen3::Eigen)
 target_include_directories(nanospline INTERFACE
     ${PROJECT_SOURCE_DIR}/include)
+
+if (NANOSPLINE_SYMPY)
+    target_compile_definitions(nanospline INTERFACE -DNANOSPLINE_SYMPY)
+endif()
 
 add_custom_target(nanospline_ SOURCES ${INC_FILES})
 
