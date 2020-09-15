@@ -6,14 +6,18 @@
 #include <iostream>
 
 #include <Eigen/Core>
+#include <Eigen/Dense>
 
 #include <Eigen/src/Core/Matrix.h>
 #include <Eigen/src/QR/CompleteOrthogonalDecomposition.h>
 #include <nanospline/BezierBase.h>
 #include <nanospline/Exceptions.h>
+
+#if NANOSPLINE_SYMPY
 #include <nanospline/internal/auto_inflection_Bezier.h>
 #include <nanospline/internal/auto_match_tangent_Bezier.h>
 #include <nanospline/internal/auto_singularity_Bezier.h>
+#endif
 
 namespace nanospline {
 
@@ -89,6 +93,7 @@ public:
 
     std::vector<Scalar> compute_inflections(const Scalar lower, const Scalar upper) const override
     {
+#if NANOSPLINE_SYMPY
         if (_dim != 2) {
             throw std::runtime_error("Inflection computation is for 2D curves only");
         }
@@ -110,6 +115,10 @@ public:
         res.erase(std::unique(res.begin(), res.end()), res.end());
 
         return res;
+#else
+        throw not_implemented_error("This feature require 'NANOSPLINE_SYMPY' compiler flag.");
+        return {};
+#endif
     }
 
     Scalar get_turning_angle(Scalar t0, Scalar t1) const override
@@ -131,6 +140,7 @@ public:
 
     std::vector<Scalar> reduce_turning_angle(const Scalar lower, const Scalar upper) const override
     {
+#if NANOSPLINE_SYMPY
         constexpr Scalar tol = static_cast<Scalar>(1e-8);
         if (_dim != 2) {
             throw std::runtime_error("Turning angle reduction is for 2D curves only");
@@ -167,11 +177,16 @@ public:
         res.erase(std::unique(res.begin(), res.end()), res.end());
 
         return res;
+#else
+        throw not_implemented_error("This feature require 'NANOSPLINE_SYMPY' compiler flag.");
+        return {};
+#endif
     }
 
     std::vector<Scalar> compute_singularities(
         const Scalar lower = 0.0, const Scalar upper = 1.0) const override
     {
+#if NANOSPLINE_SYMPY
         if (_dim != 2) {
             throw std::runtime_error("Singularity computation is for 2D curves only");
         }
@@ -183,6 +198,10 @@ public:
         res.erase(std::unique(res.begin(), res.end()), res.end());
 
         return res;
+#else
+        throw not_implemented_error("This feature require 'NANOSPLINE_SYMPY' compiler flag.");
+        return {};
+#endif
     }
 
     /**
@@ -579,6 +598,7 @@ public:
 
     std::vector<Scalar> reduce_turning_angle(const Scalar lower, const Scalar upper) const override
     {
+#if NANOSPLINE_SYMPY
         constexpr Scalar tol = static_cast<Scalar>(1e-8);
         if (_dim != 2) {
             throw std::runtime_error("Turning angle reduction is for 2D curves only");
@@ -618,10 +638,15 @@ public:
         res.erase(std::unique(res.begin(), res.end()), res.end());
 
         return res;
+#else
+        throw not_implemented_error("This feature require 'NANOSPLINE_SYMPY' compiler flag.");
+        return {};
+#endif
     }
 
     std::vector<Scalar> compute_singularities(const Scalar lower, const Scalar upper) const override
     {
+#if NANOSPLINE_SYMPY
         if (_dim != 2) {
             throw std::runtime_error("Singularity computation is for 2D curves only");
         }
@@ -640,6 +665,10 @@ public:
         res.erase(std::unique(res.begin(), res.end()), res.end());
 
         return res;
+#else
+        throw not_implemented_error("This feature require 'NANOSPLINE_SYMPY' compiler flag.");
+        return {};
+#endif
     }
 
 public:
@@ -743,6 +772,7 @@ public:
 
     std::vector<Scalar> compute_inflections(const Scalar lower, const Scalar upper) const override
     {
+#if NANOSPLINE_SYMPY
         std::vector<Scalar> res;
         try {
             res = nanospline::internal::compute_Bezier_degree_3_inflections(
@@ -764,6 +794,10 @@ public:
         res.erase(std::unique(res.begin(), res.end()), res.end());
 
         return res;
+#else
+        throw not_implemented_error("This feature require 'NANOSPLINE_SYMPY' compiler flag.");
+        return {};
+#endif
     }
 
     Scalar get_turning_angle(Scalar t0, Scalar t1) const override
@@ -785,6 +819,7 @@ public:
 
     std::vector<Scalar> reduce_turning_angle(const Scalar lower, const Scalar upper) const override
     {
+#if NANOSPLINE_SYMPY
         constexpr Scalar tol = static_cast<Scalar>(1e-8);
         if (_dim != 2) {
             throw std::runtime_error("Turning angle reduction is for 2D curves only");
@@ -826,10 +861,15 @@ public:
         res.erase(std::unique(res.begin(), res.end()), res.end());
 
         return res;
+#else
+        throw not_implemented_error("This feature require 'NANOSPLINE_SYMPY' compiler flag.");
+        return {};
+#endif
     }
 
     std::vector<Scalar> compute_singularities(const Scalar lower, const Scalar upper) const override
     {
+#if NANOSPLINE_SYMPY
         if (_dim != 2) {
             throw std::runtime_error("Singularity computation is for 2D curves only");
         }
@@ -850,6 +890,10 @@ public:
         res.erase(std::unique(res.begin(), res.end()), res.end());
 
         return res;
+#else
+        throw not_implemented_error("This feature require 'NANOSPLINE_SYMPY' compiler flag.");
+        return {};
+#endif
     }
 
 public:

@@ -99,10 +99,12 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
         }
 
         SECTION("Turning angle") {
+#if NANOSPLINE_SYMPY
             auto total_turning_angle = curve.get_turning_angle(0, 1);
             REQUIRE(total_turning_angle == Approx(0));
             const auto split_pts = curve.reduce_turning_angle(0, 1);
             REQUIRE(split_pts.size() == 0);
+#endif
         }
 
         SECTION("Split and combine") {
@@ -173,15 +175,19 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
         }
 
         SECTION("Turning angle") {
+#if NANOSPLINE_SYMPY
             auto total_turning_angle = curve.get_turning_angle(0, 1);
             REQUIRE(total_turning_angle == Approx(0));
             const auto split_pts = curve.reduce_turning_angle(0, 1);
             REQUIRE(split_pts.size() == 0);
+#endif
         }
 
         SECTION("Singularity") {
+#if NANOSPLINE_SYMPY
             auto singular_pts = curve.compute_singularities(0, 1);
             REQUIRE(singular_pts.size() == 0);
+#endif
         }
 
         SECTION("Split and combine") {
@@ -253,15 +259,19 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
         }
 
         SECTION("Turning angle") {
+#if NANOSPLINE_SYMPY
             auto total_turning_angle = curve.get_turning_angle(0, 1);
             REQUIRE(total_turning_angle == Approx(0));
             const auto split_pts = curve.reduce_turning_angle(0, 1);
             REQUIRE(split_pts.size() == 0);
+#endif
         }
 
         SECTION("Singularity") {
+#if NANOSPLINE_SYMPY
             auto singular_pts = curve.compute_singularities(0, 1);
             REQUIRE(singular_pts.size() == 0);
+#endif
         }
 
         SECTION("Split and combine") {
@@ -815,15 +825,19 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
             }
 
             SECTION("Turning angle") {
+#if NANOSPLINE_SYMPY
                 const auto min_t = curve.get_domain_lower_bound();
                 const auto max_t = curve.get_domain_upper_bound();
                 auto total_turning_angle = curve.get_turning_angle(min_t, max_t);
                 REQUIRE(std::abs(total_turning_angle) == Approx(2 * M_PI));
+#endif
             }
 
             SECTION("Singularity") {
+#if NANOSPLINE_SYMPY
                 auto singular_pts = curve.compute_singularities(0, 1);
                 REQUIRE(singular_pts.size() == 0);
+#endif
             }
 
             SECTION("Split and combine") {
@@ -841,6 +855,7 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
     }
 
     SECTION("Inflection") {
+#if NANOSPLINE_SYMPY
         SECTION("Compare with Bezier") {
             Eigen::Matrix<Scalar, 4, 2> ctrl_pts;
             ctrl_pts << 0.0, 0.0,
@@ -921,6 +936,6 @@ TEST_CASE("BSpline", "[nonrational][bspline]") {
             auto singular_pts = curve.compute_singularities(0, 2.0);
             REQUIRE(singular_pts.size() == 0);
         }
-
+#endif
     }
 }
