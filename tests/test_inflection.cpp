@@ -8,6 +8,7 @@
 #include <nanospline/forward_declaration.h>
 
 TEST_CASE("inflection", "[inflection]") {
+#if NANOSPLINE_SYMPY
     using namespace nanospline;
     using Scalar = double;
 
@@ -218,4 +219,5 @@ TEST_CASE("inflection", "[inflection]") {
             REQUIRE(curvature.norm() == Approx(0.0).margin(1e-12));
         }
     }
+#endif
 }

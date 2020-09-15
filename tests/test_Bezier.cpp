@@ -115,6 +115,7 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
         }
 
         SECTION("Turning angle") {
+#if NANOSPLINE_SYMPY
             const auto total_turning_angle = curve.get_turning_angle(0, 1);
             REQUIRE(std::abs(total_turning_angle) == Approx(M_PI/2));
             const auto split_pts = curve.reduce_turning_angle(0, 1);
@@ -123,14 +124,18 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
             const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
             REQUIRE(std::abs(turning_angle_1) == Approx(M_PI/4));
             REQUIRE(std::abs(turning_angle_2) == Approx(M_PI/4));
+#endif
         }
 
         SECTION("Singularity") {
+#if NANOSPLINE_SYMPY
             auto singular_pts = curve.compute_singularities(0, 1);
             REQUIRE(singular_pts.size() == 0);
+#endif
         }
 
         SECTION("Curve with singularity") {
+#if NANOSPLINE_SYMPY
             control_pts << 0.0, 0.0,
                            1.0, 1.0,
                            0.0, 1.0,
@@ -149,6 +154,7 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
             REQUIRE(singular_pts.size() == 1);
             REQUIRE(singular_pts[0] == Approx(0.5));
             REQUIRE(curve.evaluate_derivative(0.5).norm() == Approx(0.0));
+#endif
         }
 
         SECTION("degree elevation") {
@@ -197,6 +203,7 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
         }
 
         SECTION("Turning angle") {
+#if NANOSPLINE_SYMPY
             const auto total_turning_angle = curve.get_turning_angle(0, 1);
             REQUIRE(std::abs(total_turning_angle) == Approx(M_PI/2));
             const auto split_pts = curve.reduce_turning_angle(0, 1);
@@ -205,20 +212,25 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
             const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
             REQUIRE(std::abs(turning_angle_1) == Approx(M_PI/4));
             REQUIRE(std::abs(turning_angle_2) == Approx(M_PI/4));
+#endif
         }
 
         SECTION("Turning angle of linear curve") {
+#if NANOSPLINE_SYMPY
             control_pts.col(1).setZero();
             curve.set_control_points(control_pts);
             const auto total_turning_angle = curve.get_turning_angle(0, 1);
             REQUIRE(total_turning_angle == Approx(0.0));
             const auto split_pts = curve.reduce_turning_angle(0, 1);
             REQUIRE(split_pts.empty());
+#endif
         }
 
         SECTION("Singularity") {
+#if NANOSPLINE_SYMPY
             auto singular_pts = curve.compute_singularities(0, 1);
             REQUIRE(singular_pts.size() == 0);
+#endif
         }
 
         SECTION("degree elevation") {
@@ -311,10 +323,12 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
         }
 
         SECTION("Turning angle") {
+#if NANOSPLINE_SYMPY
             const auto total_turning_angle = curve.get_turning_angle(0, 1);
             REQUIRE(total_turning_angle == Approx(0.0).margin(1e-6));
             const auto split_pts = curve.reduce_turning_angle(0, 1);
             REQUIRE(split_pts.size() == 0);
+#endif
         }
 
         SECTION("degree elevation") {
@@ -355,6 +369,7 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
         }
 
         SECTION("Turning angle") {
+#if NANOSPLINE_SYMPY
             const auto total_turning_angle = curve.get_turning_angle(0, 1);
             REQUIRE(std::abs(total_turning_angle) == Approx(M_PI/2).margin(1e-6));
             const auto split_pts = curve.reduce_turning_angle(0, 1);
@@ -364,9 +379,11 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
             const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
             REQUIRE(std::abs(turning_angle_1) == Approx(M_PI/4));
             REQUIRE(std::abs(turning_angle_2) == Approx(M_PI/4));
+#endif
         }
 
         SECTION("Singularity") {
+#if NANOSPLINE_SYMPY
             auto singular_pts = curve.compute_singularities(0, 1);
             REQUIRE(singular_pts.size() == 0);
 
@@ -376,6 +393,7 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
             REQUIRE(singular_pts.size() == 1);
             REQUIRE(singular_pts[0] == Approx(0.5));
             REQUIRE(curve.evaluate_derivative(0.5).norm() == Approx(0.0));
+#endif
         }
 
         SECTION("degree elevation") {
@@ -421,6 +439,7 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
         }
 
         SECTION("Turning angle") {
+#if NANOSPLINE_SYMPY
             const auto total_turning_angle = curve.get_turning_angle(0, 1);
             REQUIRE(std::abs(total_turning_angle) == Approx(M_PI/2).margin(1e-6));
             const auto split_pts = curve.reduce_turning_angle(0, 1);
@@ -430,23 +449,29 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
             const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
             REQUIRE(std::abs(turning_angle_1) == Approx(M_PI/4));
             REQUIRE(std::abs(turning_angle_2) == Approx(M_PI/4));
+#endif
         }
 
         SECTION("Turning angle of linear curve") {
+#if NANOSPLINE_SYMPY
             control_pts.col(1).setZero();
             curve.set_control_points(control_pts);
             const auto total_turning_angle = curve.get_turning_angle(0, 1);
             REQUIRE(total_turning_angle == Approx(0.0));
             const auto split_pts = curve.reduce_turning_angle(0, 1);
             REQUIRE(split_pts.empty());
+#endif
         }
 
         SECTION("Singularity") {
+#if NANOSPLINE_SYMPY
             auto singular_pts = curve.compute_singularities(0, 1);
             REQUIRE(singular_pts.size() == 0);
+#endif
         }
 
         SECTION("Curve with singularity") {
+#if NANOSPLINE_SYMPY
             control_pts << 0.0, 0.0,
                            1.0, 1.0,
                            0.0, 1.0,
@@ -465,6 +490,7 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
             REQUIRE(singular_pts.size() == 1);
             REQUIRE(singular_pts[0] == Approx(0.5));
             REQUIRE(curve.evaluate_derivative(0.5).norm() == Approx(0.0));
+#endif
         }
 
         SECTION("degree elevation") {
