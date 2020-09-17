@@ -20,7 +20,7 @@ public:
     using Scalar = typename Base::Scalar;
     using Point = typename Base::Point;
     using ControlPoints = typename Base::ControlPoints;
-    using WeightVector = Eigen::Matrix<_Scalar, _generic ? Eigen::Dynamic : _degree + 1, 1>;
+    using WeightVector = Eigen::Matrix<_Scalar, Eigen::Dynamic, 1>;
     using BSplineHomogeneous = BSpline<_Scalar, _dim + 1, _degree, _generic>;
 
 public:
