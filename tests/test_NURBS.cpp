@@ -47,6 +47,96 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
             validate_derivatives(curve, 10);
             validate_2nd_derivatives(curve, 10);
         }
+
+        SECTION("Approximate inverse evaluate") {
+            validate_approximate_inverse_evaluation(curve, 10);
+        }
+    }
+
+    SECTION("degree 1") {
+        Eigen::Matrix<Scalar, 3, 2> control_pts;
+        control_pts << 0.0, 0.0,
+                       1.0, 0.0,
+                       1.0, 1.0;
+        Eigen::Matrix<Scalar, 5, 1> knots;
+        knots << 0.0, 0.0, 0.5, 1.0, 1.0;
+
+        Eigen::Matrix<Scalar, 3, 1> weights;
+        weights << 1.0, 1.0, 1.0;
+
+        NURBS<Scalar, 2, 1> curve;
+        curve.set_control_points(control_pts);
+        curve.set_knots(knots);
+        curve.set_weights(weights);
+        curve.initialize();
+
+        SECTION("Evaluation") {
+            auto p0 = curve.evaluate(0.0);
+            REQUIRE(p0[0] == Approx(0.0));
+            REQUIRE(p0[1] == Approx(0.0));
+
+            auto p1 = curve.evaluate(1.0);
+            REQUIRE(p1[0] == Approx(1.0));
+            REQUIRE(p1[1] == Approx(1.0));
+        }
+
+        SECTION("Derivative") {
+            validate_derivatives(curve, 10);
+            validate_2nd_derivatives(curve, 10);
+        }
+
+        SECTION("Approximate inverse evaluate") {
+            validate_approximate_inverse_evaluation(curve, 10);
+        }
+    }
+
+    SECTION("degree 2") {
+        Eigen::Matrix<Scalar, 4, 2> control_pts;
+        control_pts << 0.0, 0.0,
+                       1.0, 0.0,
+                       1.0, 1.0,
+                       0.0, 1.0;
+        Eigen::Matrix<Scalar, 7, 1> knots;
+        knots << 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0;
+
+        Eigen::Matrix<Scalar, 4, 1> weights;
+        weights << 1.0, 1.0, 1.0, 1.0;
+
+        NURBS<Scalar, 2, 2> curve;
+        curve.set_control_points(control_pts);
+        curve.set_knots(knots);
+        curve.set_weights(weights);
+        curve.initialize();
+
+        SECTION("Evaluation") {
+            auto p0 = curve.evaluate(0.0);
+            REQUIRE(p0[0] == Approx(0.0));
+            REQUIRE(p0[1] == Approx(0.0));
+
+            auto p1 = curve.evaluate(1.0);
+            REQUIRE(p1[0] == Approx(0.0));
+            REQUIRE(p1[1] == Approx(1.0));
+        }
+
+        SECTION("weights") {
+            auto p = curve.evaluate(0.5);
+            REQUIRE(p[1] == Approx(0.5));
+
+            weights[1] = 0.1;
+            weights[2] = 0.1;
+            curve.set_weights(weights);
+            curve.initialize();
+
+            auto q = curve.evaluate(0.5);
+            REQUIRE(q[1] == Approx(0.5));
+            REQUIRE(q[0] == Approx(p[0]));
+        }
+
+        SECTION("Derivative") {
+            validate_derivatives(curve, 10);
+            validate_2nd_derivatives(curve, 10);
+        }
+
         SECTION("Approximate inverse evaluate") {
             validate_approximate_inverse_evaluation(curve, 10);
         }
