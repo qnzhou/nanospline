@@ -124,6 +124,11 @@ TEST_CASE("NURBSPatch", "[rational][bspline_patch]") {
                 weights[dist(generator)] = 2.;
             }
         }
+        SECTION("Zero weights") {
+            weights.setConstant(1.0);
+            weights[10] = 1e-15;
+            weights[40] = 1e-15;
+        }
 
         patch.set_weights(weights);
         patch.set_degree_u(3);

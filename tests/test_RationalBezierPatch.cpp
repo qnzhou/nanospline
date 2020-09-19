@@ -68,6 +68,11 @@ TEST_CASE("RationalBezierPatch", "[rational][rational_bezier_patch]") {
             weights[9] = 2.0;
             weights[10] = 2.0;
         }
+        SECTION("Zero weights") {
+            weights.setConstant(1.0);
+            weights[2] = 1e-15;
+            weights[9] = 1e-15;
+        }
         patch.set_weights(weights);
         patch.initialize();
 
