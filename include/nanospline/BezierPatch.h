@@ -488,7 +488,8 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
           }
         }
 
-        static Eigen::MatrixXd form_least_squares_matrix(Eigen::MatrixXd parameters){
+        static Eigen::MatrixXd form_least_squares_matrix(Eigen::MatrixXd parameters)
+        {
             ThisType __;
             const int num_control_pts_u = _degree_u + 1;
             const int num_control_pts_v = _degree_v + 1;
@@ -498,11 +499,11 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
             BezierPatch<Scalar, 1, _degree_u, _degree_v> bezier;
             bezier_control_pts.setZero();
 
-            // Suppose we are fitting samples p_0, ..., p_n of a function f, with 
-            // parameter values (u_0,v_0) ..., (u_n,v_n). If B_q^n(u,v) is the 
-            // jth basis function value at (u,v), then 
-            // least_squares_matrix(i,q) = B_q^n(u_i, v_i), 
-            // where q is the linearized index over basis elements: 
+            // Suppose we are fitting samples p_0, ..., p_n of a function f, with
+            // parameter values (u_0,v_0) ..., (u_n,v_n). If B_q^n(u,v) is the
+            // jth basis function value at (u,v), then
+            // least_squares_matrix(i,q) = B_q^n(u_i, v_i),
+            // where q is the linearized index over basis elements:
             // q = i*num_control_pts_v + j
             const int num_constraints = int(parameters.rows());
             Eigen::MatrixXd least_squares_matrix =
@@ -524,18 +525,18 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
                 }
             }
             return least_squares_matrix;
-
         }
-    
-        static ThisType fit( Eigen::MatrixXd parameters, Eigen::MatrixXd values) {
+
+        static ThisType fit(Eigen::MatrixXd parameters, Eigen::MatrixXd values)
+        {
             ThisType least_squares_fit;
 
             assert(parameters.rows() == values.rows());
             assert(parameters.cols() == 2);
             assert(values.cols() == least_squares_fit.get_dim());
-            const int num_control_pts = (_degree_u + 1)* (_degree_v + 1);
-         
-            //1. Form least squares matrix .
+            const int num_control_pts = (_degree_u + 1) * (_degree_v + 1);
+
+            // 1. Form least squares matrix .
             Eigen::MatrixXd least_squares_matrix = form_least_squares_matrix(parameters);
 
             // 2. Least squares solve via SVD
@@ -549,9 +550,10 @@ class BezierPatch final : public PatchBase<_Scalar, _dim> {
             return least_squares_fit;
         }
 
-        void deform(Eigen::MatrixXd parameters, Eigen::MatrixXd changes_in_values) {
+        void deform(Eigen::MatrixXd parameters, Eigen::MatrixXd changes_in_values)
+        {
             ThisType least_squares_fit = ThisType::fit(parameters, changes_in_values);
-            
+
             ControlGrid changes_in_control_points = least_squares_fit.get_control_grid();
             ControlGrid updated_control_points = Base::m_control_grid + changes_in_control_points;
             Base::set_control_grid(updated_control_points);
