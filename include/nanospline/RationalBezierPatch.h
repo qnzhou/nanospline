@@ -266,7 +266,10 @@ class RationalBezierPatch final : public PatchBase<_Scalar, _dim> {
                                                       max_u, min_v, max_v);
           }
 
-          // 1. find closest control point
+          // 1. find closest control point 
+          // (works for points with 0 weight: Base::m_control_grid is scaled by
+          // corresponding weights when initialized, so c_i/w_i = inf as w_i-> 0 
+          // so small weights push control points "further" from the query // point)
           auto closest_control_pt_index = Base::find_closest_control_point(p);
           int i_min = closest_control_pt_index.first;
           int j_min = closest_control_pt_index.second;
