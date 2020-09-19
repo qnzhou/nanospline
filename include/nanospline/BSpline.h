@@ -402,16 +402,18 @@ public:
 
         return TargetType(beziers2, parameter_bounds);
     }
-   
-    static Eigen::MatrixXd form_least_squares_matrix(int num_control_pts, Eigen::MatrixXd knots, Eigen::MatrixXd parameters){
-        assert(knots.rows() ==num_control_pts + _degree + 1);
-        
+
+    static Eigen::MatrixXd form_least_squares_matrix(
+        int num_control_pts, Eigen::MatrixXd knots, Eigen::MatrixXd parameters)
+    {
+        assert(knots.rows() == num_control_pts + _degree + 1);
+
         Eigen::MatrixXd basis_func_control_pts(num_control_pts, 1);
         BSpline<Scalar, 1, _degree, false> basis_func;
         basis_func_control_pts.setZero();
         basis_func.set_knots(knots);
-        
-        // Suppose we are fitting samples p_0, ..., p_n of a function f, with 
+
+        // Suppose we are fitting samples p_0, ..., p_n of a function f, with
         // parameter values t_0, ..., t_n. If B_j^n(t) is the jth basis function
         // then least_squares_matrix(i,j) = B_j^n(t_i)
         // TODO replace with sparse matrices
@@ -429,38 +431,45 @@ public:
                 least_squares_matrix(i, j) = bezier_value;
             }
             basis_func_control_pts.row(j) << 0.;
-         }
+        }
         return least_squares_matrix;
     }
-    static ThisType fit( Eigen::MatrixXd parameters, Eigen::MatrixXd values, int num_control_pts, Eigen::MatrixXd knots) {
-         ThisType least_squares_fit;
-         
-         assert(parameters.rows() == values.rows());
-         assert(parameters.cols() == 1);
-         assert(values.cols() == least_squares_fit.get_dim());
 
-         //1. Form least squares matrix .
-         Eigen::MatrixXd least_squares_matrix = form_least_squares_matrix(num_control_pts, knots, parameters);
-         
-         // 2. Matrix-vecctor multiply values to get contrl points
-         Eigen::MatrixXd fit_control_points = least_squares_matrix.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(values);
-         
-         // 3. Store control points in least_squares_fit and return
-         least_squares_fit.set_control_points(fit_control_points);
-         least_squares_fit.set_knots(knots);
-         return least_squares_fit;
-     }
+    static ThisType fit(Eigen::MatrixXd parameters,
+        Eigen::MatrixXd values,
+        int num_control_pts,
+        Eigen::MatrixXd knots)
+    {
+        ThisType least_squares_fit;
+
+        assert(parameters.rows() == values.rows());
+        assert(parameters.cols() == 1);
+        assert(values.cols() == least_squares_fit.get_dim());
+
+        // 1. Form least squares matrix .
+        Eigen::MatrixXd least_squares_matrix =
+            form_least_squares_matrix(num_control_pts, knots, parameters);
+
+        // 2. Matrix-vecctor multiply values to get contrl points
+        Eigen::MatrixXd fit_control_points =
+            least_squares_matrix.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(values);
+
+        // 3. Store control points in least_squares_fit and return
+        least_squares_fit.set_control_points(fit_control_points);
+        least_squares_fit.set_knots(knots);
+        return least_squares_fit;
+    }
 
 
-    void deform( Eigen::MatrixXd parameters, Eigen::MatrixXd changes_in_values) {
+    void deform(Eigen::MatrixXd parameters, Eigen::MatrixXd changes_in_values)
+    {
         const int num_control_pts = int(Base::m_control_points.rows());
-        ThisType least_squares_fit = ThisType::fit(parameters, changes_in_values,
-                num_control_pts, Base::get_knots());
+        ThisType least_squares_fit =
+            ThisType::fit(parameters, changes_in_values, num_control_pts, Base::get_knots());
 
-        ControlPoints changes_in_control_points  = least_squares_fit.get_control_points();
-        ControlPoints updated_control_points  = Base::m_control_points + changes_in_control_points;
+        ControlPoints changes_in_control_points = least_squares_fit.get_control_points();
+        ControlPoints updated_control_points = Base::m_control_points + changes_in_control_points;
         Base::set_control_points(updated_control_points);
-        
     }
 
 private:
