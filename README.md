@@ -22,6 +22,7 @@ The following functionalities are covered:
 * [Knot insertion and removal](#Knot-insertion-and-removal)
 * [Split](#Split)
 * [Degree elevation](#Degree-elevation)
+* [Arc length](#Arc-length)
 * [Inflection](#Inflection)
 * [Turning angle](#Turning-angle)
 * [Singularity](#Singularity)
@@ -307,6 +308,22 @@ It is often useful to increase the degree of a curve:
 ```c++
 auto curve2 = curve.elevate_degree();
 assert(curve2.get_degree() == curve.get_degree()+1);
+```
+
+### Arc length
+
+Given a parameter value, `t`, the following function computes the arc length `l`
+at `t`:
+
+```c++
+auto l = arc_length(curve, t);
+```
+
+On the other hand, given an arc length `l`, the following function find the
+parameter `t` corresponding to `l`:
+
+```c++
+auto t = inverse_arc_length(curve, l);
 ```
 
 ### Inflection
