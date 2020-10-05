@@ -29,7 +29,7 @@ Scalar arc_length(const CurveBase<Scalar, DIM>& curve, Scalar t, size_t level = 
         R_values[0] = 0.5 * R_above;
         size_t num_steps = 1 << (i - 1);
         for (size_t k = 1; k < num_steps; k++) {
-            R_values[0] += speed(t0 + (2 * k - 1) * h) * h;
+            R_values[0] += speed(t0 + static_cast<Scalar>(2 * k - 1) * h) * h;
         }
 
         size_t m = 1;
@@ -37,7 +37,8 @@ Scalar arc_length(const CurveBase<Scalar, DIM>& curve, Scalar t, size_t level = 
         for (size_t j = 1; j <= i; j++) {
             m *= 4;
             R_above = R_values[j];
-            R_values[j] = R_values[j - 1] + (R_values[j - 1] - R_prev_above) / (m - 1);
+            R_values[j] =
+                R_values[j - 1] + (R_values[j - 1] - R_prev_above) / static_cast<Scalar>(m - 1);
             R_prev_above = R_above;
         }
 
