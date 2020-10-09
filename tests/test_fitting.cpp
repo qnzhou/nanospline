@@ -255,10 +255,11 @@ TEST_CASE("simple test for deformations to test for seg faults", "[deform]")
         const int degree = 4;
         const int dim = 2;
         const int num_samples = 30;
+        double magnitude = 10;
 
         Eigen::MatrixXd parameter_values = .5 * (Eigen::MatrixXd::Random(num_samples, 1) +
                                                     Eigen::MatrixXd::Constant(num_samples, 1, 1.));
-        Eigen::MatrixXd deformations = Eigen::MatrixXd::Constant(num_samples, dim, 1.);
+        Eigen::MatrixXd deformations = Eigen::MatrixXd::Constant(num_samples, dim, magnitude);
 
         SECTION("Bezier")
         {
@@ -269,8 +270,8 @@ TEST_CASE("simple test for deformations to test for seg faults", "[deform]")
             curve.set_control_points(control_pts);
             curve.deform(parameter_values, deformations);
             auto new_control_points = curve.get_control_points();
-            REQUIRE(new_control_points.isApprox(
-                control_pts + Eigen::MatrixXd::Constant(num_control_pts, dim, 1)));
+            REQUIRE((new_control_points - control_pts).maxCoeff() == Approx(magnitude));
+            REQUIRE((new_control_points - control_pts).minCoeff() == Approx(magnitude));
         }
         SECTION("BSpline")
         {
@@ -284,8 +285,8 @@ TEST_CASE("simple test for deformations to test for seg faults", "[deform]")
             curve.set_knots(knots);
             curve.deform(parameter_values, deformations);
             auto new_control_points = curve.get_control_points();
-            REQUIRE(new_control_points.isApprox(
-                control_pts + Eigen::MatrixXd::Constant(num_control_pts, dim, 1)));
+            REQUIRE((new_control_points - control_pts).maxCoeff() == Approx(magnitude));
+            REQUIRE((new_control_points - control_pts).minCoeff() == Approx(magnitude));
         }
     }
     SECTION("Patches")
