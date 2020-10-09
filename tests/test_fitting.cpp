@@ -285,7 +285,7 @@ TEST_CASE("simple test for deformations to test for seg faults", "[deform]")
             curve.set_knots(knots);
             curve.deform(parameter_values, deformations);
             auto new_control_points = curve.get_control_points();
-            REQUIRE((new_control_points - control_pts).maxCoeff() == Approx(magnitude));
+            std::cout << control_pts - new_control_points << std::endl;
             REQUIRE(new_control_points.isApprox(
                 control_pts + Eigen::MatrixXd::Constant(num_control_pts, dim, magnitude)));
         }
