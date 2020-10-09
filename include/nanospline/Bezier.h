@@ -9,7 +9,6 @@
 #include <Eigen/Dense>
 
 #include <Eigen/src/Core/Matrix.h>
-#include <Eigen/src/QR/CompleteOrthogonalDecomposition.h>
 #include <nanospline/BezierBase.h>
 #include <nanospline/Exceptions.h>
 
