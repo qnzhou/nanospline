@@ -6,6 +6,7 @@
 #include <nanospline/Bezier.h>
 #include <nanospline/BezierPatch.h>
 #include <nanospline/NURBS.h>
+#include <nanospline/NURBSPatch.h>
 #include <nanospline/arc_length.h>
 #include <nanospline/forward_declaration.h>
 #include <nanospline/save_obj.h>
@@ -127,6 +128,35 @@ TEST_CASE("arc_length", "[arc_length]")
             }
         }
         patch.set_control_grid(control_grid);
+        patch.initialize();
+
+        check_arc_length_on_patch(patch);
+    }
+
+    SECTION("NURBS patch")
+    {
+        NURBSPatch<Scalar, 3, -1, -1> patch;
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 3> control_grid(6, 3);
+        control_grid.row(0) << 6.455076766863815, 3.6966766140380294, 0.0;
+        control_grid.row(1) << 6.455076766863815, 3.6966766140380294, 94.60000000000001;
+        control_grid.row(2) << -2.3528094251012197e-13, 6.1899665468625535, 0.0;
+        control_grid.row(3) << -2.3528094251012197e-13, 6.1899665468625535, 94.60000000000001;
+        control_grid.row(4) << -6.4550767668642415, 3.6966766140378624, 0.0;
+        control_grid.row(5) << -6.4550767668642415, 3.6966766140378624, 94.60000000000001;
+        patch.set_control_grid(control_grid);
+
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots_u(6), knots_v(4);
+        knots_u << 4.343789729359035, 4.343789729359035, 4.343789729359035, 5.0809882314103705,
+            5.0809882314103705, 5.0809882314103705;
+        knots_v << -94.60000000000001, -94.60000000000001, 0.0, 0.0;
+        patch.set_knots_u(knots_u);
+        patch.set_knots_v(knots_v);
+
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> weights(6);
+        weights << 1.0, 1.0, 0.932832963227302, 0.932832963227302, 1.0, 1.0;
+        patch.set_weights(weights);
+        patch.set_degree_u(2);
+        patch.set_degree_v(1);
         patch.initialize();
 
         check_arc_length_on_patch(patch);
