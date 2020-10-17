@@ -86,9 +86,10 @@ void save_obj(const std::string& filename, const std::vector<CurveType>& curves)
 }
 
 template<typename PatchType>
-void save_patch_obj(const std::string& filename, const PatchType& patch) {
+void save_patch_obj(const std::string& filename, const PatchType& patch,
+        int num_samples_u=100, int num_samples_v=100) {
     std::ofstream fout(filename.c_str());
-    internal::export_patch_obj(fout, patch, 100, 100, 0);
+    internal::export_patch_obj(fout, patch, num_samples_u, num_samples_v, 0);
     fout.close();
 }
 
