@@ -86,6 +86,7 @@ if (NANOSPLINE_BUILD_TESTS)
     file(GLOB TEST_FILES "${PROJECT_SOURCE_DIR}/tests/*.cpp")
     add_executable(nanospline_test ${TEST_FILES})
     target_link_libraries(nanospline_test nanospline::nanospline Catch2::Catch2)
+    target_compile_definitions(nanospline_test PRIVATE -DCATCH_CONFIG_ENABLE_BENCHMARKING)
     catch_discover_tests(nanospline_test)
 
     if(NOT MSVC)
