@@ -58,7 +58,6 @@ public:
         Base::m_control_grid = other.m_control_grid;
         Base::m_degree_u = other.m_degree_u;
         Base::m_degree_v = other.m_degree_v;
-        clear_cache();
         return *this;
     }
 
@@ -67,7 +66,6 @@ public:
         swap_control_grid(other.m_control_grid);
         Base::m_degree_u = other.m_degree_u;
         Base::m_degree_v = other.m_degree_v;
-        clear_cache();
         return *this;
     }
 
@@ -85,56 +83,32 @@ public:
 
     Point evaluate_derivative_u(Scalar u, Scalar v) const override
     {
-        if (is_du_cached()) {
-            return m_du_patch->evaluate(u, v);
-        } else {
-            auto iso_curve_u = compute_iso_curve_u(v);
-            return iso_curve_u.evaluate_derivative(u);
-        }
+        auto iso_curve_u = compute_iso_curve_u(v);
+        return iso_curve_u.evaluate_derivative(u);
     }
 
     Point evaluate_derivative_v(Scalar u, Scalar v) const override
     {
-        if (is_dv_cached()) {
-            return m_dv_patch->evaluate(u, v);
-        } else {
-            auto iso_curve_v = compute_iso_curve_v(u);
-            return iso_curve_v.evaluate_derivative(v);
-        }
+        auto iso_curve_v = compute_iso_curve_v(u);
+        return iso_curve_v.evaluate_derivative(v);
     }
 
     Point evaluate_2nd_derivative_uu(Scalar u, Scalar v) const override
     {
-        if (is_duu_cached()) {
-            return m_du_patch->evaluate_derivative_u(u, v);
-        } else {
-            auto iso_curve_u = compute_iso_curve_u(v);
-            return iso_curve_u.evaluate_2nd_derivative(u);
-        }
+        auto iso_curve_u = compute_iso_curve_u(v);
+        return iso_curve_u.evaluate_2nd_derivative(u);
     }
 
     Point evaluate_2nd_derivative_vv(Scalar u, Scalar v) const override
     {
-        if (is_dvv_cached()) {
-            return m_dv_patch->evaluate_derivative_v(u, v);
-        } else {
-            auto iso_curve_v = compute_iso_curve_v(u);
-            return iso_curve_v.evaluate_2nd_derivative(v);
-        }
+        auto iso_curve_v = compute_iso_curve_v(u);
+        return iso_curve_v.evaluate_2nd_derivative(v);
     }
 
     Point evaluate_2nd_derivative_uv(Scalar u, Scalar v) const override
     {
-        if (is_duv_cached()) {
-            if (Base::m_degree_u < Base::m_degree_v) {
-                return m_du_patch->evaluate_derivative_v(u, v);
-            } else {
-                return m_dv_patch->evaluate_derivative_u(u, v);
-            }
-        } else {
-            auto duv_patch = compute_duv_patch();
-            return duv_patch.evaluate(u, v);
-        }
+        auto duv_patch = compute_duv_patch();
+        return duv_patch.evaluate(u, v);
     }
 
     void initialize() override
@@ -144,7 +118,6 @@ public:
         if (Base::m_control_grid.rows() != (degree_u + 1) * (degree_v + 1)) {
             throw invalid_setting_error("Control grid size mismatch uv degrees");
         }
-        clear_cache();
     }
 
     Scalar get_u_lower_bound() const override { return 0.0; }
@@ -172,7 +145,7 @@ public:
 
         std::vector<IsoCurveV> iso_curves_v = get_all_iso_curves_v();
         for (int i = 0; i < num_ctrl_pts_u; i++) {
-            IsoCurveV iso_curve_v = iso_curves_v[size_t(i)];
+            const auto& iso_curve_v = iso_curves_v[size_t(i)];
             control_points_u.row(i) = iso_curve_v.evaluate(v);
         }
 
@@ -188,7 +161,7 @@ public:
 
         std::vector<IsoCurveU> iso_curves_u = get_all_iso_curves_u();
         for (int i = 0; i < num_ctrl_pts_v; i++) {
-            IsoCurveU iso_curve = iso_curves_u[size_t(i)];
+            const auto& iso_curve = iso_curves_u[size_t(i)];
             control_points_v.row(i) = iso_curve.evaluate(u);
         }
         IsoCurveV iso_curve_v;
@@ -293,36 +266,6 @@ public:
         const int degree_v = Base::get_degree_v();
         return degree_v + 1;
     }
-
-public:
-    void cache_derivatives(int level)
-    {
-        if (level <= 0) {
-            clear_cache();
-            return;
-        }
-
-        m_du_patch = std::make_unique<BezierPatch<_Scalar, _dim, -1, -1>>(compute_du_patch());
-        m_dv_patch = std::make_unique<BezierPatch<_Scalar, _dim, -1, -1>>(compute_dv_patch());
-        m_du_patch->cache_derivatives(level - 1);
-        m_dv_patch->cache_derivatives(level - 1);
-    }
-
-    void clear_cache()
-    {
-        m_du_patch = nullptr;
-        m_dv_patch = nullptr;
-    }
-
-    bool is_du_cached() const { return m_du_patch != nullptr; }
-
-    bool is_dv_cached() const { return m_dv_patch != nullptr; }
-
-    bool is_duu_cached() const { return is_du_cached() && m_du_patch->is_du_cached(); }
-
-    bool is_dvv_cached() const { return is_dv_cached() && m_dv_patch->is_dv_cached(); }
-
-    bool is_duv_cached() const { return is_du_cached() && m_du_patch->is_dv_cached(); }
 
 private:
     // Construct the implicit isocurves determined by each column of control points

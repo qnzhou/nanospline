@@ -155,7 +155,6 @@ public:
         m_homogeneous.set_degree_u(Base::get_degree_u());
         m_homogeneous.set_degree_v(Base::get_degree_v());
         m_homogeneous.initialize();
-        cache_derivatives(2);
     }
 
     Scalar get_u_lower_bound() const override { return m_homogeneous.get_u_lower_bound(); }
@@ -333,11 +332,6 @@ public:
             return uv;
         }
     }
-
-public:
-    void cache_derivatives(int level) { m_homogeneous.cache_derivatives(level); }
-
-    void clear_cache() { m_homogeneous.clear_cache(); }
 
 private:
     void validate_initialization() const

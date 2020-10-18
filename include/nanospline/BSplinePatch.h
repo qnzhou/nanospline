@@ -77,7 +77,6 @@ public:
         Base::m_degree_v = other.m_degree_v;
         m_knots_u = other.m_knots_u;
         m_knots_v = other.m_knots_v;
-        clear_cache();
         return *this;
     }
 
@@ -88,7 +87,6 @@ public:
         Base::m_degree_v = other.m_degree_v;
         m_knots_u.swap(other.m_knots_u);
         m_knots_v.swap(other.m_knots_v);
-        clear_cache();
         return *this;
     }
 
@@ -106,56 +104,32 @@ public:
 
     Point evaluate_derivative_u(Scalar u, Scalar v) const override
     {
-        if (is_du_cached()) {
-            return m_du_patch->evaluate(u, v);
-        } else {
-            auto iso_curve_u = compute_iso_curve_u(v);
-            return iso_curve_u.evaluate_derivative(u);
-        }
+        auto iso_curve_u = compute_iso_curve_u(v);
+        return iso_curve_u.evaluate_derivative(u);
     }
 
     Point evaluate_derivative_v(Scalar u, Scalar v) const override
     {
-        if (is_dv_cached()) {
-            return m_dv_patch->evaluate(u, v);
-        } else {
-            auto iso_curve_v = compute_iso_curve_v(u);
-            return iso_curve_v.evaluate_derivative(v);
-        }
+        auto iso_curve_v = compute_iso_curve_v(u);
+        return iso_curve_v.evaluate_derivative(v);
     }
 
     Point evaluate_2nd_derivative_uu(Scalar u, Scalar v) const override
     {
-        if (is_duu_cached()) {
-            return m_du_patch->evaluate_derivative_u(u, v);
-        } else {
-            auto iso_curve_u = compute_iso_curve_u(v);
-            return iso_curve_u.evaluate_2nd_derivative(u);
-        }
+        auto iso_curve_u = compute_iso_curve_u(v);
+        return iso_curve_u.evaluate_2nd_derivative(u);
     }
 
     Point evaluate_2nd_derivative_vv(Scalar u, Scalar v) const override
     {
-        if (is_dvv_cached()) {
-            return m_dv_patch->evaluate_derivative_v(u, v);
-        } else {
-            auto iso_curve_v = compute_iso_curve_v(u);
-            return iso_curve_v.evaluate_2nd_derivative(v);
-        }
+        auto iso_curve_v = compute_iso_curve_v(u);
+        return iso_curve_v.evaluate_2nd_derivative(v);
     }
 
     Point evaluate_2nd_derivative_uv(Scalar u, Scalar v) const override
     {
-        if (is_duv_cached()) {
-            if (Base::m_degree_u < Base::m_degree_v) {
-                return m_du_patch->evaluate_derivative_v(u, v);
-            } else {
-                return m_dv_patch->evaluate_derivative_u(u, v);
-            }
-        } else {
-            auto duv_patch = compute_duv_patch();
-            return duv_patch.evaluate(u, v);
-        }
+        auto duv_patch = compute_duv_patch();
+        return duv_patch.evaluate(u, v);
     }
 
     void initialize() override
@@ -168,7 +142,6 @@ public:
             (num_u_knots - degree_u - 1) * (num_v_knots - degree_v - 1)) {
             throw invalid_setting_error("Control grid size mismatch uv degrees");
         }
-        clear_cache();
     }
 
     Scalar get_u_lower_bound() const override
@@ -250,7 +223,7 @@ public:
         std::vector<IsoCurveV> iso_curves_v = get_all_iso_curves_v();
 
         for (int i = 0; i < num_ctrl_pts_u; i++) {
-            IsoCurveV iso_curve = iso_curves_v[static_cast<size_t>(i)];
+            const auto& iso_curve = iso_curves_v[static_cast<size_t>(i)];
             control_points_u.row(i) = iso_curve.evaluate(v);
         }
 
@@ -267,7 +240,7 @@ public:
         std::vector<IsoCurveU> iso_curves_u = get_all_iso_curves_u();
 
         for (int j = 0; j < num_ctrl_pts_v; j++) {
-            IsoCurveU iso_curve = iso_curves_u[static_cast<size_t>(j)];
+            const auto& iso_curve = iso_curves_u[static_cast<size_t>(j)];
             control_points_v.row(j) = iso_curve.evaluate(u);
         }
 
@@ -782,37 +755,6 @@ public:
         Base::set_control_grid(updated_control_points);
         initialize();
     }
-
-public:
-    void cache_derivatives(int level)
-    {
-        if (level <= 0) {
-            clear_cache();
-            return;
-        }
-
-        m_du_patch = std::make_unique<BSplinePatch<_Scalar, _dim, -1, -1>>(compute_du_patch());
-        m_dv_patch = std::make_unique<BSplinePatch<_Scalar, _dim, -1, -1>>(compute_dv_patch());
-        m_du_patch->cache_derivatives(level - 1);
-        m_dv_patch->cache_derivatives(level - 1);
-    }
-
-    void clear_cache()
-    {
-        m_du_patch = nullptr;
-        m_dv_patch = nullptr;
-    }
-
-    bool is_du_cached() const { return m_du_patch != nullptr; }
-
-    bool is_dv_cached() const { return m_dv_patch != nullptr; }
-
-    bool is_duu_cached() const { return is_du_cached() && m_du_patch->is_du_cached(); }
-
-    bool is_dvv_cached() const { return is_dv_cached() && m_dv_patch->is_dv_cached(); }
-
-    bool is_duv_cached() const { return is_du_cached() && m_du_patch->is_dv_cached(); }
-
 
 protected:
     KnotVector m_knots_u;

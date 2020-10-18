@@ -236,15 +236,6 @@ TEST_CASE("BSplinePatch Benchmark", "[!benchmark][bspline_patch]") {
     patch.set_knots_v(knots_v);
     patch.initialize();
 
-    SECTION("not cached") {
-        INFO("Not cached");
-        patch.cache_derivatives(0);
-    }
-    SECTION("cached") {
-        INFO("Derivative and 2nd derivative cached");
-        patch.cache_derivatives(2);
-    }
-
     BENCHMARK("Evaluation") {
         return patch.evaluate(0.5, 0.6);
     };
