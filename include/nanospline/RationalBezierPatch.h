@@ -147,7 +147,6 @@ public:
         m_homogeneous.set_degree_u(Base::get_degree_u());
         m_homogeneous.set_degree_v(Base::get_degree_v());
         m_homogeneous.initialize();
-        cache_derivatives(2);
     }
 
     void set_homogeneous(const BezierPatchHomogeneous& homogeneous)
@@ -295,17 +294,6 @@ public:
 
             return uv;
         }
-    }
-
-public:
-    void cache_derivatives(int level)
-    {
-        m_homogeneous.cache_derivatives(level);
-    }
-
-    void clear_cache()
-    {
-        m_homogeneous.clear_cache();
     }
 
 protected:

@@ -119,15 +119,6 @@ TEST_CASE("BezierPatch Benchmark", "[!benchmark][bezier_patch]") {
     patch.set_control_grid(control_grid);
     patch.initialize();
 
-    SECTION("not cached") {
-        INFO("Not cached");
-        patch.cache_derivatives(0);
-    }
-    SECTION("cached") {
-        INFO("Derivative and 2nd derivative cached");
-        patch.cache_derivatives(2);
-    }
-
     BENCHMARK("Evaluation") {
         return patch.evaluate(0.5, 0.6);
     };
