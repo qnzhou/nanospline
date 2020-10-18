@@ -86,8 +86,8 @@ public:
         if (w <= tol) return Point::Zero();
 
         const Point S = p0.template head<_dim>() / w;
-        const Point Su = evaluate_derivative_u(u, v);
         const Scalar wu = du[_dim];
+        const Point Su = (du.template head<_dim>() - S * wu) / w;
 
         return (Auu - Su * wu * 2 - S * wuu) / w;
     }
@@ -107,8 +107,8 @@ public:
         if (w <= tol) return Point::Zero();
 
         const Point S = p0.template segment<_dim>(0) / w;
-        const Point Sv = evaluate_derivative_v(u, v);
         const Scalar wv = dv[_dim];
+        const Point Sv = (dv.template head<_dim>() - S * wv) / w;
 
         return (Avv - Sv * wv * 2 - S * wvv) / w;
     }
@@ -131,8 +131,8 @@ public:
 
         const Scalar wu = du[_dim];
         const Scalar wv = dv[_dim];
-        const Point Su = evaluate_derivative_u(u, v);
-        const Point Sv = evaluate_derivative_v(u, v);
+        const Point Su = (du.template head<_dim>() - S * wu) / w;
+        const Point Sv = (dv.template head<_dim>() - S * wv) / w;
 
         return (Auv - S * wuv - wu * Sv - wv * Su) / w;
     }
@@ -335,15 +335,9 @@ public:
     }
 
 public:
-    void cache_derivatives(int level)
-    {
-        m_homogeneous.cache_derivatives(level);
-    }
+    void cache_derivatives(int level) { m_homogeneous.cache_derivatives(level); }
 
-    void clear_cache()
-    {
-        m_homogeneous.clear_cache();
-    }
+    void clear_cache() { m_homogeneous.clear_cache(); }
 
 private:
     void validate_initialization() const

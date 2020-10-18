@@ -367,7 +367,7 @@ public:
     }
 
 private:
-    void blossom(BlossomVector blossom_vector, int degree, ControlPoints& control_pts) const
+    void blossom(const BlossomVector& blossom_vector, int degree, ControlPoints& control_pts) const
     {
         // Unfurl the standard de Boor recursion into two loops:
         // if degree == 0

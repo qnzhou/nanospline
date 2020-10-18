@@ -475,7 +475,7 @@ public:
 private:
     template <typename Derived>
     void blossom(
-        BlossomVector blossom_vector, int p, int k, Eigen::PlainObjectBase<Derived>& ctrl_pts) const
+        const BlossomVector& blossom_vector, int p, int k, Eigen::PlainObjectBase<Derived>& ctrl_pts) const
     {
         assert(ctrl_pts.rows() >= p + 1);
 
