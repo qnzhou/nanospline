@@ -47,7 +47,7 @@ public:
         , m_dv_patch(nullptr)
     {}
 
-    BezierPatch(const ThisType&& other)
+    BezierPatch(ThisType&& other)
         : PatchBase<_Scalar, _dim>(std::move(other))
         , m_du_patch(nullptr)
         , m_dv_patch(nullptr)
@@ -62,9 +62,9 @@ public:
         return *this;
     }
 
-    ThisType& operator=(const ThisType&& other)
+    ThisType& operator=(ThisType&& other)
     {
-        Base::m_control_grid = std::move(other.m_control_grid);
+        swap_control_grid(other.m_control_grid);
         Base::m_degree_u = other.m_degree_u;
         Base::m_degree_v = other.m_degree_v;
         clear_cache();
@@ -74,8 +74,13 @@ public:
 public:
     Point evaluate(Scalar u, Scalar v) const override
     {
-        auto iso_curve_v = compute_iso_curve_v(u);
-        return iso_curve_v.evaluate(v);
+        if (Base::m_degree_v > Base::m_degree_u) {
+            auto iso_curve_v = compute_iso_curve_v(u);
+            return iso_curve_v.evaluate(v);
+        } else {
+            auto iso_curve_u = compute_iso_curve_u(v);
+            return iso_curve_u.evaluate(u);
+        }
     }
 
     Point evaluate_derivative_u(Scalar u, Scalar v) const override
@@ -121,7 +126,11 @@ public:
     Point evaluate_2nd_derivative_uv(Scalar u, Scalar v) const override
     {
         if (is_duv_cached()) {
-            return m_du_patch->evaluate_derivative_v(u, v);
+            if (Base::m_degree_u < Base::m_degree_v) {
+                return m_du_patch->evaluate_derivative_v(u, v);
+            } else {
+                return m_dv_patch->evaluate_derivative_u(u, v);
+            }
         } else {
             auto duv_patch = compute_duv_patch();
             return duv_patch.evaluate(u, v);
@@ -158,10 +167,11 @@ public:
 public:
     IsoCurveU compute_iso_curve_u(Scalar v) const
     {
-        typename IsoCurveU::ControlPoints control_points_u(num_control_points_u(), _dim);
+        const int num_ctrl_pts_u = num_control_points_u();
+        typename IsoCurveU::ControlPoints control_points_u(num_ctrl_pts_u, _dim);
 
         std::vector<IsoCurveV> iso_curves_v = get_all_iso_curves_v();
-        for (int i = 0; i < num_control_points_u(); i++) {
+        for (int i = 0; i < num_ctrl_pts_u; i++) {
             IsoCurveV iso_curve_v = iso_curves_v[size_t(i)];
             control_points_u.row(i) = iso_curve_v.evaluate(v);
         }
@@ -173,10 +183,11 @@ public:
 
     IsoCurveV compute_iso_curve_v(Scalar u) const
     {
-        typename IsoCurveV::ControlPoints control_points_v(num_control_points_v(), _dim);
+        const int num_ctrl_pts_v = num_control_points_v();
+        typename IsoCurveV::ControlPoints control_points_v(num_ctrl_pts_v, _dim);
 
         std::vector<IsoCurveU> iso_curves_u = get_all_iso_curves_u();
-        for (int i = 0; i < num_control_points_v(); i++) {
+        for (int i = 0; i < num_ctrl_pts_v; i++) {
             IsoCurveU iso_curve = iso_curves_u[size_t(i)];
             control_points_v.row(i) = iso_curve.evaluate(u);
         }
@@ -320,16 +331,19 @@ private:
     // curves
     std::vector<IsoCurveV> get_all_iso_curves_v() const
     {
+        const auto num_ctrl_pts_u = num_control_points_u();
+        const auto num_ctrl_pts_v = num_control_points_v();
         std::vector<IsoCurveV> iso_curves;
-        for (int ui = 0; ui < num_control_points_u(); ui++) {
-            typename IsoCurveV::ControlPoints control_points_v(num_control_points_v(), _dim);
-            for (int vj = 0; vj < num_control_points_v(); vj++) {
+        iso_curves.reserve((size_t)num_ctrl_pts_u);
+        for (int ui = 0; ui < num_ctrl_pts_u; ui++) {
+            typename IsoCurveV::ControlPoints control_points_v(num_ctrl_pts_v, _dim);
+            for (int vj = 0; vj < num_ctrl_pts_v; vj++) {
                 control_points_v.row(vj) = get_control_point(ui, vj);
             }
 
             IsoCurveV iso_curve_v;
             iso_curve_v.set_control_points(std::move(control_points_v));
-            iso_curves.push_back(iso_curve_v);
+            iso_curves.push_back(std::move(iso_curve_v));
         }
         return iso_curves;
     }
@@ -340,17 +354,20 @@ private:
     // curves
     std::vector<IsoCurveU> get_all_iso_curves_u() const
     {
+        const auto num_ctrl_pts_u = num_control_points_u();
+        const auto num_ctrl_pts_v = num_control_points_v();
         std::vector<IsoCurveU> iso_curves;
-        for (int vj = 0; vj < num_control_points_v(); vj++) {
-            typename IsoCurveU::ControlPoints control_points_u(num_control_points_u(), _dim);
+        iso_curves.reserve((size_t)num_ctrl_pts_v);
+        for (int vj = 0; vj < num_ctrl_pts_v; vj++) {
+            typename IsoCurveU::ControlPoints control_points_u(num_ctrl_pts_u, _dim);
 
-            for (int ui = 0; ui < num_control_points_u(); ui++) {
+            for (int ui = 0; ui < num_ctrl_pts_u; ui++) {
                 control_points_u.row(ui) = get_control_point(ui, vj);
             }
 
             IsoCurveU iso_curve_u;
             iso_curve_u.set_control_points(std::move(control_points_u));
-            iso_curves.push_back(iso_curve_u);
+            iso_curves.push_back(std::move(iso_curve_u));
         }
         return iso_curves;
     }
