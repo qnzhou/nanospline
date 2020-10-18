@@ -227,6 +227,15 @@ TEST_CASE("NURBSPatch Benchmark", "[!benchmark][numbs_patch]") {
     patch.set_weights(weights);
     patch.initialize();
 
+    SECTION("not cached") {
+        INFO("Not cached");
+        patch.cache_derivatives(0);
+    }
+    SECTION("cached") {
+        INFO("Derivative and 2nd derivative cached");
+        patch.cache_derivatives(2);
+    }
+
     BENCHMARK("Evaluation") {
         return patch.evaluate(0.5, 0.6);
     };
@@ -239,12 +248,11 @@ TEST_CASE("NURBSPatch Benchmark", "[!benchmark][numbs_patch]") {
         return grad;
     };
 
-    BENCHMARK("Derivative") {
-        auto duu = patch.evaluate_2nd_derivative_uu(0.5, 0.6);
-        auto dvv = patch.evaluate_2nd_derivative_vv(0.5, 0.6);
-        auto duv = patch.evaluate_2nd_derivative_uv(0.5, 0.6);
+    BENCHMARK("2nd Derivative") {
         Eigen::Matrix<Scalar, 3, 3> hessian;
-        hessian << duu, duv, dvv;
+        hessian.row(0) = patch.evaluate_2nd_derivative_uu(0.5, 0.6);
+        hessian.row(1) = patch.evaluate_2nd_derivative_vv(0.5, 0.6);
+        hessian.row(2) = patch.evaluate_2nd_derivative_uv(0.5, 0.6);
         return hessian;
     };
 }

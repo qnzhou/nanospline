@@ -198,7 +198,7 @@ void validate_derivative(const PatchType& patch, int u_samples, int v_samples,
 }
 
 template<typename PatchType>
-void validate_derivative_patches(const PatchType patch, int u_samples, int v_samples,
+void validate_derivative_patches(const PatchType& patch, int u_samples, int v_samples,
         const typename PatchType::Scalar tol=1e-6) {
     const auto u_min = patch.get_u_lower_bound();
     const auto u_max = patch.get_u_upper_bound();
