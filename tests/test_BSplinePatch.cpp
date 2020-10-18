@@ -217,3 +217,52 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]") {
     }
 }
 
+TEST_CASE("BSplinePatch Benchmark", "[!benchmark][bspline_patch]") {
+    using namespace nanospline;
+    using Scalar = double;
+
+    BSplinePatch<Scalar, 3, 3, 3> patch;
+    Eigen::Matrix<Scalar, 16, 3> control_grid;
+    for (int i=0; i<4; i++) {
+        for (int j=0; j<4; j++) {
+            control_grid.row(i*4+j) << j, i, ((i+j)%2==0)?-1:1;
+        }
+    }
+    patch.set_control_grid(control_grid);
+    Eigen::Matrix<Scalar, 8, 1> knots_u, knots_v;
+    knots_u << 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0;
+    knots_v << 0.0, 0.0, 0.0, 0.0, 2.5, 2.5, 2.5, 2.5;
+    patch.set_knots_u(knots_u);
+    patch.set_knots_v(knots_v);
+    patch.initialize();
+
+    SECTION("not cached") {
+        INFO("Not cached");
+        patch.cache_derivatives(0);
+    }
+    SECTION("cached") {
+        INFO("Derivative and 2nd derivative cached");
+        patch.cache_derivatives(2);
+    }
+
+    BENCHMARK("Evaluation") {
+        return patch.evaluate(0.5, 0.6);
+    };
+
+    BENCHMARK("Derivative") {
+        auto du = patch.evaluate_derivative_u(0.5, 0.6);
+        auto dv = patch.evaluate_derivative_u(0.5, 0.6);
+        Eigen::Matrix<Scalar, 2, 3> grad;
+        grad << du, dv;
+        return grad;
+    };
+
+    BENCHMARK("2nd Derivative") {
+        Eigen::Matrix<Scalar, 3, 3> hessian;
+        hessian.row(0) = patch.evaluate_2nd_derivative_uu(0.5, 0.6);
+        hessian.row(1) = patch.evaluate_2nd_derivative_vv(0.5, 0.6);
+        hessian.row(2) = patch.evaluate_2nd_derivative_uv(0.5, 0.6);
+        return hessian;
+    };
+}
+

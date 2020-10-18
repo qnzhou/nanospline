@@ -92,3 +92,57 @@ TEST_CASE("RationalBezierPatch", "[rational][rational_bezier_patch]") {
     }
 
 }
+
+TEST_CASE("RationalBezierPatch Benchmark", "[!benchmark][rational_bezier_patch]") {
+    using namespace nanospline;
+    using Scalar = double;
+
+    RationalBezierPatch<Scalar, 3, 3, 3> patch;
+    Eigen::Matrix<Scalar, 16, 3> control_grid;
+    for (int i=0; i<4; i++) {
+        for (int j=0; j<4; j++) {
+            control_grid.row(i*4+j) << j, i, ((i+j)%2==0)?-1:1;
+        }
+    }
+    patch.set_control_grid(control_grid);
+
+    Eigen::Matrix<Scalar, 16, 1> weights;
+    weights.setConstant(1);
+    weights[5] = 2.0;
+    weights[6] = 2.0;
+    weights[9] = 2.0;
+    weights[10] = 2.0;
+    patch.set_weights(weights);
+    patch.initialize();
+
+    SECTION("not cached") {
+        INFO("Not cached");
+        patch.cache_derivatives(0);
+    }
+    SECTION("cached") {
+        INFO("Derivative and 2nd derivative cached");
+        patch.cache_derivatives(2);
+    }
+
+    BENCHMARK("Evaluation") {
+        return patch.evaluate(0.5, 0.6);
+    };
+
+    BENCHMARK("Derivative") {
+        auto du = patch.evaluate_derivative_u(0.5, 0.6);
+        auto dv = patch.evaluate_derivative_u(0.5, 0.6);
+        Eigen::Matrix<Scalar, 2, 3> grad;
+        grad << du, dv;
+        return grad;
+    };
+
+    BENCHMARK("2nd Derivative") {
+        auto duu = patch.evaluate_2nd_derivative_uu(0.5, 0.6);
+        auto dvv = patch.evaluate_2nd_derivative_vv(0.5, 0.6);
+        auto duv = patch.evaluate_2nd_derivative_uv(0.5, 0.6);
+        Eigen::Matrix<Scalar, 3, 3> hessian;
+        hessian << duu, duv, dvv;
+        return hessian;
+    };
+}
+
