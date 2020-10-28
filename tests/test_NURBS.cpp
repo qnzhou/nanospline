@@ -416,5 +416,17 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
         REQUIRE(p0[1] < 0);
         REQUIRE(p1[0] < 0);
         REQUIRE(p1[1] > 1);
+
+        auto d0 = curve.evaluate_derivative(curve.get_domain_lower_bound() - 0.1);
+        auto d1 = curve.evaluate_derivative(curve.get_domain_upper_bound() + 0.1);
+        REQUIRE(d0[0] > 0);
+        REQUIRE(d0[1] > 0);
+        REQUIRE(d1[0] < 0);
+        REQUIRE(d1[1] > 0);
+
+        auto dd0 = curve.evaluate_2nd_derivative(curve.get_domain_lower_bound() - 0.1);
+        auto dd1 = curve.evaluate_2nd_derivative(curve.get_domain_upper_bound() + 0.1);
+        REQUIRE(dd0[0] == Approx(dd1[0]));
+        REQUIRE(dd0[1] == Approx(-dd1[1]));
     }
 }
