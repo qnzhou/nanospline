@@ -105,8 +105,6 @@ public:
         const int k = Base::locate_span(t);
         assert(p >= 0);
         assert(Base::m_knots.rows() == Base::m_control_points.rows() + p + 1);
-        assert(Base::m_knots[k] <= t);
-        assert(Base::m_knots[k + 1] >= t);
 
         if (p == 0) return Point::Zero();
 
@@ -127,8 +125,6 @@ public:
         const int k = Base::locate_span(t);
         assert(p >= 0);
         assert(Base::m_knots.rows() == Base::m_control_points.rows() + p + 1);
-        assert(Base::m_knots[k] <= t);
-        assert(Base::m_knots[k + 1] >= t);
 
         if (p <= 1) return Point::Zero();
 
