@@ -369,4 +369,25 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             }
         }
     }
+
+    SECTION("Extrapolation") {
+        Eigen::Matrix<Scalar, 4, 2> control_pts;
+        control_pts << 0.0, 0.0,
+                       1.0, 1.0,
+                       1.0, 0.0,
+                       0.0, 1.0;
+        RationalBezier<Scalar, 2, -1> curve;
+        curve.set_control_points(control_pts);
+        Eigen::Matrix<Scalar, 4, 1> weights;
+        weights << 1.0, 0.5, 0.5, 1.0;
+        curve.set_weights(weights);
+        curve.initialize();
+
+        auto p0 = curve.evaluate(curve.get_domain_lower_bound() - 0.1);
+        auto p1 = curve.evaluate(curve.get_domain_upper_bound() + 0.1);
+        REQUIRE(p0[0] < 0);
+        REQUIRE(p0[1] < 0);
+        REQUIRE(p1[0] < 0);
+        REQUIRE(p1[1] > 1);
+    }
 }

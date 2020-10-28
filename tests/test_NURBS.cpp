@@ -390,4 +390,31 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
         }
 #endif
     }
+
+    SECTION("Extrapolation") {
+        Eigen::Matrix<Scalar, 5, 2> control_pts;
+        control_pts << 0.0, 0.0,
+                       1.0, 1.0,
+                       2.0, 0.5,
+                       1.0, 0.0,
+                       0.0, 1.0;
+        NURBS<Scalar, 2, -1> curve;
+        curve.set_control_points(control_pts);
+
+        Eigen::Matrix<Scalar, 9, 1> knots;
+        knots << 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 2.0, 2.0, 2.0;
+        curve.set_knots(knots);
+
+        Eigen::Matrix<Scalar, 5, 1> weights;
+        weights << 1.0, 1.0, 0.1, 1.0, 1.0;
+        curve.set_weights(weights);
+        curve.initialize();
+
+        auto p0 = curve.evaluate(curve.get_domain_lower_bound() - 0.1);
+        auto p1 = curve.evaluate(curve.get_domain_upper_bound() + 0.1);
+        REQUIRE(p0[0] < 0);
+        REQUIRE(p0[1] < 0);
+        REQUIRE(p1[0] < 0);
+        REQUIRE(p1[1] > 1);
+    }
 }

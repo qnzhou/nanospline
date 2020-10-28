@@ -104,6 +104,38 @@ TEST_CASE("BeizerPatch", "[nonrational][bezier_patch]") {
         validate_inverse_evaluation(patch, 10, 10);
         validate_inverse_evaluation_3d(patch, 10, 10);
     }
+
+    SECTION("Extrapolation") {
+        BezierPatch<Scalar, 3, 3, 3> patch;
+        Eigen::Matrix<Scalar, 16, 3> control_grid;
+        for (int i=0; i<4; i++) {
+            for (int j=0; j<4; j++) {
+                control_grid.row(i*4+j) << j, i, ((i+j)%2==0)?-1:1;
+            }
+        }
+        patch.set_control_grid(control_grid);
+        patch.initialize();
+
+        constexpr Scalar d = 0.1;
+        const auto u_min = patch.get_u_lower_bound();
+        const auto u_max = patch.get_u_upper_bound();
+        const auto v_min = patch.get_v_lower_bound();
+        const auto v_max = patch.get_v_upper_bound();
+
+        const auto corner_00 = patch.evaluate(u_min - d, v_min - d);
+        const auto corner_01 = patch.evaluate(u_max + d, v_min - d);
+        const auto corner_11 = patch.evaluate(u_max + d, v_max + d);
+        const auto corner_10 = patch.evaluate(u_min - d, v_max + d);
+
+        REQUIRE(corner_00[0] < 0);
+        REQUIRE(corner_00[1] < 0);
+        REQUIRE(corner_10[0] > 3);
+        REQUIRE(corner_10[1] < 0);
+        REQUIRE(corner_11[0] > 3);
+        REQUIRE(corner_11[1] > 3);
+        REQUIRE(corner_01[0] < 0);
+        REQUIRE(corner_01[1] > 3);
+    }
 }
 
 TEST_CASE("BezierPatch Benchmark", "[!benchmark][bezier_patch]") {
