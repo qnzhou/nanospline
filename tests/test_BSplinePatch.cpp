@@ -215,6 +215,44 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]") {
         const auto p1 = patch.evaluate(1.5707963267948966, -16.000000000000004);
         REQUIRE((p0-p1).norm() == Approx(0.0).margin(1e-12));
     }
+
+    SECTION("Extrapolation") {
+        BSplinePatch<Scalar, 3, 3, 3> patch;
+        Eigen::Matrix<Scalar, 16, 3> control_grid;
+        for (int i=0; i<4; i++) {
+            for (int j=0; j<4; j++) {
+                control_grid.row(i*4+j) << j, i, ((i+j)%2==0)?-1:1;
+            }
+        }
+        patch.set_control_grid(control_grid);
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> u_knots(8, 1);
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> v_knots(8, 1);
+        u_knots << 0, 0, 0, 0, 1, 1, 1, 1;
+        v_knots << 0, 0, 0, 0, 2, 2, 2, 2;
+        patch.set_knots_u(u_knots);
+        patch.set_knots_v(v_knots);
+        patch.initialize();
+
+        constexpr Scalar d = 0.1;
+        const auto u_min = patch.get_u_lower_bound();
+        const auto u_max = patch.get_u_upper_bound();
+        const auto v_min = patch.get_v_lower_bound();
+        const auto v_max = patch.get_v_upper_bound();
+
+        const auto corner_00 = patch.evaluate(u_min - d, v_min - d);
+        const auto corner_01 = patch.evaluate(u_max + d, v_min - d);
+        const auto corner_11 = patch.evaluate(u_max + d, v_max + d);
+        const auto corner_10 = patch.evaluate(u_min - d, v_max + d);
+
+        REQUIRE(corner_00[0] < 0);
+        REQUIRE(corner_00[1] < 0);
+        REQUIRE(corner_10[0] > 3);
+        REQUIRE(corner_10[1] < 0);
+        REQUIRE(corner_11[0] > 3);
+        REQUIRE(corner_11[1] > 3);
+        REQUIRE(corner_01[0] < 0);
+        REQUIRE(corner_01[1] > 3);
+    }
 }
 
 TEST_CASE("BSplinePatch Benchmark", "[!benchmark][bspline_patch]") {

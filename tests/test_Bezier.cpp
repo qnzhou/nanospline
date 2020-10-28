@@ -500,4 +500,20 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
         }
     }
 
+    SECTION("Extrapolation") {
+        Eigen::Matrix<Scalar, 4, 2> control_pts;
+        control_pts << 0.0, 0.0,
+                       1.0, 1.0,
+                       1.0, 0.0,
+                       0.0, 1.0;
+        Bezier<Scalar, 2, -1> curve;
+        curve.set_control_points(control_pts);
+
+        auto p0 = curve.evaluate(curve.get_domain_lower_bound() - 0.1);
+        auto p1 = curve.evaluate(curve.get_domain_upper_bound() + 0.1);
+        REQUIRE(p0[0] < 0);
+        REQUIRE(p0[1] < 0);
+        REQUIRE(p1[0] < 0);
+        REQUIRE(p1[1] > 1);
+    }
 }
