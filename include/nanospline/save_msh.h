@@ -15,7 +15,7 @@ namespace internal {
 using namespace mshio;
 
 template <typename CurveType>
-void add_curve(MshSpec& spec, const CurveType& curve, const size_t N)
+void add_curve(MshSpec& spec, const CurveType& curve, const size_t N, int tag = 1)
 {
     using Scalar = typename CurveType::Scalar;
     const size_t node_offset = spec.nodes.max_node_tag;
@@ -24,7 +24,7 @@ void add_curve(MshSpec& spec, const CurveType& curve, const size_t N)
     spec.nodes.entity_blocks.emplace_back();
     spec.nodes.num_entity_blocks += 1;
     spec.nodes.num_nodes += N + 1;
-    spec.nodes.min_node_tag = 1;
+    spec.nodes.min_node_tag = tag;
     spec.nodes.max_node_tag += N + 1;
 
     auto& node_block = spec.nodes.entity_blocks.back();
@@ -41,7 +41,7 @@ void add_curve(MshSpec& spec, const CurveType& curve, const size_t N)
 
     auto& element_block = spec.elements.entity_blocks.back();
     element_block.entity_dim = 1;
-    element_block.entity_tag = 1;
+    element_block.entity_tag = tag;
     element_block.element_type = 1;
     element_block.num_elements_in_block = N;
 
@@ -72,8 +72,11 @@ void add_curve(MshSpec& spec, const CurveType& curve, const size_t N)
 }
 
 template <typename PatchType>
-void add_patch(
-    MshSpec& spec, const PatchType& patch, const size_t num_u_samples, const size_t num_v_samples)
+void add_patch(MshSpec& spec,
+    const PatchType& patch,
+    const size_t num_u_samples,
+    const size_t num_v_samples,
+    int tag = 1)
 {
     using Scalar = typename PatchType::Scalar;
     const size_t node_offset = spec.nodes.max_node_tag;
@@ -90,7 +93,7 @@ void add_patch(
 
     auto& node_block = spec.nodes.entity_blocks.back();
     node_block.entity_dim = 2;
-    node_block.entity_tag = 1;
+    node_block.entity_tag = tag;
     node_block.parametric = 1;
     node_block.num_nodes_in_block = N;
 
@@ -102,7 +105,7 @@ void add_patch(
 
     auto& element_block = spec.elements.entity_blocks.back();
     element_block.entity_dim = 2;
-    element_block.entity_tag = 1;
+    element_block.entity_tag = tag;
     element_block.element_type = 3;
     element_block.num_elements_in_block = M;
 
@@ -155,11 +158,18 @@ void save_msh(const std::string& filename,
     spec.mesh_format.version = "4.1";
     spec.mesh_format.file_type = 0;
 
+    int tag = 0;
     for (auto& curve : curves) {
-        internal::add_curve(spec, *curve, 100);
+        internal::add_curve(spec, *curve, 100, tag);
+        tag++;
     }
     for (auto& patch : patches) {
-        internal::add_patch(spec, *patch, 100, 100);
+        internal::add_patch(spec,
+            *patch,
+            5 * patch->get_num_control_points_u(),
+            5 * patch->get_num_control_points_v(),
+            tag);
+        tag++;
     }
 
     save_msh(filename, spec);
