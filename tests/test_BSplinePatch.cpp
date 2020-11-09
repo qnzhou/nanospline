@@ -2,7 +2,6 @@
 #include <iostream>
 
 #include <nanospline/BSplinePatch.h>
-#include <nanospline/save_obj.h>
 #include <nanospline/forward_declaration.h>
 
 #include "validation_utils.h"
