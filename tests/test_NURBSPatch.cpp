@@ -254,11 +254,20 @@ TEST_CASE("NURBSPatch", "[rational][nurbs_patch]")
         const auto v_min = patch.get_v_lower_bound();
         const auto v_max = patch.get_v_upper_bound();
 
-        Eigen::Matrix<Scalar, 1, 3> p(-572.86304534676469, -14.792976390831898, 36.420042475361221);
-        Eigen::Matrix<Scalar, 1, 2> p_uv = patch.inverse_evaluate(p, u_min, u_max, v_min, v_max);
-        Eigen::Matrix<Scalar, 1, 3> q = patch.evaluate(p_uv[0], p_uv[1]);
+        Eigen::Matrix<Scalar, 4, 3> query_pts;
+        query_pts << -572.86304534676469, -14.792976390831898, 36.420042475361221,
+            -572.24631913639826, -16.181431755259489, 34.162412902005116, -569.7565428640977,
+            -14.734586851799898, 36.56185691330802, -571.62196911575359, -15.23633166596376,
+            35.714770763558114;
 
-        REQUIRE((p-q).norm() < (bbox_max - bbox_min).norm() * 1e-3);
+        for (int i = 0; i < 4; i++) {
+            Eigen::Matrix<Scalar, 1, 3> p = query_pts.row(i);
+            Eigen::Matrix<Scalar, 1, 2> p_uv =
+                patch.inverse_evaluate(p, u_min, u_max, v_min, v_max);
+            Eigen::Matrix<Scalar, 1, 3> q = patch.evaluate(p_uv[0], p_uv[1]);
+
+            REQUIRE((p - q).norm() < (bbox_max - bbox_min).norm() * 1e-3);
+        }
     }
 }
 
