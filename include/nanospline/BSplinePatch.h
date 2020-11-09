@@ -420,24 +420,24 @@ public:
         split_iso_curves.reserve(static_cast<size_t>(num_control_points_v()));
 
         for (int vj = 0; vj < num_control_points_v(); vj++) {
-            IsoCurveU iso_curve = iso_curves_u[static_cast<size_t>(vj)];
+            IsoCurveU& iso_curve = iso_curves_u[static_cast<size_t>(vj)];
             std::vector<IsoCurveU> iso_curve_parts = nanospline::split(iso_curve, u);
-            split_iso_curves.push_back(iso_curve_parts);
+            split_iso_curves.push_back(std::move(iso_curve_parts));
         }
 
         // all split curves have the same knot sequence, degree, and number of
         // control points; just grab the values from one of them
-        std::vector<IsoCurveU> reference_split_curves = split_iso_curves[0];
+        const std::vector<IsoCurveU>& reference_split_curves = split_iso_curves[0];
 
         // Initialize control grids of final split patches
         std::vector<ControlGrid> split_control_pts_u;
-        for (const auto ref_curve : reference_split_curves) {
+        for (const auto& ref_curve : reference_split_curves) {
             int num_ctrl_pts = static_cast<int>(ref_curve.get_control_points().rows());
 
             split_control_pts_u.push_back(ControlGrid(num_ctrl_pts * num_control_points_v(), _dim));
         }
         for (int vj = 0; vj < num_control_points_v(); vj++) {
-            std::vector<IsoCurveU> iso_curve_parts = split_iso_curves[static_cast<size_t>(vj)];
+            const std::vector<IsoCurveU>& iso_curve_parts = split_iso_curves[static_cast<size_t>(vj)];
             // Copy control points of each split curve to its proper place in
             // the final control grid
             for (size_t ci = 0; ci < num_split_patches; ci++) {
@@ -454,7 +454,7 @@ public:
         // Initialize resulting split curves
         std::vector<ThisType> results(num_split_patches, ThisType());
         for (size_t ci = 0; ci < num_split_patches; ci++) {
-            IsoCurveU ref_curve = reference_split_curves[ci];
+            const IsoCurveU& ref_curve = reference_split_curves[ci];
             ThisType split_patch;
             split_patch.set_control_grid(split_control_pts_u[ci]);
             split_patch.set_knots_u(ref_curve.get_knots());
@@ -487,22 +487,22 @@ public:
         for (int ui = 0; ui < num_control_points_u(); ui++) {
             IsoCurveV iso_curve = iso_curves_v[static_cast<size_t>(ui)];
             std::vector<IsoCurveV> iso_curve_parts = nanospline::split(iso_curve, v);
-            split_iso_curves.push_back(iso_curve_parts);
+            split_iso_curves.push_back(std::move(iso_curve_parts));
         }
 
         // all split curves have the same knot sequence, degree, and number of
         // control points; just grab the values from one of them
-        std::vector<IsoCurveV> reference_split_curves = split_iso_curves[0];
+        const std::vector<IsoCurveV>& reference_split_curves = split_iso_curves[0];
 
         // Initialize control grids of final split patches
         std::vector<ControlGrid> split_control_pts_v;
-        for (const auto ref_curve : reference_split_curves) {
+        for (const auto& ref_curve : reference_split_curves) {
             int num_ctrl_pts = static_cast<int>(ref_curve.get_control_points().rows());
 
             split_control_pts_v.push_back(ControlGrid(num_ctrl_pts * num_control_points_u(), _dim));
         }
         for (int ui = 0; ui < num_control_points_u(); ui++) {
-            std::vector<IsoCurveV> iso_curve_parts = split_iso_curves[static_cast<size_t>(ui)];
+            const std::vector<IsoCurveV>& iso_curve_parts = split_iso_curves[static_cast<size_t>(ui)];
             // Copy control points of each split curve to its proper place in
             // the final control grid
             for (size_t ci = 0; ci < num_split_patches; ci++) {
@@ -523,7 +523,7 @@ public:
         // Initialize resulting split patches
         vector<ThisType> results(num_split_patches, ThisType());
         for (size_t ci = 0; ci < num_split_patches; ci++) {
-            IsoCurveV ref_curve = reference_split_curves[ci];
+            const IsoCurveV& ref_curve = reference_split_curves[ci];
             ThisType split_patch;
             split_patch.set_control_grid(split_control_pts_v[ci]);
             split_patch.set_knots_v(ref_curve.get_knots());
