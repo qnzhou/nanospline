@@ -166,8 +166,8 @@ void save_msh(const std::string& filename,
     for (auto& patch : patches) {
         internal::add_patch(spec,
             *patch,
-            5 * patch->get_num_control_points_u(),
-            5 * patch->get_num_control_points_v(),
+            5 * patch->num_control_points_u(),
+            5 * patch->num_control_points_v(),
             tag);
         tag++;
     }
