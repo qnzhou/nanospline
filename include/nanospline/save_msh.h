@@ -134,12 +134,12 @@ void add_patch(MshSpec& spec,
             node_block.data.push_back(u);
             node_block.data.push_back(v);
 
-            if (i != num_v_samples && j != num_v_samples) {
+            if (i != num_u_samples && j != num_v_samples) {
                 element_block.data.push_back(element_offset + i * (num_v_samples) + j + 1);
                 element_block.data.push_back(node_offset + i * (num_v_samples + 1) + j + 1);
-                element_block.data.push_back(node_offset + i * (num_v_samples + 1) + j + 2);
-                element_block.data.push_back(node_offset + (i + 1) * (num_v_samples + 1) + j + 2);
                 element_block.data.push_back(node_offset + (i + 1) * (num_v_samples + 1) + j + 1);
+                element_block.data.push_back(node_offset + (i + 1) * (num_v_samples + 1) + j + 2);
+                element_block.data.push_back(node_offset + i * (num_v_samples + 1) + j + 2);
             }
         }
     }
@@ -158,7 +158,7 @@ void save_msh(const std::string& filename,
     spec.mesh_format.version = "4.1";
     spec.mesh_format.file_type = 0;
 
-    int tag = 0;
+    int tag = 1;
     for (auto& curve : curves) {
         internal::add_curve(spec, *curve, 100, tag);
         tag++;
