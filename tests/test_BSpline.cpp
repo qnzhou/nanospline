@@ -2,7 +2,6 @@
 
 #include <nanospline/BSpline.h>
 #include <nanospline/Bezier.h>
-#include <nanospline/save_svg.h>
 #include <nanospline/forward_declaration.h>
 
 #include "validation_utils.h"

@@ -20,6 +20,7 @@ option(NANOSPLINE_SYMPY "Enable sympy generated code (slow to compile)" OFF)
 
 include(FetchContent)
 include(cmake/Eigen3.cmake)
+include(cmake/MshIO.cmake)
 include(cmake/sanitizer-cmake.cmake)
 
 
@@ -29,7 +30,7 @@ file(GLOB SRC_FILES "${PROJECT_SOURCE_DIR}/src/*.cpp")
 
 
 add_library(nanospline INTERFACE)
-target_link_libraries(nanospline INTERFACE Eigen3::Eigen)
+target_link_libraries(nanospline INTERFACE Eigen3::Eigen MshIO::MshIO)
 target_include_directories(nanospline INTERFACE
     ${PROJECT_SOURCE_DIR}/include)
 
