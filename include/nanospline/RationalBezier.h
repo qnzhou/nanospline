@@ -194,12 +194,6 @@ public:
         validate_initialization();
     }
 
-    virtual void write(std::ostream& out) const override
-    {
-        out << "c:\n" << this->m_control_points << "\n";
-        out << "w:\n" << m_weights << "\n";
-    }
-
     RationalBezier < _Scalar, _dim,
         _degree<0 ? _degree : _degree + 1, _generic> elevate_degree() const
     {

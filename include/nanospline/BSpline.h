@@ -15,7 +15,7 @@ template <typename _Scalar, int _dim = 3, int _degree = 3, bool _generic = (_deg
 class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic>
 {
 public:
-    using ThisType = BSpline<_Scalar, _dim, _degree, false>;
+    using ThisType = BSpline<_Scalar, _dim, _degree, _generic>;
     using Base = BSplineBase<_Scalar, _dim, _degree, _generic>;
     using Scalar = typename Base::Scalar;
     using Point = typename Base::Point;

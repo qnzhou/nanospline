@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Eigen/Core>
-#include <iostream>
 #include <numeric>
 
 #include <nanospline/BSpline.h>
@@ -231,13 +230,6 @@ public:
         res.erase(std::unique(res.begin(), res.end()), res.end());
 
         return res;
-    }
-
-    virtual void write(std::ostream& out) const override
-    {
-        out << "c:\n" << this->m_control_points << "\n";
-        out << "k:\n" << this->m_knots << "\n";
-        out << "w:\n" << m_weights << "\n";
     }
 
 public:

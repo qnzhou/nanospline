@@ -358,12 +358,6 @@ public:
         return m_knots[num_knots - p - 1];
     }
 
-    virtual void write(std::ostream& out) const override
-    {
-        out << "c:\n" << m_control_points << "\n";
-        out << "k:\n" << m_knots << "\n";
-    }
-
 protected:
     void validate_curve() const
     {

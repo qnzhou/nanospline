@@ -29,10 +29,11 @@ public:
     virtual bool in_domain(Scalar t) const override
     {
         constexpr Scalar eps = std::numeric_limits<Scalar>::epsilon();
-        const Scalar t_min = 0.;
-        const Scalar t_max = 1.;
+        constexpr Scalar t_min = 0.;
+        constexpr Scalar t_max = 1.;
         return (t >= t_min - eps) && (t <= t_max + eps);
     }
+
     virtual Scalar approximate_inverse_evaluate(const Point& p,
         const Scalar lower = 0.0,
         const Scalar upper = 1.0,
@@ -84,12 +85,6 @@ public:
     Scalar get_domain_lower_bound() const override { return 0.0; }
 
     Scalar get_domain_upper_bound() const override { return 1.0; }
-
-
-    virtual void write(std::ostream& out) const override
-    {
-        out << "c:\n" << m_control_points << "\n";
-    }
 
 protected:
     ControlPoints m_control_points;

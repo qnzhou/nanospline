@@ -42,11 +42,6 @@ public:
         return m_homogeneous.get_control_point_preimage(i, j);
     }
 
-    Point get_control_point(int i, int j) const override
-    {
-        return Base::m_control_grid.row(Base::control_point_linear_index(i, j));
-    }
-
     Point evaluate(Scalar u, Scalar v) const override
     {
         validate_initialization();

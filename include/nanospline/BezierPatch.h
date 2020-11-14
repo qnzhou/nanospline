@@ -43,14 +43,10 @@ public:
 
     BezierPatch(const ThisType& other)
         : PatchBase<_Scalar, _dim>(other)
-        , m_du_patch(nullptr)
-        , m_dv_patch(nullptr)
     {}
 
     BezierPatch(ThisType&& other)
         : PatchBase<_Scalar, _dim>(std::move(other))
-        , m_du_patch(nullptr)
-        , m_dv_patch(nullptr)
     {}
 
     ThisType& operator=(const ThisType& other)
@@ -183,7 +179,7 @@ public:
             for (int j = 0; j <= degree_v; j++) {
                 const int row_id = i * (degree_v + 1) + j;
                 du_grid.row(row_id) =
-                    degree_u * (get_control_point(i + 1, j) - get_control_point(i, j));
+                    degree_u * (Base::get_control_point(i + 1, j) - Base::get_control_point(i, j));
             }
         }
 
@@ -209,7 +205,7 @@ public:
             for (int j = 0; j <= degree_v - 1; j++) {
                 const int row_id = i * degree_v + j;
                 dv_grid.row(row_id) =
-                    degree_v * (get_control_point(i, j + 1) - get_control_point(i, j));
+                    degree_v * (Base::get_control_point(i, j + 1) - Base::get_control_point(i, j));
             }
         }
 
@@ -235,9 +231,9 @@ public:
             for (int j = 0; j <= degree_v - 1; j++) {
                 const int row_id = i * degree_v + j;
                 const Point pu0 =
-                    degree_u * (get_control_point(i + 1, j) - get_control_point(i, j));
-                const Point pu1 =
-                    degree_u * (get_control_point(i + 1, j + 1) - get_control_point(i, j + 1));
+                    degree_u * (Base::get_control_point(i + 1, j) - Base::get_control_point(i, j));
+                const Point pu1 = degree_u * (Base::get_control_point(i + 1, j + 1) -
+                                                 Base::get_control_point(i, j + 1));
                 duv_grid.row(row_id) = degree_v * (pu1 - pu0);
             }
         }
@@ -248,11 +244,6 @@ public:
         duv_patch.swap_control_grid(duv_grid);
         duv_patch.initialize();
         return duv_patch;
-    }
-
-    Point get_control_point(int ui, int vj) const override
-    {
-        return Base::m_control_grid.row(Base::control_point_linear_index(ui, vj));
     }
 
     int num_control_points_u() const override
@@ -281,7 +272,7 @@ private:
         for (int ui = 0; ui < num_ctrl_pts_u; ui++) {
             typename IsoCurveV::ControlPoints control_points_v(num_ctrl_pts_v, _dim);
             for (int vj = 0; vj < num_ctrl_pts_v; vj++) {
-                control_points_v.row(vj) = get_control_point(ui, vj);
+                control_points_v.row(vj) = Base::get_control_point(ui, vj);
             }
 
             IsoCurveV iso_curve_v;
@@ -305,7 +296,7 @@ private:
             typename IsoCurveU::ControlPoints control_points_u(num_ctrl_pts_u, _dim);
 
             for (int ui = 0; ui < num_ctrl_pts_u; ui++) {
-                control_points_u.row(ui) = get_control_point(ui, vj);
+                control_points_u.row(ui) = Base::get_control_point(ui, vj);
             }
 
             IsoCurveU iso_curve_u;
@@ -601,10 +592,6 @@ public:
         Base::set_control_grid(updated_control_points);
         initialize();
     }
-
-private:
-    std::unique_ptr<BezierPatch<_Scalar, _dim, -1, -1>> m_du_patch;
-    std::unique_ptr<BezierPatch<_Scalar, _dim, -1, -1>> m_dv_patch;
 };
 
 } // namespace nanospline

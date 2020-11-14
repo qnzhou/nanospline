@@ -40,7 +40,6 @@ public:
     virtual std::vector<Scalar> compute_singularities(
         const Scalar lower = 0.0, const Scalar upper = 1.0) const = 0;
 
-    virtual void write(std::ostream& out) const = 0;
     virtual Scalar get_turning_angle(Scalar t0, Scalar t1) const
     {
         if (_dim != 2) {
@@ -66,18 +65,6 @@ public:
     }
 
 public:
-    bool is_split_point_valid(Scalar t) const
-    {
-        if (!in_domain(t)) {
-            throw invalid_setting_error("Parameter not inside of the domain.");
-        }
-        if (t == get_domain_lower_bound() || t == get_domain_upper_bound()) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
     Point evaluate_curvature(Scalar t) const
     {
         const auto d1 = evaluate_derivative(t);
@@ -93,15 +80,16 @@ public:
 
     constexpr int get_dim() const { return _dim; }
 
-    friend std::ostream& operator<<(std::ostream& out, const CurveBase& c)
-    {
-        c.wirte(out);
-        return out;
-    }
-    virtual std::shared_ptr<CurveBase> simplify(Scalar eps) const { return nullptr; }
-    // virtual bool is_point() const = 0;
-
 protected:
+    bool is_split_point_valid(Scalar t) const
+    {
+        if (t <= get_domain_lower_bound() || t >= get_domain_upper_bound()) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     Scalar approximate_inverse_evaluate(const Point& p,
         const int num_samples,
         const Scalar lower = 0.0,

@@ -58,16 +58,12 @@ public:
         : PatchBase<_Scalar, _dim>(other)
         , m_knots_u(other.m_knots_u)
         , m_knots_v(other.m_knots_v)
-        , m_du_patch(nullptr)
-        , m_dv_patch(nullptr)
     {}
 
     BSplinePatch(ThisType&& other)
         : PatchBase<_Scalar, _dim>(other)
         , m_knots_u(std::move(other.m_knots_u))
         , m_knots_v(std::move(other.m_knots_v))
-        , m_du_patch(nullptr)
-        , m_dv_patch(nullptr)
     {}
 
     ThisType& operator=(const ThisType& other)
@@ -265,9 +261,9 @@ public:
         for (int i = 0; i < num_u_knots - degree_u - 2; i++) {
             for (int j = 0; j < num_v_knots - degree_v - 1; j++) {
                 const int row_id = i * (num_v_knots - degree_v - 1) + j;
-                du_grid.row(row_id) = degree_u *
-                                      (get_control_point(i + 1, j) - get_control_point(i, j)) /
-                                      (m_knots_u[i + degree_u + 1] - m_knots_u[i + 1]);
+                du_grid.row(row_id) =
+                    degree_u * (Base::get_control_point(i + 1, j) - Base::get_control_point(i, j)) /
+                    (m_knots_u[i + degree_u + 1] - m_knots_u[i + 1]);
             }
         }
 
@@ -296,9 +292,9 @@ public:
         for (int i = 0; i < num_u_knots - degree_u - 1; i++) {
             for (int j = 0; j < num_v_knots - degree_v - 2; j++) {
                 const int row_id = i * (num_v_knots - degree_v - 2) + j;
-                dv_grid.row(row_id) = degree_v *
-                                      (get_control_point(i, j + 1) - get_control_point(i, j)) /
-                                      (m_knots_v[j + degree_v + 1] - m_knots_v[j + 1]);
+                dv_grid.row(row_id) =
+                    degree_v * (Base::get_control_point(i, j + 1) - Base::get_control_point(i, j)) /
+                    (m_knots_v[j + degree_v + 1] - m_knots_v[j + 1]);
             }
         }
 
@@ -315,15 +311,6 @@ public:
     BSplinePatch<_Scalar, _dim, -1, -1> compute_duv_patch() const
     {
         return compute_du_patch().compute_dv_patch();
-    }
-
-
-    Point get_control_point(int ui, int vj) const override
-    {
-        // const auto degree_v = Base::get_degree_v();
-        // const auto row_size = m_knots_v.size() - degree_v - 1;
-        // return Base::m_control_grid.row(ui*row_size + vj);
-        return Base::m_control_grid.row(Base::control_point_linear_index(ui, vj));
     }
 
     int num_control_points_u() const override
@@ -363,7 +350,7 @@ private:
         for (int vj = 0; vj < num_control_pts_v; vj++) {
             typename IsoCurveU::ControlPoints control_points_u(num_control_pts_u, _dim);
             for (int ui = 0; ui < num_control_pts_u; ui++) {
-                control_points_u.row(ui) = get_control_point(ui, vj);
+                control_points_u.row(ui) = Base::get_control_point(ui, vj);
             }
 
             IsoCurveU iso_curve_u;
@@ -390,7 +377,7 @@ private:
             typename IsoCurveV::ControlPoints control_points_v(num_control_pts_v, _dim);
 
             for (int vj = 0; vj < num_control_pts_v; vj++) {
-                control_points_v.row(vj) = get_control_point(ui, vj);
+                control_points_v.row(vj) = Base::get_control_point(ui, vj);
             }
 
             IsoCurveV iso_curve_v;
@@ -761,10 +748,6 @@ public:
 protected:
     KnotVector m_knots_u;
     KnotVector m_knots_v;
-
-private:
-    std::unique_ptr<BSplinePatch<_Scalar, _dim, -1, -1>> m_du_patch;
-    std::unique_ptr<BSplinePatch<_Scalar, _dim, -1, -1>> m_dv_patch;
 };
 
 } // namespace nanospline

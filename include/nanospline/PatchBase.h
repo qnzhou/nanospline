@@ -32,7 +32,6 @@ public:
     virtual Scalar get_u_upper_bound() const = 0;
     virtual Scalar get_v_lower_bound() const = 0;
     virtual Scalar get_v_upper_bound() const = 0;
-    virtual Point get_control_point(int i, int j) const = 0;
     virtual int num_control_points_u() const = 0;
     virtual int num_control_points_v() const = 0;
     virtual UVPoint get_control_point_preimage(int i, int j) const = 0;
@@ -51,6 +50,10 @@ public:
 
 public:
     int num_control_points() const { return num_control_points_u() * num_control_points_v(); }
+
+    Point get_control_point(int i, int j) const {
+        return m_control_grid.row(control_point_linear_index(i, j));
+    }
 
     bool in_domain_u(Scalar u) const
     {
