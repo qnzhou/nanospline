@@ -32,6 +32,11 @@ public:
         Base::set_degree_v(_degree_v);
     }
 
+    std::unique_ptr<Base> clone() const override {
+        return std::make_unique<ThisType>(*this);
+    }
+
+
 public:
     int num_control_points_u() const override { return m_homogeneous.num_control_points_u(); }
 
@@ -159,6 +164,45 @@ public:
     Scalar get_u_upper_bound() const override { return m_homogeneous.get_u_upper_bound(); }
 
     Scalar get_v_upper_bound() const override { return m_homogeneous.get_v_upper_bound(); }
+
+public:
+    virtual void set_control_point(int i, int j, const Point& p) override
+    {
+        Base::set_control_point(i, j, p);
+
+        auto q = m_homogeneous.get_control_point(i, j);
+        q.template segment<_dim>(0) = p * get_weight(i ,j);
+        m_homogeneous.set_control_point(i, j, q);
+    }
+
+    virtual int get_num_weights_u() const override { return num_control_points_u(); }
+    virtual int get_num_weights_v() const override { return num_control_points_v(); }
+    virtual Scalar get_weight(int i, int j) const override
+    {
+        return m_weights[Base::get_linear_index(i, j)];
+    }
+    virtual void set_weight(int i, int j, Scalar val) override
+    {
+        m_weights[Base::get_linear_index(i, j)] = val;
+
+        auto q = m_homogeneous.get_control_point(i, j);
+        q.template segment<_dim>(0) = Base::get_control_point(i, j) * val;
+        q[_dim] = val;
+        m_homogeneous.set_control_point(i, j, q);
+    }
+
+    virtual int get_num_knots_u() const override { return static_cast<int>(m_knots_u.rows()); }
+    virtual Scalar get_knot_u(int i) const override { return m_knots_u[i]; }
+    virtual void set_knot_u(int i, Scalar val) override {
+        m_knots_u[i] = val;
+        m_homogeneous.set_knot_u(i, val);
+    }
+    virtual int get_num_knots_v() const override { return static_cast<int>(m_knots_v.rows()); }
+    virtual Scalar get_knot_v(int i) const override { return m_knots_v[i]; }
+    virtual void set_knot_v(int i, Scalar val) override {
+        m_knots_v[i] = val;
+        m_homogeneous.set_knot_v(i, val);
+    }
 
 public:
     const Weights get_weights() const { return m_weights; }

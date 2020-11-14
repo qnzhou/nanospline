@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nanospline/BSpline.h>
+#include <nanospline/Exceptions.h>
 #include <nanospline/PatchBase.h>
 
 using std::vector;
@@ -84,6 +85,10 @@ public:
         m_knots_u.swap(other.m_knots_u);
         m_knots_v.swap(other.m_knots_v);
         return *this;
+    }
+
+    std::unique_ptr<Base> clone() const override {
+        return std::make_unique<ThisType>(*this);
     }
 
 public:
@@ -181,6 +186,25 @@ public:
         preimage(1) = preimage(1) / Scalar(Base::get_degree_v());
         return preimage;
     }
+
+public:
+    virtual int get_num_weights_u() const override { return 0; }
+    virtual int get_num_weights_v() const override { return 0; }
+    virtual Scalar get_weight(int i, int j) const override
+    {
+        throw not_implemented_error("BSpline patch does not support weight");
+    }
+    virtual void set_weight(int i, int j, Scalar val) override
+    {
+        throw not_implemented_error("BSpline patch does not support weight");
+    }
+
+    virtual int get_num_knots_u() const override { return static_cast<int>(m_knots_u.rows()); }
+    virtual Scalar get_knot_u(int i) const override { return m_knots_u[i]; }
+    virtual void set_knot_u(int i, Scalar val) override { m_knots_u[i] = val; }
+    virtual int get_num_knots_v() const override { return static_cast<int>(m_knots_v.rows()); }
+    virtual Scalar get_knot_v(int i) const override { return m_knots_v[i]; }
+    virtual void set_knot_v(int i, Scalar val) override { m_knots_v[i] = val; }
 
 public:
     const KnotVector& get_knots_u() const { return m_knots_u; }
@@ -328,12 +352,6 @@ public:
     }
 
 private:
-    // Hopefully we won't have more than 2 billion knots...
-    // If so this will break.
-    int get_num_knots_u() const { return static_cast<int>(m_knots_u.rows()); }
-
-    int get_num_knots_v() const { return static_cast<int>(m_knots_v.rows()); }
-
     // Construct the implicit isocurves determined by each rows of control points
     // i.e. fixed values of v. This copies these rows into
     // individual matrices of control points and returns the resulting
@@ -433,7 +451,7 @@ public:
                 const int num_split_ctrl_pts_u = static_cast<int>(ctrl_pts.rows());
 
                 for (int ui = 0; ui < num_split_ctrl_pts_u; ui++) {
-                    int index = Base::control_point_linear_index(ui, vj);
+                    int index = Base::get_linear_index(ui, vj);
                     split_control_pts_u[ci].row(index) = ctrl_pts.row(ui);
                 }
             }

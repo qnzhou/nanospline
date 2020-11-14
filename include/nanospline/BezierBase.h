@@ -44,6 +44,35 @@ public:
         return Base::approximate_inverse_evaluate(p, num_samples, lower, upper, level);
     }
 
+    virtual int get_num_control_points() const override { return get_degree() + 1; }
+    virtual Point get_control_point(int i) const override { return m_control_points.row(i); }
+    virtual void set_control_point(int i, const Point& p) override { m_control_points.row(i) = p; }
+
+    virtual int get_num_weights() const override { return 0; }
+
+    virtual Scalar get_weight(int i) const override
+    {
+        throw not_implemented_error("Bezier curves does not support weights.");
+    }
+
+    virtual void set_weight(int i, Scalar val) override
+    {
+        throw not_implemented_error("Bezier curves does not support weights.");
+    }
+
+    virtual int get_num_knots() const override { return 0; }
+
+    virtual Scalar get_knot(int i) const override
+    {
+        throw not_implemented_error("Bezier curves does not support knots.");
+    }
+
+    virtual void set_knot(int i, Scalar val) override
+    {
+        throw not_implemented_error("Bezier curves does not support knots.");
+    }
+
+
     virtual std::vector<Scalar> compute_inflections(
         const Scalar lower, const Scalar upper) const override
     {

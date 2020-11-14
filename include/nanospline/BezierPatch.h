@@ -65,6 +65,10 @@ public:
         return *this;
     }
 
+    std::unique_ptr<Base> clone() const override {
+        return std::make_unique<ThisType>(*this);
+    }
+
 public:
     Point evaluate(Scalar u, Scalar v) const override
     {
@@ -132,6 +136,37 @@ public:
         return preimage;
     }
 
+public:
+    virtual int get_num_weights_u() const override { return 0; }
+    virtual int get_num_weights_v() const override { return 0; }
+    virtual Scalar get_weight(int i, int j) const override
+    {
+        throw not_implemented_error("Bezier patch does not support weight");
+    }
+    virtual void set_weight(int i, int j, Scalar val) override
+    {
+        throw not_implemented_error("Bezier patch does not support weight");
+    }
+
+    virtual int get_num_knots_u() const override { return 0; }
+    virtual Scalar get_knot_u(int i) const override
+    {
+        throw not_implemented_error("Bezier patch does not support knots");
+    }
+    virtual void set_knot_u(int i, Scalar val) override
+    {
+        throw not_implemented_error("Bezier patch does not support knots");
+    }
+
+    virtual int get_num_knots_v() const override { return 0; }
+    virtual Scalar get_knot_v(int i) const override
+    {
+        throw not_implemented_error("Bezier patch does not support knots");
+    }
+    virtual void set_knot_v(int i, Scalar val) override
+    {
+        throw not_implemented_error("Bezier patch does not support knots");
+    }
 
 public:
     IsoCurveU compute_iso_curve_u(Scalar v) const
@@ -335,7 +370,7 @@ public:
                 const auto& ctrl_pts = split_iso_curves[ci].get_control_points();
 
                 for (int ui = 0; ui < num_control_points_u(); ui++) {
-                    int index = Base::control_point_linear_index(ui, vj);
+                    int index = Base::get_linear_index(ui, vj);
                     split_control_pts_u[ci].row(index) = ctrl_pts.row(ui);
                 }
             }
@@ -376,7 +411,7 @@ public:
                 auto ctrl_pts = split_iso_curves[ci].get_control_points();
 
                 for (int vj = 0; vj < num_control_points_v(); vj++) {
-                    int index = Base::control_point_linear_index(ui, vj);
+                    int index = Base::get_linear_index(ui, vj);
                     split_control_pts_v[ci].row(index) = ctrl_pts.row(vj);
                 }
             }
@@ -545,7 +580,7 @@ public:
 
         for (int j = 0; j < num_control_pts_u; j++) {
             for (int k = 0; k < num_control_pts_v; k++) {
-                int index = __.control_point_linear_index(j, k);
+                int index = __.get_linear_index(j, k);
                 bezier_control_pts.row(index) << 1.;
                 bezier.set_control_grid(bezier_control_pts);
                 bezier.initialize();

@@ -19,18 +19,50 @@ public:
 
 public:
     virtual ~CurveBase() = default;
+    virtual std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const =0;
+
+    constexpr int get_dim() const { return _dim; }
+    virtual bool in_domain(Scalar t) const = 0;
+    virtual Scalar get_domain_lower_bound() const = 0;
+    virtual Scalar get_domain_upper_bound() const = 0;
+
+public:
     virtual Point evaluate(Scalar t) const = 0;
     virtual Scalar inverse_evaluate(const Point& p) const = 0;
     virtual Point evaluate_derivative(Scalar t) const = 0;
     virtual Point evaluate_2nd_derivative(Scalar t) const = 0;
-    virtual bool in_domain(Scalar t) const = 0;
-    virtual Scalar get_domain_lower_bound() const = 0;
-    virtual Scalar get_domain_upper_bound() const = 0;
     virtual Scalar approximate_inverse_evaluate(const Point& p,
         const Scalar lower = 0.0,
         const Scalar upper = 1.0,
         const int level = 3) const = 0;
 
+    Point evaluate_curvature(Scalar t) const
+    {
+        const auto d1 = evaluate_derivative(t);
+        const auto d2 = evaluate_2nd_derivative(t);
+
+        const auto sq_speed = d1.squaredNorm();
+        if (sq_speed == 0) {
+            return Point::Zero();
+        } else {
+            return (d2 - d1 * (d1.dot(d2)) / sq_speed) / sq_speed;
+        }
+    }
+
+public:
+    virtual int get_num_control_points() const =0;
+    virtual Point get_control_point(int i) const =0;
+    virtual void set_control_point(int i, const Point& p) =0;
+
+    virtual int get_num_weights() const =0;
+    virtual Scalar get_weight(int i) const=0;
+    virtual void set_weight(int i, Scalar val) = 0;
+
+    virtual int get_num_knots() const =0;
+    virtual Scalar get_knot(int i) const =0;
+    virtual void set_knot(int i, Scalar val) =0;
+
+public:
     virtual std::vector<Scalar> compute_inflections(
         const Scalar lower = 0.0, const Scalar upper = 1.0) const = 0;
 
@@ -63,22 +95,6 @@ public:
 
         return std::atan2(d0[0] * d1[1] - d0[1] * d1[0], d0[0] * d1[0] + d0[1] * d1[1]);
     }
-
-public:
-    Point evaluate_curvature(Scalar t) const
-    {
-        const auto d1 = evaluate_derivative(t);
-        const auto d2 = evaluate_2nd_derivative(t);
-
-        const auto sq_speed = d1.squaredNorm();
-        if (sq_speed == 0) {
-            return Point::Zero();
-        } else {
-            return (d2 - d1 * (d1.dot(d2)) / sq_speed) / sq_speed;
-        }
-    }
-
-    constexpr int get_dim() const { return _dim; }
 
 protected:
     bool is_split_point_valid(Scalar t) const

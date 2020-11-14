@@ -7,7 +7,7 @@
 
 #include "validation_utils.h"
 
-TEST_CASE("BeizerPatch", "[nonrational][bezier_patch]") {
+TEST_CASE("BezierPatch", "[nonrational][bezier_patch]") {
     using namespace nanospline;
     using Scalar = double;
 
@@ -43,7 +43,9 @@ TEST_CASE("BeizerPatch", "[nonrational][bezier_patch]") {
         validate_derivative_patches(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
         validate_inverse_evaluation_3d(patch, 10, 10);
+        offset_and_validate(patch);
     }
+
     SECTION("Bilinear patch non-planar") {
         BezierPatch<Scalar, 3, 1, 1> patch;
         Eigen::Matrix<Scalar, 4, 3> control_grid;
@@ -72,11 +74,12 @@ TEST_CASE("BeizerPatch", "[nonrational][bezier_patch]") {
         REQUIRE(p_mid[1] == Approx(0.5));
         REQUIRE(p_mid[2] == Approx(0.5));
 
-        //validate_iso_curves(patch, 10);
-        //validate_derivative(patch, 10, 10);
-        //validate_derivative_patches(patch, 10, 10);
+        validate_iso_curves(patch, 10);
+        validate_derivative(patch, 10, 10);
+        validate_derivative_patches(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
         validate_inverse_evaluation_3d(patch, 10, 10);
+        offset_and_validate(patch);
     }
     SECTION("Cubic patch") {
         BezierPatch<Scalar, 3, 3, 3> patch;

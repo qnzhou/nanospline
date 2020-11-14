@@ -21,12 +21,10 @@ public:
 
 public:
     virtual ~PatchBase() = default;
-    virtual Point evaluate(Scalar u, Scalar v) const = 0;
-    virtual Point evaluate_derivative_u(Scalar u, Scalar v) const = 0;
-    virtual Point evaluate_derivative_v(Scalar u, Scalar v) const = 0;
-    virtual Point evaluate_2nd_derivative_uu(Scalar u, Scalar v) const = 0;
-    virtual Point evaluate_2nd_derivative_vv(Scalar u, Scalar v) const = 0;
-    virtual Point evaluate_2nd_derivative_uv(Scalar u, Scalar v) const = 0;
+    virtual std::unique_ptr<PatchBase> clone() const = 0;
+
+public:
+    constexpr int get_dim() const { return _dim; }
     virtual void initialize() = 0;
     virtual Scalar get_u_lower_bound() const = 0;
     virtual Scalar get_u_upper_bound() const = 0;
@@ -35,25 +33,6 @@ public:
     virtual int num_control_points_u() const = 0;
     virtual int num_control_points_v() const = 0;
     virtual UVPoint get_control_point_preimage(int i, int j) const = 0;
-
-    virtual UVPoint inverse_evaluate(const Point& p,
-        const Scalar min_u,
-        const Scalar max_u,
-        const Scalar min_v,
-        const Scalar max_v) const
-    {
-        constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 100;
-        const int num_samples = std::max(num_control_points_u(), num_control_points_v()) + 1;
-        UVPoint uv = approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v, 10);
-        return newton_raphson(p, uv, 20, TOL, min_u, max_u, min_v, max_v);
-    }
-
-public:
-    int num_control_points() const { return num_control_points_u() * num_control_points_v(); }
-
-    Point get_control_point(int i, int j) const {
-        return m_control_grid.row(control_point_linear_index(i, j));
-    }
 
     bool in_domain_u(Scalar u) const
     {
@@ -70,6 +49,7 @@ public:
         const Scalar v_max = get_v_upper_bound();
         return (v >= v_min - eps) && (v <= v_max + eps);
     }
+
     bool is_endpoint_u(Scalar u) const
     {
         return u == get_u_lower_bound() || u == get_u_upper_bound();
@@ -79,6 +59,7 @@ public:
     {
         return v == get_v_lower_bound() || v == get_v_upper_bound();
     }
+
     bool in_domain(Scalar u, Scalar v) const { return in_domain_u(u) && in_domain_v(v); }
 
     void set_degree_u(int degree) { m_degree_u = degree; }
@@ -125,8 +106,51 @@ public:
         m_control_grid.swap(ctrl_grid);
     }
 
-    constexpr int get_dim() const { return _dim; }
+public:
+    virtual Point evaluate(Scalar u, Scalar v) const = 0;
+    virtual Point evaluate_derivative_u(Scalar u, Scalar v) const = 0;
+    virtual Point evaluate_derivative_v(Scalar u, Scalar v) const = 0;
+    virtual Point evaluate_2nd_derivative_uu(Scalar u, Scalar v) const = 0;
+    virtual Point evaluate_2nd_derivative_vv(Scalar u, Scalar v) const = 0;
+    virtual Point evaluate_2nd_derivative_uv(Scalar u, Scalar v) const = 0;
 
+    virtual UVPoint inverse_evaluate(const Point& p,
+        const Scalar min_u,
+        const Scalar max_u,
+        const Scalar min_v,
+        const Scalar max_v) const
+    {
+        constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 100;
+        const int num_samples = std::max(num_control_points_u(), num_control_points_v()) + 1;
+        UVPoint uv = approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v, 10);
+        return newton_raphson(p, uv, 20, TOL, min_u, max_u, min_v, max_v);
+    }
+
+public:
+    int num_control_points() const { return num_control_points_u() * num_control_points_v(); }
+
+    Point get_control_point(int i, int j) const
+    {
+        return m_control_grid.row(get_linear_index(i, j));
+    }
+
+    virtual void set_control_point(int i, int j, const Point& p)
+    {
+        m_control_grid.row(get_linear_index(i, j)) = p;
+    }
+
+    virtual int get_num_weights_u() const = 0;
+    virtual int get_num_weights_v() const = 0;
+    virtual Scalar get_weight(int i, int j) const = 0;
+    virtual void set_weight(int i, int j, Scalar val) = 0;
+
+    virtual int get_num_knots_u() const = 0;
+    virtual Scalar get_knot_u(int i) const = 0;
+    virtual void set_knot_u(int i, Scalar val) = 0;
+
+    virtual int get_num_knots_v() const = 0;
+    virtual Scalar get_knot_v(int i) const = 0;
+    virtual void set_knot_v(int i, Scalar val) = 0;
 
 protected:
     virtual UVPoint approximate_inverse_evaluate(const Point& p,
@@ -241,7 +265,7 @@ protected:
 
     // Translate (i,j) control point indexing into a linear index. Note that
     // control points are ordered in v-major order
-    int control_point_linear_index(int i, int j) const { return i * (num_control_points_v()) + j; }
+    int get_linear_index(int i, int j) const { return i * (num_control_points_v()) + j; }
 
 protected:
     int m_degree_u = -1;

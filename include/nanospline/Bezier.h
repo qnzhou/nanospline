@@ -32,6 +32,11 @@ public:
 
 public:
     Bezier() = default;
+
+    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override {
+        return std::make_unique<ThisType>(*this);
+    }
+
     Point evaluate(Scalar t) const override
     {
         int curve_degree = Base::get_degree();
@@ -414,6 +419,10 @@ public:
     using ControlPoints = typename Base::ControlPoints;
 
 public:
+    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override {
+        return std::make_unique<Bezier<_Scalar, _dim, 0, false>>(*this);
+    }
+
     Point evaluate(Scalar t) const override { return Base::m_control_points; }
 
     Scalar inverse_evaluate(const Point& p) const override { return 0.0; }
@@ -464,6 +473,10 @@ public:
     using ControlPoints = typename Base::ControlPoints;
 
 public:
+    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override {
+        return std::make_unique<Bezier<_Scalar, _dim, 1, false>>(*this);
+    }
+
     Point evaluate(Scalar t) const override
     {
         return (1.0 - t) * Base::m_control_points.row(0) + t * Base::m_control_points.row(1);
@@ -552,6 +565,10 @@ public:
     using ControlPoints = typename Base::ControlPoints;
 
 public:
+    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override {
+        return std::make_unique<Bezier<_Scalar, _dim, 2, false>>(*this);
+    }
+
     Point evaluate(Scalar t) const override
     {
         const Point p0 =
@@ -727,6 +744,10 @@ public:
     using ControlPoints = typename Base::ControlPoints;
 
 public:
+    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override {
+        return std::make_unique<Bezier<_Scalar, _dim, 3, false>>(*this);
+    }
+
     Point evaluate(Scalar t) const override
     {
         const Point q0 =

@@ -51,6 +51,10 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
         SECTION("Approximate inverse evaluate") {
             validate_approximate_inverse_evaluation(curve, 10);
         }
+
+        SECTION("Update") {
+            offset_and_validate(curve);
+        }
     }
 
     SECTION("degree 1") {
@@ -87,6 +91,10 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
 
         SECTION("Approximate inverse evaluate") {
             validate_approximate_inverse_evaluation(curve, 10);
+        }
+
+        SECTION("Update") {
+            offset_and_validate(curve);
         }
     }
 
@@ -139,6 +147,10 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
 
         SECTION("Approximate inverse evaluate") {
             validate_approximate_inverse_evaluation(curve, 10);
+        }
+
+        SECTION("Update") {
+            offset_and_validate(curve);
         }
     }
 
@@ -205,6 +217,10 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
             SECTION("Degree elevation") {
                 const auto curve2 = curve.elevate_degree();
                 assert_same(curve, curve2, 10);
+            }
+
+            SECTION("Update") {
+                offset_and_validate(curve);
             }
         }
 
@@ -304,6 +320,10 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
                 const auto curve2 = curve.elevate_degree();
                 assert_same(curve, curve2, 10);
             }
+
+            SECTION("Update") {
+                offset_and_validate(curve);
+            }
         }
     }
 
@@ -343,6 +363,10 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
 
         SECTION("Approximate inverse evaluate") {
             validate_approximate_inverse_evaluation(curve, 10);
+        }
+
+        SECTION("Update") {
+            offset_and_validate(curve);
         }
 #endif
     }
@@ -387,6 +411,10 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
 
         SECTION("Approximate inverse evaluate") {
             validate_approximate_inverse_evaluation(curve, 10);
+        }
+
+        SECTION("Update") {
+            offset_and_validate(curve);
         }
 #endif
     }

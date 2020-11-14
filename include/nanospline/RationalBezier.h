@@ -20,6 +20,7 @@ class RationalBezier final : public BezierBase<_Scalar, _dim, _degree, _generic>
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     using Base = BezierBase<_Scalar, _dim, _degree, _generic>;
+    using ThisType = RationalBezier<_Scalar, _dim, _degree, _generic>;
     using Scalar = typename Base::Scalar;
     using Point = typename Base::Point;
     using ControlPoints = typename Base::ControlPoints;
@@ -27,6 +28,10 @@ public:
     using BezierHomogeneous = Bezier<_Scalar, _dim + 1, _degree, _generic>;
 
 public:
+    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override {
+        return std::make_unique<ThisType>(*this);
+    }
+
     Point evaluate(Scalar t) const override
     {
         validate_initialization();
@@ -60,6 +65,33 @@ public:
             (d1.template head<_dim>() - p0.template head<_dim>() * d1[_dim] / p0[_dim]) / p0[_dim];
 
         return (d2.template head<_dim>() - d2[_dim] * c0 - 2 * d1[_dim] * c1) / p0[_dim];
+    }
+
+    virtual void set_control_point(int i, const Point& p) override {
+        validate_initialization();
+        Base::set_control_point(i, p);
+
+        auto q = m_bezier_homogeneous.get_control_point(i);
+        q.template segment<_dim>(0) = p * m_weights[i];
+        m_bezier_homogeneous.set_control_point(i, q);
+    }
+
+    virtual int get_num_weights() const override { return Base::get_num_control_points(); }
+
+    virtual Scalar get_weight(int i) const override
+    {
+        return m_weights[i];
+    }
+
+    virtual void set_weight(int i, Scalar val) override
+    {
+        validate_initialization();
+        m_weights[i] = val;
+
+        auto q = m_bezier_homogeneous.get_control_point(i);
+        q.template segment<_dim>(0) = Base::m_control_points.row(i) * val;
+        q[_dim] = val;
+        m_bezier_homogeneous.set_control_point(i, q);
     }
 
     std::vector<Scalar> compute_inflections(const Scalar lower, const Scalar upper) const override

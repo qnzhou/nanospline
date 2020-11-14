@@ -74,6 +74,22 @@ public:
         }
     }
 
+    virtual int get_num_control_points() const override { return static_cast<int>(m_control_points.rows()); }
+    virtual Point get_control_point(int i) const override { return m_control_points.row(i); }
+    virtual void set_control_point(int i, const Point& p) override { m_control_points.row(i) = p; }
+
+    virtual int get_num_weights() const override { return 0; }
+    virtual Scalar get_weight(int i) const override {
+        throw not_implemented_error("BSpline curves does not support weights.");
+    }
+    virtual void set_weight(int i, Scalar val) override {
+        throw not_implemented_error("BSpline curves does not support weights.");
+    }
+
+    virtual int get_num_knots() const override { return static_cast<int>(m_knots.size()); }
+    virtual Scalar get_knot(int i) const override { return m_knots[i]; }
+    virtual void set_knot(int i, Scalar val) override { m_knots[i] = val; }
+
     virtual std::vector<Scalar> compute_inflections(
         const Scalar lower = 0.0, const Scalar upper = 1.0) const override
     {
