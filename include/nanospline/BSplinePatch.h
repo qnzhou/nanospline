@@ -437,7 +437,8 @@ public:
             split_control_pts_u.push_back(ControlGrid(num_ctrl_pts * num_control_points_v(), _dim));
         }
         for (int vj = 0; vj < num_control_points_v(); vj++) {
-            const std::vector<IsoCurveU>& iso_curve_parts = split_iso_curves[static_cast<size_t>(vj)];
+            const std::vector<IsoCurveU>& iso_curve_parts =
+                split_iso_curves[static_cast<size_t>(vj)];
             // Copy control points of each split curve to its proper place in
             // the final control grid
             for (size_t ci = 0; ci < num_split_patches; ci++) {
@@ -502,7 +503,8 @@ public:
             split_control_pts_v.push_back(ControlGrid(num_ctrl_pts * num_control_points_u(), _dim));
         }
         for (int ui = 0; ui < num_control_points_u(); ui++) {
-            const std::vector<IsoCurveV>& iso_curve_parts = split_iso_curves[static_cast<size_t>(ui)];
+            const std::vector<IsoCurveV>& iso_curve_parts =
+                split_iso_curves[static_cast<size_t>(ui)];
             // Copy control points of each split curve to its proper place in
             // the final control grid
             for (size_t ci = 0; ci < num_split_patches; ci++) {
