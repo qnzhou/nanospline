@@ -103,7 +103,7 @@ void add_curve(MshSpec& spec, const CurveType& curve, int tag = 1)
     curve_spec.with_weights = num_weights > 0;
     curve_spec.data.reserve(static_cast<size_t>(num_control_points * 3 + num_weights + num_knots));
 
-    for (size_t i = 0; i < num_control_points; i++) {
+    for (size_t i = 0; i < static_cast<size_t>(num_control_points); i++) {
         const auto p = curve.get_control_point(static_cast<int>(i)).template cast<double>();
         for (size_t j = 0; j < dim; j++) {
             curve_spec.data.push_back(p[static_cast<Eigen::Index>(j)]);
@@ -113,7 +113,7 @@ void add_curve(MshSpec& spec, const CurveType& curve, int tag = 1)
             curve_spec.data.push_back(static_cast<double>(curve.get_weight(static_cast<int>(i))));
         }
     }
-    for (size_t i = 0; i < num_knots; i++) {
+    for (size_t i = 0; i < static_cast<size_t>(num_knots); i++) {
         curve_spec.data.push_back(static_cast<double>(curve.get_knot(static_cast<int>(i))));
     }
 }
