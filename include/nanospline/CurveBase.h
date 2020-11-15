@@ -22,6 +22,7 @@ public:
     virtual std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const =0;
 
     constexpr int get_dim() const { return _dim; }
+    virtual int get_degree() const =0;
     virtual bool in_domain(Scalar t) const = 0;
     virtual Scalar get_domain_lower_bound() const = 0;
     virtual Scalar get_domain_upper_bound() const = 0;

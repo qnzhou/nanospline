@@ -296,7 +296,7 @@ public:
     template <typename Derived>
     void set_weights(const Eigen::PlainObjectBase<Derived>&& weights)
     {
-        m_weights.swap(weights);
+        m_weights = std::move(weights);
     }
 
     const BSplineHomogeneous& get_homogeneous() const { return m_bspline_homogeneous; }

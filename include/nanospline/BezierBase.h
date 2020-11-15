@@ -106,7 +106,7 @@ public:
         m_control_points.swap(ctrl_pts);
     }
 
-    int get_degree() const
+    virtual int get_degree() const override
     {
         return _generic ? static_cast<int>(m_control_points.rows()) - 1 : _degree;
     }

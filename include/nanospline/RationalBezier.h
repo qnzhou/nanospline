@@ -211,7 +211,7 @@ public:
     template <typename Derived>
     void set_weights(const Eigen::PlainObjectBase<Derived>&& weights)
     {
-        m_weights.swap(weights);
+        m_weights = std::move(weights);
     }
 
     const BezierHomogeneous& get_homogeneous() const { return m_bezier_homogeneous; }

@@ -346,7 +346,7 @@ public:
         m_knots.swap(knots);
     }
 
-    int get_degree() const
+    virtual int get_degree() const override
     {
         return static_cast<int>(m_knots.rows() - m_control_points.rows() - 1);
     }
