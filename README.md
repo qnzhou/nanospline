@@ -152,7 +152,7 @@ const auto& ctrl_pts = curve.get_control_points();
 // Knots (BSpline and NURBS only).
 const auto& knots = curve.get_knots();
 
-// Weights (RationalBeizer and NURBS only).
+// Weights (RationalBezier and NURBS only).
 const auto& weights = curve.get_weights();
 ```
 
@@ -418,7 +418,7 @@ To convert a NURBS curve into a number of rational Bézier curves:
 ```c++
 #include <nanospline/conversion.h>
 
-auto rationa_beizers = nanospline::convert_to_RationalBezier(nurbs);
+auto rationa_beziers = nanospline::convert_to_RationalBezier(nurbs);
 ```
 
 It is sometimes possible to convert a rational Bézier curve into a plane Bézier
