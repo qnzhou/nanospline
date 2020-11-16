@@ -252,32 +252,38 @@ void add_patch(MshSpec& spec, const PatchType& patch, int tag = 1)
 
 } // namespace internal
 
-template <typename Scalar, int dim=3>
+template <typename Scalar, int dim = 3>
 void save_msh(const std::string& filename,
     const std::vector<CurveBase<Scalar, dim>*>& curves,
     const std::vector<PatchBase<Scalar, dim>*>& patches,
-    bool binary=true)
+    bool binary = true,
+    bool save_sampled = true)
 {
     using namespace mshio;
 
     MshSpec spec;
     spec.mesh_format.version = "4.1";
-    spec.mesh_format.file_type = binary?1:0;
+    spec.mesh_format.file_type = binary ? 1 : 0;
 
     int tag = 1;
     for (auto& curve : curves) {
         internal::add_curve(spec, *curve, tag);
-        internal::add_curve_sampled(spec, *curve, 100, tag);
+        if (save_sampled) {
+            internal::add_curve_sampled(spec, *curve, 100, tag);
+        }
         tag++;
     }
+
     tag = 1;
     for (auto& patch : patches) {
-        internal::add_patch_sampled(spec,
-            *patch,
-            static_cast<size_t>(5 * patch->num_control_points_u()),
-            static_cast<size_t>(5 * patch->num_control_points_v()),
-            tag);
         internal::add_patch(spec, *patch, tag);
+        if (save_sampled) {
+            internal::add_patch_sampled(spec,
+                *patch,
+                static_cast<size_t>(5 * patch->num_control_points_u()),
+                static_cast<size_t>(5 * patch->num_control_points_v()),
+                tag);
+        }
         tag++;
     }
 
