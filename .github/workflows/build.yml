@@ -40,4 +40,4 @@ jobs:
         cd build
         cmake .. -DCMAKE_GENERATOR_PLATFORM=x64 -DNANOSPLINE_HEADER_ONLY=Off
         cmake --build . --config Release -j
-        cmake --build . --config Release --target test
+        cmake --build . --config Release --target run_unit_tests
