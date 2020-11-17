@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nanospline/BSpline.h>
+#include <nanospline/Exceptions.h>
 #include <nanospline/PatchBase.h>
 
 using std::vector;
@@ -58,16 +59,12 @@ public:
         : PatchBase<_Scalar, _dim>(other)
         , m_knots_u(other.m_knots_u)
         , m_knots_v(other.m_knots_v)
-        , m_du_patch(nullptr)
-        , m_dv_patch(nullptr)
     {}
 
     BSplinePatch(ThisType&& other)
         : PatchBase<_Scalar, _dim>(other)
         , m_knots_u(std::move(other.m_knots_u))
         , m_knots_v(std::move(other.m_knots_v))
-        , m_du_patch(nullptr)
-        , m_dv_patch(nullptr)
     {}
 
     ThisType& operator=(const ThisType& other)
@@ -88,6 +85,10 @@ public:
         m_knots_u.swap(other.m_knots_u);
         m_knots_v.swap(other.m_knots_v);
         return *this;
+    }
+
+    std::unique_ptr<Base> clone() const override {
+        return std::make_unique<ThisType>(*this);
     }
 
 public:
@@ -187,6 +188,25 @@ public:
     }
 
 public:
+    virtual int get_num_weights_u() const override { return 0; }
+    virtual int get_num_weights_v() const override { return 0; }
+    virtual Scalar get_weight(int i, int j) const override
+    {
+        throw not_implemented_error("BSpline patch does not support weight");
+    }
+    virtual void set_weight(int i, int j, Scalar val) override
+    {
+        throw not_implemented_error("BSpline patch does not support weight");
+    }
+
+    virtual int get_num_knots_u() const override { return static_cast<int>(m_knots_u.rows()); }
+    virtual Scalar get_knot_u(int i) const override { return m_knots_u[i]; }
+    virtual void set_knot_u(int i, Scalar val) override { m_knots_u[i] = val; }
+    virtual int get_num_knots_v() const override { return static_cast<int>(m_knots_v.rows()); }
+    virtual Scalar get_knot_v(int i) const override { return m_knots_v[i]; }
+    virtual void set_knot_v(int i, Scalar val) override { m_knots_v[i] = val; }
+
+public:
     const KnotVector& get_knots_u() const { return m_knots_u; }
 
     const KnotVector& get_knots_v() const { return m_knots_v; }
@@ -265,9 +285,9 @@ public:
         for (int i = 0; i < num_u_knots - degree_u - 2; i++) {
             for (int j = 0; j < num_v_knots - degree_v - 1; j++) {
                 const int row_id = i * (num_v_knots - degree_v - 1) + j;
-                du_grid.row(row_id) = degree_u *
-                                      (get_control_point(i + 1, j) - get_control_point(i, j)) /
-                                      (m_knots_u[i + degree_u + 1] - m_knots_u[i + 1]);
+                du_grid.row(row_id) =
+                    degree_u * (Base::get_control_point(i + 1, j) - Base::get_control_point(i, j)) /
+                    (m_knots_u[i + degree_u + 1] - m_knots_u[i + 1]);
             }
         }
 
@@ -296,9 +316,9 @@ public:
         for (int i = 0; i < num_u_knots - degree_u - 1; i++) {
             for (int j = 0; j < num_v_knots - degree_v - 2; j++) {
                 const int row_id = i * (num_v_knots - degree_v - 2) + j;
-                dv_grid.row(row_id) = degree_v *
-                                      (get_control_point(i, j + 1) - get_control_point(i, j)) /
-                                      (m_knots_v[j + degree_v + 1] - m_knots_v[j + 1]);
+                dv_grid.row(row_id) =
+                    degree_v * (Base::get_control_point(i, j + 1) - Base::get_control_point(i, j)) /
+                    (m_knots_v[j + degree_v + 1] - m_knots_v[j + 1]);
             }
         }
 
@@ -317,15 +337,6 @@ public:
         return compute_du_patch().compute_dv_patch();
     }
 
-
-    Point get_control_point(int ui, int vj) const override
-    {
-        // const auto degree_v = Base::get_degree_v();
-        // const auto row_size = m_knots_v.size() - degree_v - 1;
-        // return Base::m_control_grid.row(ui*row_size + vj);
-        return Base::m_control_grid.row(Base::control_point_linear_index(ui, vj));
-    }
-
     int num_control_points_u() const override
     {
         const auto num_u_knots = get_num_knots_u();
@@ -341,12 +352,6 @@ public:
     }
 
 private:
-    // Hopefully we won't have more than 2 billion knots...
-    // If so this will break.
-    int get_num_knots_u() const { return static_cast<int>(m_knots_u.rows()); }
-
-    int get_num_knots_v() const { return static_cast<int>(m_knots_v.rows()); }
-
     // Construct the implicit isocurves determined by each rows of control points
     // i.e. fixed values of v. This copies these rows into
     // individual matrices of control points and returns the resulting
@@ -363,7 +368,7 @@ private:
         for (int vj = 0; vj < num_control_pts_v; vj++) {
             typename IsoCurveU::ControlPoints control_points_u(num_control_pts_u, _dim);
             for (int ui = 0; ui < num_control_pts_u; ui++) {
-                control_points_u.row(ui) = get_control_point(ui, vj);
+                control_points_u.row(ui) = Base::get_control_point(ui, vj);
             }
 
             IsoCurveU iso_curve_u;
@@ -390,7 +395,7 @@ private:
             typename IsoCurveV::ControlPoints control_points_v(num_control_pts_v, _dim);
 
             for (int vj = 0; vj < num_control_pts_v; vj++) {
-                control_points_v.row(vj) = get_control_point(ui, vj);
+                control_points_v.row(vj) = Base::get_control_point(ui, vj);
             }
 
             IsoCurveV iso_curve_v;
@@ -437,7 +442,8 @@ public:
             split_control_pts_u.push_back(ControlGrid(num_ctrl_pts * num_control_points_v(), _dim));
         }
         for (int vj = 0; vj < num_control_points_v(); vj++) {
-            const std::vector<IsoCurveU>& iso_curve_parts = split_iso_curves[static_cast<size_t>(vj)];
+            const std::vector<IsoCurveU>& iso_curve_parts =
+                split_iso_curves[static_cast<size_t>(vj)];
             // Copy control points of each split curve to its proper place in
             // the final control grid
             for (size_t ci = 0; ci < num_split_patches; ci++) {
@@ -445,7 +451,7 @@ public:
                 const int num_split_ctrl_pts_u = static_cast<int>(ctrl_pts.rows());
 
                 for (int ui = 0; ui < num_split_ctrl_pts_u; ui++) {
-                    int index = Base::control_point_linear_index(ui, vj);
+                    int index = Base::get_linear_index(ui, vj);
                     split_control_pts_u[ci].row(index) = ctrl_pts.row(ui);
                 }
             }
@@ -502,7 +508,8 @@ public:
             split_control_pts_v.push_back(ControlGrid(num_ctrl_pts * num_control_points_u(), _dim));
         }
         for (int ui = 0; ui < num_control_points_u(); ui++) {
-            const std::vector<IsoCurveV>& iso_curve_parts = split_iso_curves[static_cast<size_t>(ui)];
+            const std::vector<IsoCurveV>& iso_curve_parts =
+                split_iso_curves[static_cast<size_t>(ui)];
             // Copy control points of each split curve to its proper place in
             // the final control grid
             for (size_t ci = 0; ci < num_split_patches; ci++) {
@@ -759,10 +766,6 @@ public:
 protected:
     KnotVector m_knots_u;
     KnotVector m_knots_v;
-
-private:
-    std::unique_ptr<BSplinePatch<_Scalar, _dim, -1, -1>> m_du_patch;
-    std::unique_ptr<BSplinePatch<_Scalar, _dim, -1, -1>> m_dv_patch;
 };
 
 } // namespace nanospline

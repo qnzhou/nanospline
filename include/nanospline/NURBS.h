@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Eigen/Core>
-#include <iostream>
 #include <numeric>
 
 #include <nanospline/BSpline.h>
@@ -12,11 +11,12 @@
 namespace nanospline {
 
 template <typename _Scalar, int _dim = 2, int _degree = 3, bool _generic = (_degree < 0)>
-class NURBS : public BSplineBase<_Scalar, _dim, _degree, _generic>
+class NURBS final : public BSplineBase<_Scalar, _dim, _degree, _generic>
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     using Base = BSplineBase<_Scalar, _dim, _degree, _generic>;
+    using ThisType = NURBS<_Scalar, _dim, _degree, _generic>;
     using Scalar = typename Base::Scalar;
     using Point = typename Base::Point;
     using ControlPoints = typename Base::ControlPoints;
@@ -38,6 +38,10 @@ public:
         std::vector<_Scalar> parameter_bounds(num_curves + 1);
         std::iota(parameter_bounds.begin(), parameter_bounds.end(), 0);
         combine_rational_Beziers(curves, parameter_bounds);
+    }
+
+    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override {
+        return std::make_unique<ThisType>(*this);
     }
 
 public:
@@ -64,6 +68,7 @@ public:
 
     Point evaluate_2nd_derivative(Scalar t) const override
     {
+        validate_initialization();
         const auto p0 = m_bspline_homogeneous.evaluate(t);
         const auto d1 = m_bspline_homogeneous.evaluate_derivative(t);
         const auto d2 = m_bspline_homogeneous.evaluate_2nd_derivative(t);
@@ -75,6 +80,40 @@ public:
         return (d2.template head<_dim>() - d2[_dim] * c0 - 2 * d1[_dim] * c1) / p0[_dim];
     }
 
+public:
+    virtual void set_control_point(int i, const Point& p) override {
+        validate_initialization();
+        Base::set_control_point(i, p);
+
+        auto q = m_bspline_homogeneous.get_control_point(i);
+        q.template segment<_dim>(0) = p * m_weights[i];
+        m_bspline_homogeneous.set_control_point(i, q);
+    }
+
+    virtual int get_num_weights() const override { return Base::get_num_control_points(); }
+
+    virtual Scalar get_weight(int i) const override
+    {
+        return m_weights[i];
+    }
+
+    virtual void set_weight(int i, Scalar val) override
+    {
+        validate_initialization();
+        m_weights[i] = val;
+
+        auto q = m_bspline_homogeneous.get_control_point(i);
+        q.template segment<_dim>(0) = Base::m_control_points.row(i) * val;
+        q[_dim] = val;
+        m_bspline_homogeneous.set_control_point(i, q);
+    }
+
+    virtual void set_knot(int i, Scalar val) override {
+        Base::set_knot(i, val);
+        m_bspline_homogeneous.set_knot(i, val);
+    }
+
+public:
     void insert_knot(Scalar t, int multiplicity = 1) override
     {
         validate_initialization();
@@ -115,7 +154,7 @@ public:
     }
 
     std::vector<Scalar> compute_inflections(
-        const Scalar lower, const Scalar upper) const override final
+        const Scalar lower, const Scalar upper) const override
     {
         std::vector<RationalBezier<Scalar, _dim, _degree, _generic>> segments;
         std::vector<Scalar> parameter_bounds;
@@ -152,7 +191,7 @@ public:
     }
 
     std::vector<Scalar> reduce_turning_angle(
-        const Scalar lower, const Scalar upper) const override final
+        const Scalar lower, const Scalar upper) const override
     {
         if (_dim != 2) {
             throw std::runtime_error("Turning angle reduction is for 2D curves only");
@@ -193,7 +232,7 @@ public:
     }
 
     std::vector<Scalar> compute_singularities(
-        const Scalar lower, const Scalar upper) const override final
+        const Scalar lower, const Scalar upper) const override
     {
         if (_dim != 2) {
             throw std::runtime_error("Singularity computation is for 2D curves only");
@@ -233,13 +272,6 @@ public:
         return res;
     }
 
-    virtual void write(std::ostream& out) const override
-    {
-        out << "c:\n" << this->m_control_points << "\n";
-        out << "k:\n" << this->m_knots << "\n";
-        out << "w:\n" << m_weights << "\n";
-    }
-
 public:
     void initialize()
     {
@@ -264,7 +296,7 @@ public:
     template <typename Derived>
     void set_weights(const Eigen::PlainObjectBase<Derived>&& weights)
     {
-        m_weights.swap(weights);
+        m_weights = std::move(weights);
     }
 
     const BSplineHomogeneous& get_homogeneous() const { return m_bspline_homogeneous; }

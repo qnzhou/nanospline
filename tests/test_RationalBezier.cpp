@@ -47,6 +47,9 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
         SECTION("Approximate inverse evaluate") {
             validate_approximate_inverse_evaluation(curve, 10);
         }
+        SECTION("Update") {
+            offset_and_validate(curve);
+        }
     }
 
     SECTION("Generic degree 1") {
@@ -92,6 +95,9 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
         }
         SECTION("Approximate inverse evaluate") {
             validate_approximate_inverse_evaluation(curve, 10);
+        }
+        SECTION("Update") {
+            offset_and_validate(curve);
         }
     }
 
@@ -141,6 +147,7 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             const auto new_curve = curve.elevate_degree();
             REQUIRE(new_curve.get_degree() == curve.get_degree()+1);
             assert_same(curve, new_curve, 10);
+            offset_and_validate(curve);
         }
 
         SECTION("Non-uniform weights") {
@@ -195,6 +202,7 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             const auto new_curve = curve.elevate_degree();
             REQUIRE(new_curve.get_degree() == curve.get_degree()+1);
             assert_same(curve, new_curve, 10);
+            offset_and_validate(curve);
         }
     }
 
@@ -257,6 +265,9 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
                 REQUIRE(new_curve.get_degree() == curve.get_degree()+1);
                 assert_same(curve, new_curve, 10);
             }
+            SECTION("Update") {
+                offset_and_validate(curve);
+            }
         }
 
         SECTION("One third circle") {
@@ -315,6 +326,9 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
                 const auto new_curve = curve.elevate_degree();
                 REQUIRE(new_curve.get_degree() == curve.get_degree()+1);
                 assert_same(curve, new_curve, 10);
+            }
+            SECTION("Update") {
+                offset_and_validate(curve);
             }
         }
 

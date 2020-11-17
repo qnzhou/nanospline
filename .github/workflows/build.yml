@@ -13,8 +13,8 @@ jobs:
         mkdir build
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=Release -DNANOSPLINE_HEADER_ONLY=Off
-        make -j
-        ./nanospline_test
+        cmake --build . --config Release -j
+        cmake --build . --config Release --target test
 
   build-MacOS:
     runs-on: macos-latest
@@ -25,9 +25,9 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake .. -DCMAKE_BUILD_TYPE=Release
-        make -j
-        ./nanospline_test
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DNANOSPLINE_HEADER_ONLY=Off
+        cmake --build . --config Release -j
+        cmake --build . --config Release --target test
 
   build-Windows:
     runs-on: windows-latest
@@ -39,5 +39,5 @@ jobs:
         mkdir build
         cd build
         cmake .. -DCMAKE_GENERATOR_PLATFORM=x64 -DNANOSPLINE_HEADER_ONLY=Off
-        cmake --build . --config Release
+        cmake --build . --config Release -j
         cmake --build . --config Release --target run_unit_tests

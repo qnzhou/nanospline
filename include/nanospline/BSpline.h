@@ -12,10 +12,10 @@
 namespace nanospline {
 
 template <typename _Scalar, int _dim = 3, int _degree = 3, bool _generic = (_degree < 0)>
-class BSpline : public BSplineBase<_Scalar, _dim, _degree, _generic>
+class BSpline final : public BSplineBase<_Scalar, _dim, _degree, _generic>
 {
 public:
-    using ThisType = BSpline<_Scalar, _dim, _degree, false>;
+    using ThisType = BSpline<_Scalar, _dim, _degree, _generic>;
     using Base = BSplineBase<_Scalar, _dim, _degree, _generic>;
     using Scalar = typename Base::Scalar;
     using Point = typename Base::Point;
@@ -47,6 +47,10 @@ public:
         std::vector<_Scalar> parameter_bounds(num_curves + 1);
         std::iota(parameter_bounds.begin(), parameter_bounds.end(), 0);
         combine_Beziers(beziers, parameter_bounds);
+    }
+
+    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override {
+        return std::make_unique<ThisType>(*this);
     }
 
 public:
@@ -141,7 +145,7 @@ public:
     }
 
     std::vector<Scalar> compute_inflections(
-        const Scalar lower, const Scalar upper) const override final
+        const Scalar lower, const Scalar upper) const override
     {
         using CurveType = Bezier<Scalar, _dim, _degree, _generic>;
         std::vector<CurveType> beziers;
@@ -210,7 +214,7 @@ public:
     }
 
     std::vector<Scalar> reduce_turning_angle(
-        const Scalar lower, const Scalar upper) const override final
+        const Scalar lower, const Scalar upper) const override
     {
         using CurveType = Bezier<Scalar, _dim, _degree, _generic>;
 
@@ -470,8 +474,10 @@ public:
 
 private:
     template <typename Derived>
-    void blossom(
-        const BlossomVector& blossom_vector, int p, int k, Eigen::PlainObjectBase<Derived>& ctrl_pts) const
+    void blossom(const BlossomVector& blossom_vector,
+        int p,
+        int k,
+        Eigen::PlainObjectBase<Derived>& ctrl_pts) const
     {
         assert(ctrl_pts.rows() >= p + 1);
 

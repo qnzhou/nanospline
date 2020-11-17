@@ -11,6 +11,7 @@ if (NOT MshIO::MshIO)
     FetchContent_GetProperties(MshIO)
     if (NOT mshio_POPULATED)
         FetchContent_Populate(MshIO)
+        option(MSHIO_EXT_NANOSPLINE "Enable nanospline extension" On)
         add_subdirectory(${mshio_SOURCE_DIR} ${mshio_BINARY_DIR})
     endif()
 

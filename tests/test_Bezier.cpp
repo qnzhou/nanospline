@@ -39,6 +39,10 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
         SECTION("Approximate inverse evaluation") {
             validate_approximate_inverse_evaluation(curve, 10);
         }
+
+        SECTION("Update") {
+            offset_and_validate(curve);
+        }
     }
 
     SECTION("Generic degree 1") {
@@ -73,6 +77,10 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
 
         SECTION("Approximate inverse evaluation") {
             validate_approximate_inverse_evaluation(curve, 10);
+        }
+
+        SECTION("Update") {
+            offset_and_validate(curve);
         }
     }
 
@@ -162,6 +170,10 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
             REQUIRE(new_curve.get_degree() == 4);
             assert_same(curve, new_curve, 10);
         }
+
+        SECTION("Update") {
+            offset_and_validate(curve);
+        }
     }
 
     SECTION("Dynmaic degree") {
@@ -238,6 +250,10 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
             REQUIRE(new_curve.get_degree() == 4);
             assert_same(curve, new_curve, 10);
         }
+
+        SECTION("Update") {
+            offset_and_validate(curve);
+        }
     }
 
     SECTION("Specialized degree 0") {
@@ -272,6 +288,10 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
         //    const auto split_pts = curve.reduce_turning_angle(0, 1);
         //    REQUIRE(split_pts.size() == 0);
         //}
+
+        SECTION("Update") {
+            offset_and_validate(curve);
+        }
     }
 
     SECTION("Specialized degree 1") {
@@ -335,6 +355,10 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
             auto new_curve = curve.elevate_degree();
             REQUIRE(new_curve.get_degree() == 2);
             assert_same(curve, new_curve, 10);
+        }
+
+        SECTION("Update") {
+            offset_and_validate(curve);
         }
     }
 
@@ -404,6 +428,10 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
 
         SECTION("Approximate inverse evaluation") {
             validate_approximate_inverse_evaluation(curve, 10);
+        }
+
+        SECTION("Update") {
+            offset_and_validate(curve);
         }
     }
 
@@ -497,6 +525,10 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
             auto new_curve = curve.elevate_degree();
             REQUIRE(new_curve.get_degree() == 4);
             assert_same(curve, new_curve, 10);
+        }
+
+        SECTION("Update") {
+            offset_and_validate(curve);
         }
     }
 
