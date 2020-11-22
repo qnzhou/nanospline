@@ -12,7 +12,7 @@ namespace internal {
  * to t1.
  */
 template <typename Scalar>
-Scalar romberg(std::function<Scalar(Scalar)> speed, Scalar t0, Scalar t1, size_t level);
+Scalar romberg(std::function<Scalar(Scalar)> speed, Scalar t0, Scalar t1, size_t level, Scalar tol);
 
 } // namespace internal
 
@@ -20,7 +20,7 @@ Scalar romberg(std::function<Scalar(Scalar)> speed, Scalar t0, Scalar t1, size_t
  * Given a parameter value t, this method computes the arc length at t using Romberg's method.
  */
 template <typename Scalar, int DIM>
-Scalar arc_length(const CurveBase<Scalar, DIM>& curve, Scalar t, size_t level = 10)
+Scalar arc_length(const CurveBase<Scalar, DIM>& curve, Scalar t, size_t level = 10, Scalar tol=1e-12)
 {
     std::function<Scalar(Scalar)> speed = [&](Scalar tt) -> Scalar {
         const auto d1 = curve.evaluate_derivative(tt);
@@ -28,7 +28,7 @@ Scalar arc_length(const CurveBase<Scalar, DIM>& curve, Scalar t, size_t level = 
     };
 
     const Scalar t0 = curve.get_domain_lower_bound();
-    return internal::romberg(speed, t0, t, level);
+    return internal::romberg(speed, t0, t, level, tol);
 }
 
 /**
@@ -40,7 +40,8 @@ Scalar arc_length(const PatchBase<Scalar, DIM>& patch,
     Scalar v0,
     Scalar u1,
     Scalar v1,
-    size_t level = 10)
+    size_t level = 10,
+    Scalar tol = 1e-12)
 {
     const Eigen::Matrix<Scalar, 1, 2> dir = {u1 - u0, v1 - v0};
 
@@ -55,7 +56,7 @@ Scalar arc_length(const PatchBase<Scalar, DIM>& patch,
         return (du * dir[0] + dv * dir[1]).norm();
     };
 
-    return internal::romberg(speed, (Scalar)0, (Scalar)1, level);
+    return internal::romberg(speed, (Scalar)0, (Scalar)1, level, tol);
 }
 
 /**
@@ -134,9 +135,8 @@ Eigen::Matrix<Scalar, 1, 2> inverse_arc_length(const PatchBase<Scalar, DIM>& pat
 namespace internal {
 
 template <typename Scalar>
-Scalar romberg(std::function<Scalar(Scalar)> speed, Scalar t0, Scalar t1, size_t level)
+Scalar romberg(std::function<Scalar(Scalar)> speed, Scalar t0, Scalar t1, size_t level, Scalar tol)
 {
-    constexpr Scalar tol = 1e-12;
     std::vector<Scalar> R_values(level + 1, 0.0);
     Scalar h = t1 - t0;
     R_values[0] = 0.5 * h * (speed(t0) + speed(t1));
