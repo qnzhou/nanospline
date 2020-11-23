@@ -51,6 +51,12 @@ TEST_CASE("NURBSPatch", "[rational][nurbs_patch]")
         validate_inverse_evaluation(patch, 10, 10);
         validate_inverse_evaluation_3d(patch, 10, 10);
     }
+}
+
+TEST_CASE("NURBSPatch 2", "[rational][nurbs_patch]")
+{
+    using namespace nanospline;
+    using Scalar = double;
 
     SECTION("Cubic patch")
     {
@@ -86,6 +92,13 @@ TEST_CASE("NURBSPatch", "[rational][nurbs_patch]")
         validate_inverse_evaluation(patch, 10, 10);
         validate_inverse_evaluation_3d(patch, 10, 10);
     }
+
+}
+
+TEST_CASE("NURBSPatch 3", "[rational][nurbs_patch]")
+{
+    using namespace nanospline;
+    using Scalar = double;
 
     SECTION("Cubic spline")
     {
@@ -143,6 +156,13 @@ TEST_CASE("NURBSPatch", "[rational][nurbs_patch]")
         validate_inverse_evaluation_3d(patch, 10, 10);
     }
 
+}
+
+TEST_CASE("NURBSPatch 4", "[rational][nurbs_patch]")
+{
+    using namespace nanospline;
+    using Scalar = double;
+
     SECTION("Mixed degree")
     {
         NURBSPatch<Scalar, 3, -1, -1> patch;
@@ -176,6 +196,13 @@ TEST_CASE("NURBSPatch", "[rational][nurbs_patch]")
         validate_derivative(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
     }
+
+}
+
+TEST_CASE("NURBSPatch 5", "[rational][nurbs_patch]")
+{
+    using namespace nanospline;
+    using Scalar = double;
 
     SECTION("Extrapolation")
     {
@@ -219,6 +246,13 @@ TEST_CASE("NURBSPatch", "[rational][nurbs_patch]")
         REQUIRE(corner_01[0] < 0);
         REQUIRE(corner_01[1] > 3);
     }
+
+}
+
+TEST_CASE("NURBSPatch 6", "[rational][nurbs_patch]")
+{
+    using namespace nanospline;
+    using Scalar = double;
 
     SECTION("Inverse evaluation bug")
     {
