@@ -190,6 +190,23 @@ public:
         return res;
     }
 
+    Scalar get_turning_angle(Scalar t0, Scalar t1) const override
+    {
+        if (_dim != 2) {
+            throw invalid_setting_error("Turning angle is for 2D only");
+        }
+
+        const auto num_ctrl_pts = Base::get_num_control_points();
+        Scalar theta = 0;
+        Scalar t_prev = t0;
+        for (int i = 1; i < num_ctrl_pts; i++) {
+            Scalar t_curr = t0 + (Scalar)i / (Scalar)(num_ctrl_pts - 1) * (t1 - t0);
+            theta += Base::get_turning_angle(t_prev, t_curr);
+            t_prev = t_curr;
+        }
+        return theta;
+    }
+
     std::vector<Scalar> reduce_turning_angle(
         const Scalar lower, const Scalar upper) const override
     {

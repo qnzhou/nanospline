@@ -28,7 +28,8 @@ public:
     using BezierHomogeneous = Bezier<_Scalar, _dim + 1, _degree, _generic>;
 
 public:
-    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override {
+    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override
+    {
         return std::make_unique<ThisType>(*this);
     }
 
@@ -67,7 +68,8 @@ public:
         return (d2.template head<_dim>() - d2[_dim] * c0 - 2 * d1[_dim] * c1) / p0[_dim];
     }
 
-    virtual void set_control_point(int i, const Point& p) override {
+    virtual void set_control_point(int i, const Point& p) override
+    {
         validate_initialization();
         Base::set_control_point(i, p);
 
@@ -78,10 +80,7 @@ public:
 
     virtual int get_num_weights() const override { return Base::get_num_control_points(); }
 
-    virtual Scalar get_weight(int i) const override
-    {
-        return m_weights[i];
-    }
+    virtual Scalar get_weight(int i) const override { return m_weights[i]; }
 
     virtual void set_weight(int i, Scalar val) override
     {
@@ -123,6 +122,23 @@ public:
 #endif
     }
 
+    Scalar get_turning_angle(Scalar t0, Scalar t1) const override
+    {
+        if (_dim != 2) {
+            throw invalid_setting_error("Turning angle is for 2D only");
+        }
+
+        const auto num_ctrl_pts = Base::get_num_control_points();
+        Scalar theta = 0;
+        Scalar t_prev = t0;
+        for (int i = 1; i < num_ctrl_pts; i++) {
+            Scalar t_curr = t0 + (Scalar)i / (Scalar)(num_ctrl_pts - 1) * (t1 - t0);
+            theta += Base::get_turning_angle(t_prev, t_curr);
+            t_prev = t_curr;
+        }
+        return theta;
+    }
+
     std::vector<Scalar> reduce_turning_angle(const Scalar lower, const Scalar upper) const override
     {
 #if NANOSPLINE_SYMPY
@@ -138,7 +154,7 @@ public:
         auto tan0 = evaluate_derivative(lower);
         auto tan1 = evaluate_derivative(upper);
 
-        if (tan0.norm() < tol || tan1.norm() < tol) {
+        if (tan0.norm() < tol || tan1.norm() < tol || (tan0 + tan1).norm() < 2 * tol) {
             std::vector<Scalar> res;
             res.push_back((lower + upper) / 2);
             return res;
