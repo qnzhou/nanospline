@@ -33,7 +33,8 @@ public:
 public:
     Bezier() = default;
 
-    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override {
+    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override
+    {
         return std::make_unique<ThisType>(*this);
     }
 
@@ -419,7 +420,8 @@ public:
     using ControlPoints = typename Base::ControlPoints;
 
 public:
-    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override {
+    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override
+    {
         return std::make_unique<Bezier<_Scalar, _dim, 0, false>>(*this);
     }
 
@@ -473,7 +475,8 @@ public:
     using ControlPoints = typename Base::ControlPoints;
 
 public:
-    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override {
+    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override
+    {
         return std::make_unique<Bezier<_Scalar, _dim, 1, false>>(*this);
     }
 
@@ -565,7 +568,8 @@ public:
     using ControlPoints = typename Base::ControlPoints;
 
 public:
-    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override {
+    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override
+    {
         return std::make_unique<Bezier<_Scalar, _dim, 2, false>>(*this);
     }
 
@@ -744,7 +748,8 @@ public:
     using ControlPoints = typename Base::ControlPoints;
 
 public:
-    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override {
+    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override
+    {
         return std::make_unique<Bezier<_Scalar, _dim, 3, false>>(*this);
     }
 
@@ -851,7 +856,7 @@ public:
         auto tan0 = evaluate_derivative(lower);
         auto tan1 = evaluate_derivative(upper);
 
-        if (tan0.norm() < tol || tan1.norm() < tol) {
+        if (tan0.norm() < tol || tan1.norm() < tol || (tan0 + tan1).norm() < 2 * tol) {
             std::vector<Scalar> res;
             res.push_back((lower + upper) / 2);
             return res;

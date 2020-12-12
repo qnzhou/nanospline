@@ -3,7 +3,7 @@
 #include <cmath>
 #include <iostream>
 #include <nanospline/NURBS.h>
-#include <nanospline/save_svg.h>
+#include <nanospline/save_msh.h>
 #include <nanospline/forward_declaration.h>
 
 #include "validation_utils.h"
@@ -456,5 +456,35 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
         auto dd1 = curve.evaluate_2nd_derivative(curve.get_domain_upper_bound() + 0.1);
         REQUIRE(dd0[0] == Approx(dd1[0]));
         REQUIRE(dd0[1] == Approx(-dd1[1]));
+    }
+
+    SECTION("Turning angle debug") {
+#if NANOSPLINE_SYMPY
+        Eigen::Matrix<Scalar, 4, 2> control_pts;
+        control_pts << 
+            97.30000000000004, 6.200000000000202,
+            97.30000000000032, -4.80000000000031,
+            86.30000000000015, -4.800000000000409,
+            86.29999999999987, 6.2000000000001165;
+        Eigen::Matrix<Scalar, 4, 1> weights;
+        weights << 1.0, 0.333333333333334, 0.333333333333334, 1.0;
+        Eigen::Matrix<Scalar, 8, 1> knots;
+        knots << 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0;
+
+        NURBS<Scalar, 2, -1> curve;
+        curve.set_control_points(control_pts);
+        curve.set_weights(weights);
+        curve.set_knots(knots);
+        curve.initialize();
+
+        auto theta = curve.get_turning_angle(0, 1);
+        REQUIRE(std::abs(theta) == Approx(M_PI));
+        auto cuts = curve.reduce_turning_angle(0, 1);
+        REQUIRE(cuts.size() == 1);
+
+        auto theta_1 = curve.get_turning_angle(0, cuts[0]);
+        auto theta_2 = curve.get_turning_angle(cuts[0], 1);
+        REQUIRE(theta_1 + theta_2 == Approx(theta));
+#endif
     }
 }
