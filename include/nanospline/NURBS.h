@@ -290,7 +290,7 @@ public:
     }
 
 public:
-    void initialize()
+    void initialize() override
     {
         typename BSplineHomogeneous::ControlPoints ctrl_pts(
             Base::m_control_points.rows(), _dim + 1);

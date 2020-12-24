@@ -206,7 +206,7 @@ public:
     }
 
 public:
-    void initialize()
+    void initialize() override
     {
         typename BezierHomogeneous::ControlPoints ctrl_pts(Base::m_control_points.rows(), _dim + 1);
         ctrl_pts.template leftCols<_dim>() =
