@@ -22,4 +22,5 @@
 #include <nanospline/arc_length.h>
 #include <nanospline/conversion.h>
 #include <nanospline/hodograph.h>
+#include <nanospline/sample.h>
 #include <nanospline/split.h>

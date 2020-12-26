@@ -16,4 +16,9 @@ enum class PatchEnum {
     NURBS = 4
 };
 
+enum class SampleMethod {
+    UNIFORM_DOMAIN = 1,
+    UNIFORM_RANGE = 2
+};
+
 }
