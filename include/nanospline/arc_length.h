@@ -17,18 +17,27 @@ Scalar romberg(std::function<Scalar(Scalar)> speed, Scalar t0, Scalar t1, size_t
 } // namespace internal
 
 /**
- * Given a parameter value t, this method computes the arc length at t using Romberg's method.
+ * Compute the arc length of the input curve between t0 and t1.
  */
 template <typename Scalar, int DIM>
-Scalar arc_length(const CurveBase<Scalar, DIM>& curve, Scalar t, size_t level = 10, Scalar tol=1e-12)
+Scalar arc_length(const CurveBase<Scalar, DIM>& curve, Scalar t0, Scalar t1, size_t level = 10, Scalar tol=1e-12)
 {
     std::function<Scalar(Scalar)> speed = [&](Scalar tt) -> Scalar {
         const auto d1 = curve.evaluate_derivative(tt);
         return d1.norm();
     };
 
+    return internal::romberg(speed, t0, t1, level, tol);
+}
+
+/**
+ * Given a parameter value t, this method computes the arc length at t using Romberg's method.
+ */
+template <typename Scalar, int DIM>
+Scalar arc_length(const CurveBase<Scalar, DIM>& curve, Scalar t, size_t level = 10, Scalar tol=1e-12)
+{
     const Scalar t0 = curve.get_domain_lower_bound();
-    return internal::romberg(speed, t0, t, level, tol);
+    return arc_length(curve, t0, t, level, tol);
 }
 
 /**
