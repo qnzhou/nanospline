@@ -67,8 +67,7 @@ void validate_bezier_patch_splitting(PatchType patch){
                 0., 1., 0., 1.);
     }
     SECTION("Split u,v: random points:"){
-        std::random_device rd;
-        std::mt19937 generator(rd());
+        std::mt19937 generator(0);
         std::uniform_real_distribution<Scalar> dist(0, 1);
 
         int num_split_tests = 30;
@@ -156,8 +155,7 @@ void validate_bspline_patch_splitting(PatchType patch){
                 u_min, u_max, v, v_max);
     }
     SECTION("Split u,v: random points:"){
-        std::random_device rd;
-        std::mt19937 generator(rd());
+        std::mt19937 generator(0);
         std::uniform_real_distribution<Scalar> dist_u(u_min, u_max);
         std::uniform_real_distribution<Scalar> dist_v(v_min, v_max);
 
@@ -516,8 +514,7 @@ TEST_CASE("Test patch splitting", "[split][patch]"){
         const int degree_v = 4;
         const int dim = 3;
         const int num_control_pts = (degree_u+1)*(degree_v+1);
-        std::random_device rd;
-        std::mt19937 generator(rd());
+        std::mt19937 generator(0);
         std::uniform_real_distribution<Scalar> dist(0, 1);
         
         BezierPatch<Scalar, dim, degree_u, degree_v> patch;

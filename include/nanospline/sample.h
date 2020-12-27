@@ -25,7 +25,8 @@ std::vector<Scalar> sample(const CurveBase<Scalar, DIM>& curve,
     switch (method) {
     case SampleMethod::UNIFORM_DOMAIN: {
         for (size_t i = 0; i < num_samples; i++) {
-            samples[i] = min_t + (max_t - min_t) * i / (num_samples - 1);
+            samples[i] = min_t + (max_t - min_t) * static_cast<Scalar>(i) /
+                                     static_cast<Scalar>(num_samples - 1);
         }
     } break;
     case SampleMethod::UNIFORM_RANGE: {
@@ -33,7 +34,8 @@ std::vector<Scalar> sample(const CurveBase<Scalar, DIM>& curve,
         samples[num_samples - 1] = max_t;
         const Scalar l = arc_length(curve, min_t, max_t);
         for (size_t i = 1; i < num_samples - 1; i++) {
-            samples[i] = inverse_arc_length(curve, l * i / (num_samples - 1));
+            samples[i] = inverse_arc_length(
+                curve, l * static_cast<Scalar>(i) / static_cast<Scalar>(num_samples - 1));
         }
     } break;
     default: throw not_implemented_error("Unsupported sampling method detected!"); break;
