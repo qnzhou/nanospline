@@ -4,6 +4,7 @@
 #include <nanospline/NURBSPatch.h>
 #include <nanospline/forward_declaration.h>
 #include <nanospline/save_obj.h>
+#include <nanospline/save_msh.h>
 
 #include "validation_utils.h"
 
@@ -128,8 +129,7 @@ TEST_CASE("NURBSPatch 3", "[rational][nurbs_patch]")
         SECTION("Uniform weight") { weights.setConstant(2.0); }
         SECTION("Non-uniform weight")
         {
-            std::random_device rd;
-            std::mt19937 generator(rd());
+            std::mt19937 generator(0);
             std::uniform_int_distribution<int> dist(0, 63);
             for (int i = 0; i < 20; i++) {
                 weights[dist(generator)] = 2.;
