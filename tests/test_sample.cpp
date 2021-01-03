@@ -66,15 +66,25 @@ TEST_CASE("sample", "[sample]") {
         curve.set_weights(weights);
         curve.initialize();
 
-        constexpr size_t N = 10;
-        auto samples = sample(curve, N, SampleMethod::UNIFORM_RANGE);
-        REQUIRE(samples.size() == N);
+        SECTION("UNIFORM_RANGE") {
+            constexpr size_t N = 10;
+            auto samples = sample(curve, N, SampleMethod::UNIFORM_RANGE);
+            REQUIRE(samples.size() == N);
 
-        const Scalar L = arc_length(curve, samples[0], samples[N-1]);
-        REQUIRE(L == Approx(M_PI*R*2).epsilon(1e-2));
-        for (size_t i=1; i<N; i++) {
-            const Scalar l = arc_length(curve, samples[i-1], samples[i]);
-            REQUIRE(l == Approx(M_PI*R*2/(N-1)).epsilon(2e-2));
+            const Scalar L = arc_length(curve, samples[0], samples[N-1]);
+            REQUIRE(L == Approx(M_PI*R*2).epsilon(1e-2));
+            for (size_t i=1; i<N; i++) {
+                const Scalar l = arc_length(curve, samples[i-1], samples[i]);
+                REQUIRE(l == Approx(M_PI*R*2/(N-1)).epsilon(2e-2));
+            }
+        }
+        SECTION("Adaptive") {
+            constexpr size_t N = 10;
+            auto samples = sample(curve, N, SampleMethod::ADAPTIVE);
+            for (size_t i=1; i<samples.size(); i++) {
+                const Scalar l = arc_length(curve, samples[i-1], samples[i]);
+                REQUIRE(l == Approx(M_PI*R*2/(samples.size()-1)).epsilon(2e-2));
+            }
         }
     }
 }

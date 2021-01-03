@@ -18,7 +18,8 @@ enum class PatchEnum {
 
 enum class SampleMethod {
     UNIFORM_DOMAIN = 1,
-    UNIFORM_RANGE = 2
+    UNIFORM_RANGE = 2,
+    ADAPTIVE = 3
 };
 
 }
