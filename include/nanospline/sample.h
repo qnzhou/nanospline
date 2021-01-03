@@ -65,7 +65,7 @@ std::vector<Scalar> sample(const CurveBase<Scalar, DIM>& curve,
     } break;
     case SampleMethod::ADAPTIVE: {
         const auto l = arc_length(curve, min_t, max_t);
-        const auto tol = (l / num_samples) / 10;
+        const auto tol = (l / static_cast<Scalar>(num_samples)) / 10;
         internal::adaptive_sample(curve, min_t, max_t, tol, samples);
         samples.push_back(max_t);
     } break;
