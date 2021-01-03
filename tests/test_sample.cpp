@@ -83,7 +83,7 @@ TEST_CASE("sample", "[sample]") {
             auto samples = sample(curve, N, SampleMethod::ADAPTIVE);
             for (size_t i=1; i<samples.size(); i++) {
                 const Scalar l = arc_length(curve, samples[i-1], samples[i]);
-                REQUIRE(l == Approx(M_PI*R*2/(samples.size()-1)).epsilon(2e-2));
+                REQUIRE(l == Approx(M_PI*R*2/(static_cast<Scalar>(samples.size())-1)).epsilon(2e-2));
             }
         }
     }
