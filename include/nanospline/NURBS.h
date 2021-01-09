@@ -48,6 +48,9 @@ public:
     Point evaluate(Scalar t) const override
     {
         validate_initialization();
+        if (Base::get_periodic()) {
+            t = Base::unwrap_parameter(t);
+        }
         auto p = m_bspline_homogeneous.evaluate(t);
         return p.template segment<_dim>(0) / p[_dim];
     }
@@ -60,6 +63,9 @@ public:
     Point evaluate_derivative(Scalar t) const override
     {
         validate_initialization();
+        if (Base::get_periodic()) {
+            t = Base::unwrap_parameter(t);
+        }
         const auto p = m_bspline_homogeneous.evaluate(t);
         const auto d = m_bspline_homogeneous.evaluate_derivative(t);
 
@@ -69,6 +75,9 @@ public:
     Point evaluate_2nd_derivative(Scalar t) const override
     {
         validate_initialization();
+        if (Base::get_periodic()) {
+            t = Base::unwrap_parameter(t);
+        }
         const auto p0 = m_bspline_homogeneous.evaluate(t);
         const auto d1 = m_bspline_homogeneous.evaluate_derivative(t);
         const auto d2 = m_bspline_homogeneous.evaluate_2nd_derivative(t);

@@ -34,6 +34,8 @@ public:
         assert(lower < upper);
         validate_curve();
         const int num_samples = 2 * (get_degree() + 1);
+        const int num_knots = get_num_knots();
+        const bool periodic = Base::get_periodic();
 
         auto curr_span = locate_span(lower);
 
@@ -41,8 +43,25 @@ public:
         Scalar min_dist = std::numeric_limits<Scalar>::max();
 
         Scalar curr_lower = lower;
+        const Scalar t_min = get_domain_lower_bound();
+        const Scalar t_max = get_domain_upper_bound();
+        const Scalar period = t_max - t_min;
+        int period_count = 0;
+        if (periodic) {
+            period_count = static_cast<int>(std::floor((lower - t_min) / period));
+            assert(period * period_count + t_min <= lower);
+            assert(period * (period_count + 1) + t_min > lower);
+        }
         while (curr_lower < upper) {
-            Scalar curr_upper = std::min(m_knots[curr_span + 1], upper);
+            Scalar curr_upper = upper;
+            if (periodic) {
+                if (curr_span + 1 < num_knots) {
+                    // Wrap around.
+                    curr_span = get_degree();
+                    period_count++;
+                }
+            }
+            curr_upper = std::min(curr_upper, m_knots[curr_span + 1] + period_count * period);
 
             if (curr_upper > curr_lower) {
                 const Scalar delta = (curr_upper - curr_lower) / num_samples;
@@ -74,15 +93,20 @@ public:
         }
     }
 
-    virtual int get_num_control_points() const override { return static_cast<int>(m_control_points.rows()); }
+    virtual int get_num_control_points() const override
+    {
+        return static_cast<int>(m_control_points.rows());
+    }
     virtual Point get_control_point(int i) const override { return m_control_points.row(i); }
     virtual void set_control_point(int i, const Point& p) override { m_control_points.row(i) = p; }
 
     virtual int get_num_weights() const override { return 0; }
-    virtual Scalar get_weight(int i) const override {
+    virtual Scalar get_weight(int i) const override
+    {
         throw not_implemented_error("BSpline curves does not support weights.");
     }
-    virtual void set_weight(int i, Scalar val) override {
+    virtual void set_weight(int i, Scalar val) override
+    {
         throw not_implemented_error("BSpline curves does not support weights.");
     }
 
@@ -260,8 +284,11 @@ public:
     }
 
 public:
-    int locate_span(const Scalar t) const
+    int locate_span(Scalar t) const
     {
+        if (Base::get_periodic()) {
+            t = Base::unwrap_parameter(t);
+        }
         const auto p = get_degree();
         const auto num_knots = m_knots.rows();
         assert(num_knots > m_control_points.rows());
@@ -284,7 +311,6 @@ public:
 
         // Handle out of domain cases.
         if (t <= m_knots[low]) return low;
-
         if (t >= m_knots[high]) return bypass_duplicates_before(high) - 1;
 
         int mid = (high + low) / 2;

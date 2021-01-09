@@ -154,6 +154,8 @@ public:
         m_homogeneous.set_knots_v(m_knots_v);
         m_homogeneous.set_degree_u(Base::get_degree_u());
         m_homogeneous.set_degree_v(Base::get_degree_v());
+        m_homogeneous.set_periodic_u(Base::get_periodic_u());
+        m_homogeneous.set_periodic_v(Base::get_periodic_v());
         m_homogeneous.initialize();
     }
 

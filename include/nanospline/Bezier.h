@@ -40,6 +40,9 @@ public:
 
     Point evaluate(Scalar t) const override
     {
+        if (Base::get_periodic()) {
+            t = Base::unwrap_parameter(t);
+        }
         int curve_degree = Base::get_degree();
         ControlPoints control_pts(Base::m_control_points);
         return deBoor(t, curve_degree, control_pts);
@@ -61,6 +64,10 @@ public:
 
     Point evaluate_derivative(Scalar t) const override
     {
+        if (Base::get_periodic()) {
+            t = Base::unwrap_parameter(t);
+        }
+
         const auto curve_degree = Base::get_degree();
         assert(curve_degree >= 0);
 
@@ -78,6 +85,10 @@ public:
 
     Point evaluate_2nd_derivative(Scalar t) const override
     {
+        if (Base::get_periodic()) {
+            t = Base::unwrap_parameter(t);
+        }
+
         const auto curve_degree = Base::get_degree();
         assert(curve_degree >= 0);
 
@@ -575,6 +586,9 @@ public:
 
     Point evaluate(Scalar t) const override
     {
+        if (Base::get_periodic()) {
+            t = Base::unwrap_parameter(t);
+        }
         const Point p0 =
             (1.0 - t) * Base::m_control_points.row(0) + t * Base::m_control_points.row(1);
         const Point p1 =
@@ -589,6 +603,9 @@ public:
 
     Point evaluate_derivative(Scalar t) const override
     {
+        if (Base::get_periodic()) {
+            t = Base::unwrap_parameter(t);
+        }
         const Point p0 =
             (1.0 - t) * Base::m_control_points.row(0) + t * Base::m_control_points.row(1);
         const Point p1 =
@@ -598,6 +615,9 @@ public:
 
     Point evaluate_2nd_derivative(Scalar t) const override
     {
+        if (Base::get_periodic()) {
+            t = Base::unwrap_parameter(t);
+        }
         const auto& ctrl_pts = Base::m_control_points;
         return 2 * (ctrl_pts.row(0) + ctrl_pts.row(2) - 2 * ctrl_pts.row(1));
     }
@@ -755,6 +775,9 @@ public:
 
     Point evaluate(Scalar t) const override
     {
+        if (Base::get_periodic()) {
+            t = Base::unwrap_parameter(t);
+        }
         const Point q0 =
             (1.0 - t) * Base::m_control_points.row(0) + t * Base::m_control_points.row(1);
         const Point q1 =
@@ -774,6 +797,9 @@ public:
 
     Point evaluate_derivative(Scalar t) const override
     {
+        if (Base::get_periodic()) {
+            t = Base::unwrap_parameter(t);
+        }
         const Point q0 =
             (1.0 - t) * Base::m_control_points.row(0) + t * Base::m_control_points.row(1);
         const Point q1 =
@@ -789,6 +815,9 @@ public:
 
     Point evaluate_2nd_derivative(Scalar t) const override
     {
+        if (Base::get_periodic()) {
+            t = Base::unwrap_parameter(t);
+        }
         const Point q0 =
             (1.0 - t) * Base::m_control_points.row(0) + t * Base::m_control_points.row(1);
         const Point q1 =

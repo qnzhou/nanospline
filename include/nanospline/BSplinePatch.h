@@ -250,6 +250,7 @@ public:
         IsoCurveU iso_curve_u;
         iso_curve_u.set_control_points(std::move(control_points_u));
         iso_curve_u.set_knots(m_knots_u);
+        iso_curve_u.set_periodic(Base::get_periodic_u());
         return iso_curve_u;
     }
 
@@ -267,6 +268,7 @@ public:
         IsoCurveV iso_curve_v;
         iso_curve_v.set_control_points(std::move(control_points_v));
         iso_curve_v.set_knots(m_knots_v);
+        iso_curve_v.set_periodic(Base::get_periodic_v());
         return iso_curve_v;
     }
 
@@ -374,6 +376,7 @@ private:
             IsoCurveU iso_curve_u;
             iso_curve_u.set_control_points(std::move(control_points_u));
             iso_curve_u.set_knots(m_knots_u);
+            iso_curve_u.set_periodic(Base::get_periodic_u());
             iso_curves.push_back(std::move(iso_curve_u));
         }
         return iso_curves;
@@ -401,6 +404,7 @@ private:
             IsoCurveV iso_curve_v;
             iso_curve_v.set_control_points(std::move(control_points_v));
             iso_curve_v.set_knots(m_knots_v);
+            iso_curve_v.set_periodic(Base::get_periodic_v());
             iso_curves.push_back(std::move(iso_curve_v));
         }
         return iso_curves;

@@ -106,6 +106,11 @@ public:
         m_control_grid.swap(ctrl_grid);
     }
 
+    bool get_periodic_u() const { return m_periodic_u; }
+    bool get_periodic_v() const { return m_periodic_v; }
+    void set_periodic_u(bool val) { m_periodic_u = val; }
+    void set_periodic_v(bool val) { m_periodic_v = val; }
+
 public:
     virtual Point evaluate(Scalar u, Scalar v) const = 0;
     virtual Point evaluate_derivative_u(Scalar u, Scalar v) const = 0;
@@ -267,9 +272,35 @@ protected:
     // control points are ordered in v-major order
     int get_linear_index(int i, int j) const { return i * (num_control_points_v()) + j; }
 
+    Scalar unwrap_parameter_u(Scalar u) const
+    {
+        assert(m_periodic_u);
+        const Scalar u_min = get_u_lower_bound();
+        const Scalar u_max = get_u_upper_bound();
+        const Scalar period = u_max - u_min;
+        u = fmod(u - u_min, period) + u_min;
+        if (u < u_min) u += period;
+        assert(u >= u_min && u <= u_max);
+        return u;
+    }
+
+    Scalar unwrap_parameter_v(Scalar v) const
+    {
+        assert(m_periodic_v);
+        const Scalar v_min = get_v_lower_bound();
+        const Scalar v_max = get_v_upper_bound();
+        const Scalar period = v_max - v_min;
+        v = fmod(v - v_min, period) + v_min;
+        if (v < v_min) v += period;
+        assert(v >= v_min && v <= v_max);
+        return v;
+    }
+
 protected:
     int m_degree_u = -1;
     int m_degree_v = -1;
+    bool m_periodic_u = false;
+    bool m_periodic_v = false;
     ControlGrid m_control_grid;
 };
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <iostream>
 #include <limits>
 #include <memory>
 #include <vector>
@@ -19,15 +20,38 @@ public:
 
 public:
     virtual ~CurveBase() = default;
-    virtual std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const =0;
+    virtual std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const = 0;
 
     virtual void initialize() {}
 
     constexpr int get_dim() const { return _dim; }
-    virtual int get_degree() const =0;
+    virtual int get_degree() const = 0;
     virtual bool in_domain(Scalar t) const = 0;
     virtual Scalar get_domain_lower_bound() const = 0;
     virtual Scalar get_domain_upper_bound() const = 0;
+
+    void set_periodic(bool periodic) { m_periodic = periodic; }
+
+    bool get_periodic() const { return m_periodic; }
+
+    bool is_closed(int order = 0, const Scalar tol = std::numeric_limits<Scalar>::epsilon()) const
+    {
+        const Scalar t_min = get_domain_lower_bound();
+        const Scalar t_max = get_domain_upper_bound();
+
+        const Scalar d0 = (evaluate(t_min) - evaluate(t_max)).norm();
+        bool result = d0 < tol;
+        if (order >= 1) {
+            const Scalar d1 = (evaluate_derivative(t_min) - evaluate_derivative(t_max)).norm();
+            result = result && d1 < tol;
+        }
+        if (order >= 2) {
+            const Scalar d2 =
+                (evaluate_2nd_derivative(t_min) - evaluate_2nd_derivative(t_max)).norm();
+            result = result && d2 < tol;
+        }
+        return result;
+    }
 
 public:
     virtual Point evaluate(Scalar t) const = 0;
@@ -53,17 +77,17 @@ public:
     }
 
 public:
-    virtual int get_num_control_points() const =0;
-    virtual Point get_control_point(int i) const =0;
-    virtual void set_control_point(int i, const Point& p) =0;
+    virtual int get_num_control_points() const = 0;
+    virtual Point get_control_point(int i) const = 0;
+    virtual void set_control_point(int i, const Point& p) = 0;
 
-    virtual int get_num_weights() const =0;
-    virtual Scalar get_weight(int i) const=0;
+    virtual int get_num_weights() const = 0;
+    virtual Scalar get_weight(int i) const = 0;
     virtual void set_weight(int i, Scalar val) = 0;
 
-    virtual int get_num_knots() const =0;
-    virtual Scalar get_knot(int i) const =0;
-    virtual void set_knot(int i, Scalar val) =0;
+    virtual int get_num_knots() const = 0;
+    virtual Scalar get_knot(int i) const = 0;
+    virtual void set_knot(int i, Scalar val) = 0;
 
 public:
     virtual std::vector<Scalar> compute_inflections(
@@ -170,6 +194,21 @@ protected:
         }
         return t;
     }
+
+    Scalar unwrap_parameter(Scalar t) const
+    {
+        assert(m_periodic);
+        const Scalar t_min = get_domain_lower_bound();
+        const Scalar t_max = get_domain_upper_bound();
+        const Scalar period = t_max - t_min;
+        t = fmod(t - t_min, period) + t_min;
+        if (t < t_min) t += period;
+        assert(t >= t_min && t <= t_max);
+        return t;
+    }
+
+private:
+    bool m_periodic = false;
 };
 
 } // namespace nanospline

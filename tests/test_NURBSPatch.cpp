@@ -3,6 +3,7 @@
 
 #include <nanospline/NURBSPatch.h>
 #include <nanospline/forward_declaration.h>
+#include <nanospline/save_msh.h>
 #include <nanospline/save_obj.h>
 #include <nanospline/save_msh.h>
 
@@ -52,6 +53,62 @@ TEST_CASE("NURBSPatch", "[rational][nurbs_patch]")
         validate_inverse_evaluation(patch, 10, 10);
         validate_inverse_evaluation_3d(patch, 10, 10);
     }
+
+    SECTION("Periodic patch")
+    {
+        NURBSPatch<Scalar, 3, 2, 1> patch;
+        Eigen::Matrix<Scalar, 14, 3> control_pts;
+        control_pts << 0.0, 3.907985046680551e-14, 42.05086827278133, 0.0, 22.86057786410438,
+            6.756824834631177, 0.0, 3.907985046680551e-14, 42.05086827278133, 20.64450354440619,
+            22.86057786410438, 6.756824834631177, 0.0, 3.907985046680551e-14, 42.05086827278133,
+            10.3222517722031, 5.715144466026113, 1.6892062086577977, 0.0, 3.907985046680551e-14,
+            42.05086827278133, 2.9193399033287708e-15, -11.430288932052154, -3.378412417315582, 0.0,
+            3.907985046680551e-14, 42.05086827278133, -10.322251772203094, 5.715144466026106,
+            1.6892062086577952, 0.0, 3.907985046680551e-14, 42.05086827278133, -20.644503544406202,
+            22.86057786410436, 6.756824834631171, 0.0, 3.907985046680551e-14, 42.05086827278133,
+            -2.9193399033287716e-15, 22.86057786410438, 6.756824834631177;
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> u_knots(10);
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> v_knots(4);
+        u_knots << 0.0, 0.0, 0.0, 2.0943951023931953, 2.0943951023931953, 4.1887902047863905,
+            4.1887902047863905, 6.283185307179586, 6.283185307179586, 6.283185307179586;
+        v_knots << -42.05086827278134, -42.05086827278134, 0.0, 0.0;
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> weights(14);
+        weights << 1.0, 1.0, 0.5000000000000001, 0.5000000000000001, 1.0, 1.0, 0.5000000000000001,
+            0.5000000000000001, 1.0, 1.0, 0.5000000000000001, 0.5000000000000001, 1.0, 1.0;
+        patch.set_control_grid(control_pts);
+        patch.set_knots_u(u_knots);
+        patch.set_knots_v(v_knots);
+        patch.set_weights(weights);
+        patch.set_periodic_u(true);
+        patch.initialize();
+
+        const auto u_min = patch.get_u_lower_bound();
+        const auto u_max = patch.get_u_upper_bound();
+        const auto v_min = patch.get_v_lower_bound();
+        const auto v_max = patch.get_v_upper_bound();
+
+        const auto v_mid = (v_max + v_min) * 0.5;
+        const auto period = u_max - u_min;
+        const auto d = period / 5;
+
+        REQUIRE((patch.evaluate(u_min + d, v_mid) - patch.evaluate(u_min + 10 * period + d, v_mid))
+                    .norm() == Approx(0).margin(1e-6));
+        REQUIRE((patch.evaluate(u_min - 2 * period + d, v_mid) -
+                    patch.evaluate(u_min + period + d, v_mid))
+                    .norm() == Approx(0).margin(1e-6));
+
+        auto q = patch.evaluate(u_min, v_mid);
+        const auto uv0 = patch.inverse_evaluate(q, u_min, u_max, v_min, v_max);
+        REQUIRE((patch.evaluate(uv0[0], uv0[1]) - q).norm() == Approx(0));
+        const auto uv1 = patch.inverse_evaluate(q, u_max - d, u_max + d, v_min, v_max);
+        REQUIRE((patch.evaluate(uv1[0], uv1[1]) - q).norm() == Approx(0));
+        const auto uv2 =
+            patch.inverse_evaluate(q, u_min - 2 * period - d, u_min - 2 * period + d, v_min, v_max);
+        REQUIRE((patch.evaluate(uv2[0], uv2[1]) - q).norm() == Approx(0));
+        const auto uv3 =
+            patch.inverse_evaluate(q, u_min - period + d, u_max - period - d, v_min, v_max);
+        REQUIRE((patch.evaluate(uv3[0], uv3[1]) - q).norm() > 0.1);
+    }
 }
 
 TEST_CASE("NURBSPatch 2", "[rational][nurbs_patch]")
@@ -93,7 +150,6 @@ TEST_CASE("NURBSPatch 2", "[rational][nurbs_patch]")
         validate_inverse_evaluation(patch, 10, 10);
         validate_inverse_evaluation_3d(patch, 10, 10);
     }
-
 }
 
 TEST_CASE("NURBSPatch 3", "[rational][nurbs_patch]")
@@ -155,7 +211,6 @@ TEST_CASE("NURBSPatch 3", "[rational][nurbs_patch]")
         validate_inverse_evaluation(patch, 10, 10);
         validate_inverse_evaluation_3d(patch, 10, 10);
     }
-
 }
 
 TEST_CASE("NURBSPatch 4", "[rational][nurbs_patch]")
@@ -196,7 +251,6 @@ TEST_CASE("NURBSPatch 4", "[rational][nurbs_patch]")
         validate_derivative(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
     }
-
 }
 
 TEST_CASE("NURBSPatch 5", "[rational][nurbs_patch]")
@@ -246,7 +300,6 @@ TEST_CASE("NURBSPatch 5", "[rational][nurbs_patch]")
         REQUIRE(corner_01[0] < 0);
         REQUIRE(corner_01[1] > 3);
     }
-
 }
 
 TEST_CASE("NURBSPatch 6", "[rational][nurbs_patch]")

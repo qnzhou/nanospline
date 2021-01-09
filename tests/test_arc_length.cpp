@@ -161,4 +161,73 @@ TEST_CASE("arc_length", "[arc_length]")
 
         check_arc_length_on_patch(patch);
     }
+
+    SECTION("Periodic curve")
+    {
+        constexpr Scalar R = 1;
+        Eigen::Matrix<Scalar, 1, 2> c(0.0, R);
+        Eigen::Matrix<Scalar, 9, 2> control_pts;
+        control_pts << 0.0, 0.0, R, 0.0, R, R, R, 2 * R, 0.0, 2 * R, -R, 2 * R, -R, R, -R, 0.0, 0.0,
+            0.0;
+        Eigen::Matrix<Scalar, 12, 1> knots;
+        knots << 0.0, 0.0, 0.0, 0.25, 0.25, 0.5, 0.5, 0.75, 0.75, 1.0, 1.0, 1.0;
+        Eigen::Matrix<Scalar, 9, 1> weights;
+        weights << 1.0, sqrt(2) / 2, 1.0, sqrt(2) / 2, 1.0, sqrt(2) / 2, 1.0, sqrt(2) / 2, 1.0;
+
+        NURBS<Scalar, 2, 2, true> curve;
+        curve.set_control_points(control_pts);
+        curve.set_knots(knots);
+        curve.set_weights(weights);
+        curve.set_periodic(true);
+        curve.initialize();
+
+        const Scalar t_min = curve.get_domain_lower_bound();
+        const Scalar t_max = curve.get_domain_upper_bound();
+        auto single_round = arc_length(curve, t_min, t_max, 20);
+        REQUIRE(single_round == Approx(2 * M_PI * R).epsilon(1e-3));
+        auto double_round = arc_length(curve, t_min, t_max * 2 - t_min, 20);
+        REQUIRE(double_round == Approx(4 * M_PI * R).epsilon(1e-3));
+    }
+
+    SECTION("Perioidc patch")
+    {
+        NURBSPatch<Scalar, 3, 2, 1> patch;
+        Eigen::Matrix<Scalar, 14, 3> control_pts;
+        control_pts << 0.0, 3.907985046680551e-14, 42.05086827278133, 0.0, 22.86057786410438,
+            6.756824834631177, 0.0, 3.907985046680551e-14, 42.05086827278133, 20.64450354440619,
+            22.86057786410438, 6.756824834631177, 0.0, 3.907985046680551e-14, 42.05086827278133,
+            10.3222517722031, 5.715144466026113, 1.6892062086577977, 0.0, 3.907985046680551e-14,
+            42.05086827278133, 2.9193399033287708e-15, -11.430288932052154, -3.378412417315582, 0.0,
+            3.907985046680551e-14, 42.05086827278133, -10.322251772203094, 5.715144466026106,
+            1.6892062086577952, 0.0, 3.907985046680551e-14, 42.05086827278133, -20.644503544406202,
+            22.86057786410436, 6.756824834631171, 0.0, 3.907985046680551e-14, 42.05086827278133,
+            -2.9193399033287716e-15, 22.86057786410438, 6.756824834631177;
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> u_knots(10);
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> v_knots(4);
+        u_knots << 0.0, 0.0, 0.0, 2.0943951023931953, 2.0943951023931953, 4.1887902047863905,
+            4.1887902047863905, 6.283185307179586, 6.283185307179586, 6.283185307179586;
+        v_knots << -42.05086827278134, -42.05086827278134, 0.0, 0.0;
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> weights(14);
+        weights << 1.0, 1.0, 0.5000000000000001, 0.5000000000000001, 1.0, 1.0, 0.5000000000000001,
+            0.5000000000000001, 1.0, 1.0, 0.5000000000000001, 0.5000000000000001, 1.0, 1.0;
+        patch.set_control_grid(control_pts);
+        patch.set_knots_u(u_knots);
+        patch.set_knots_v(v_knots);
+        patch.set_weights(weights);
+        patch.set_periodic_u(true);
+        patch.initialize();
+
+        const auto u_min = patch.get_u_lower_bound();
+        const auto u_max = patch.get_u_upper_bound();
+        const auto v_min = patch.get_v_lower_bound();
+        const auto v_max = patch.get_v_upper_bound();
+
+        const auto v_mid = (v_max + v_min) * 0.5;
+
+        auto single_round = arc_length(patch, u_min, v_mid, u_max, v_mid);
+        auto double_round = arc_length(patch, u_min, v_mid, 2 * u_max - u_min, v_mid);
+        REQUIRE(double_round == Approx(single_round * 2).epsilon(1e-3));
+        auto double_spiral = arc_length(patch, u_min, v_min, 2 * u_max - u_min, v_max);
+        REQUIRE(double_spiral > double_round);
+    }
 }
