@@ -2,23 +2,21 @@
 #include <iostream>
 
 #include <nanospline/BezierPatch.h>
-#include <nanospline/save_obj.h>
 #include <nanospline/forward_declaration.h>
+#include <nanospline/save_msh.h>
 
 #include "validation_utils.h"
 
-TEST_CASE("BezierPatch", "[nonrational][bezier_patch]") {
+TEST_CASE("BezierPatch", "[nonrational][bezier_patch]")
+{
     using namespace nanospline;
     using Scalar = double;
 
-    SECTION("Bilinear patch") {
+    SECTION("Bilinear patch")
+    {
         BezierPatch<Scalar, 3, 1, 1> patch;
         Eigen::Matrix<Scalar, 4, 3> control_grid;
-        control_grid <<
-            0.0, 0.0, 0.0,
-            0.0, 1.0, 0.0,
-            1.0, 0.0, 0.0,
-            1.0, 1.0, 0.0;
+        control_grid << 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0;
         patch.set_control_grid(control_grid);
         patch.initialize();
 
@@ -46,14 +44,11 @@ TEST_CASE("BezierPatch", "[nonrational][bezier_patch]") {
         offset_and_validate(patch);
     }
 
-    SECTION("Bilinear patch non-planar") {
+    SECTION("Bilinear patch non-planar")
+    {
         BezierPatch<Scalar, 3, 1, 1> patch;
         Eigen::Matrix<Scalar, 4, 3> control_grid;
-        control_grid <<
-            0.0, 0.0, 0.0,
-            0.0, 1.0, 1.0,
-            1.0, 0.0, 1.0,
-            1.0, 1.0, 0.0;
+        control_grid << 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0;
         patch.set_control_grid(control_grid);
         patch.initialize();
 
@@ -81,12 +76,13 @@ TEST_CASE("BezierPatch", "[nonrational][bezier_patch]") {
         validate_inverse_evaluation_3d(patch, 10, 10);
         offset_and_validate(patch);
     }
-    SECTION("Cubic patch") {
+    SECTION("Cubic patch")
+    {
         BezierPatch<Scalar, 3, 3, 3> patch;
         Eigen::Matrix<Scalar, 16, 3> control_grid;
-        for (int i=0; i<4; i++) {
-            for (int j=0; j<4; j++) {
-                control_grid.row(i*4+j) << j, i, ((i+j)%2==0)?-1:1;
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                control_grid.row(i * 4 + j) << j, i, ((i + j) % 2 == 0) ? -1 : 1;
             }
         }
         patch.set_control_grid(control_grid);
@@ -108,12 +104,13 @@ TEST_CASE("BezierPatch", "[nonrational][bezier_patch]") {
         validate_inverse_evaluation_3d(patch, 10, 10);
     }
 
-    SECTION("Extrapolation") {
+    SECTION("Extrapolation")
+    {
         BezierPatch<Scalar, 3, 3, 3> patch;
         Eigen::Matrix<Scalar, 16, 3> control_grid;
-        for (int i=0; i<4; i++) {
-            for (int j=0; j<4; j++) {
-                control_grid.row(i*4+j) << j, i, ((i+j)%2==0)?-1:1;
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                control_grid.row(i * 4 + j) << j, i, ((i + j) % 2 == 0) ? -1 : 1;
             }
         }
         patch.set_control_grid(control_grid);
@@ -139,26 +136,52 @@ TEST_CASE("BezierPatch", "[nonrational][bezier_patch]") {
         REQUIRE(corner_01[0] < 0);
         REQUIRE(corner_01[1] > 3);
     }
+
+    SECTION("Periodic patch")
+    {
+        BezierPatch<Scalar, 3, 1, 3> patch;
+        Eigen::Matrix<Scalar, 8, 3> control_grid;
+        control_grid << 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+            0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0;
+        patch.set_control_grid(control_grid);
+        patch.set_periodic_v(true);
+        patch.initialize();
+
+        REQUIRE(
+            (patch.evaluate(0.1, 0.1) - patch.evaluate(0.1, 1.1)).norm() == Approx(0).margin(1e-6));
+        REQUIRE(
+            (patch.evaluate(0.3, 0.5) - patch.evaluate(0.3, 1.5)).norm() == Approx(0).margin(1e-6));
+
+        Eigen::Matrix<Scalar, 1, 3> q(-1, -1, 0);
+        auto uv0 = patch.inverse_evaluate(q, 0, 1, 0, 1);
+        REQUIRE(patch.evaluate(uv0[0], uv0[1]).norm() == Approx(0));
+        auto uv1 = patch.inverse_evaluate(q, 0, 1, 1.9, 2.1);
+        REQUIRE(patch.evaluate(uv1[0], uv1[1]).norm() == Approx(0).margin(1e-2));
+        auto uv2 = patch.inverse_evaluate(q, 0, 1, -1.1, -0.5);
+        REQUIRE(patch.evaluate(uv2[0], uv2[1]).norm() == Approx(0).margin(1e-2));
+        auto uv3 = patch.inverse_evaluate(q, 0, 1, -1.7, -1.5);
+        REQUIRE(patch.evaluate(uv3[0], uv3[1]).norm() > 0.1);
+    }
 }
 
-TEST_CASE("BezierPatch Benchmark", "[!benchmark][bezier_patch]") {
+TEST_CASE("BezierPatch Benchmark", "[!benchmark][bezier_patch]")
+{
     using namespace nanospline;
     using Scalar = double;
     BezierPatch<Scalar, 3, 3, 3> patch;
     Eigen::Matrix<Scalar, 16, 3> control_grid;
-    for (int i=0; i<4; i++) {
-        for (int j=0; j<4; j++) {
-            control_grid.row(i*4+j) << j, i, ((i+j)%2==0)?-1:1;
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            control_grid.row(i * 4 + j) << j, i, ((i + j) % 2 == 0) ? -1 : 1;
         }
     }
     patch.set_control_grid(control_grid);
     patch.initialize();
 
-    BENCHMARK("Evaluation") {
-        return patch.evaluate(0.5, 0.6);
-    };
+    BENCHMARK("Evaluation") { return patch.evaluate(0.5, 0.6); };
 
-    BENCHMARK("Derivative") {
+    BENCHMARK("Derivative")
+    {
         auto du = patch.evaluate_derivative_u(0.5, 0.6);
         auto dv = patch.evaluate_derivative_u(0.5, 0.6);
         Eigen::Matrix<Scalar, 2, 3> grad;
@@ -166,7 +189,8 @@ TEST_CASE("BezierPatch Benchmark", "[!benchmark][bezier_patch]") {
         return grad;
     };
 
-    BENCHMARK("2nd Derivative") {
+    BENCHMARK("2nd Derivative")
+    {
         auto duu = patch.evaluate_2nd_derivative_uu(0.5, 0.6);
         auto dvv = patch.evaluate_2nd_derivative_vv(0.5, 0.6);
         auto duv = patch.evaluate_2nd_derivative_uv(0.5, 0.6);

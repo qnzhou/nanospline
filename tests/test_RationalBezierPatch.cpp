@@ -4,6 +4,7 @@
 
 #include <nanospline/RationalBezierPatch.h>
 #include <nanospline/forward_declaration.h>
+#include <nanospline/save_msh.h>
 
 #include "validation_utils.h"
 
@@ -124,6 +125,35 @@ TEST_CASE("RationalBezierPatch", "[rational][rational_bezier_patch]") {
         REQUIRE(corner_11[1] > 3);
         REQUIRE(corner_01[0] < 0);
         REQUIRE(corner_01[1] > 3);
+    }
+
+    SECTION("Periodic patch")
+    {
+        RationalBezierPatch<Scalar, 3, 1, 3> patch;
+        Eigen::Matrix<Scalar, 8, 3> control_grid;
+        control_grid << 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+            0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0;
+        patch.set_control_grid(control_grid);
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> weights(8);
+        weights << 1.0, 0.5, 0.5, 1.0, 0.5, 1.0, 1.0, 0.5;
+        patch.set_weights(weights);
+        patch.set_periodic_v(true);
+        patch.initialize();
+
+        REQUIRE(
+            (patch.evaluate(0.1, 0.1) - patch.evaluate(0.1, 1.1)).norm() == Approx(0).margin(1e-6));
+        REQUIRE(
+            (patch.evaluate(0.3, 0.5) - patch.evaluate(0.3, 1.5)).norm() == Approx(0).margin(1e-6));
+
+        Eigen::Matrix<Scalar, 1, 3> q(-1, -1, 0);
+        auto uv0 = patch.inverse_evaluate(q, 0, 1, 0, 1);
+        REQUIRE(patch.evaluate(uv0[0], uv0[1]).norm() == Approx(0));
+        auto uv1 = patch.inverse_evaluate(q, 0, 1, 1.9, 2.1);
+        REQUIRE(patch.evaluate(uv1[0], uv1[1]).norm() == Approx(0).margin(1e-2));
+        auto uv2 = patch.inverse_evaluate(q, 0, 1, -1.1, -0.5);
+        REQUIRE(patch.evaluate(uv2[0], uv2[1]).norm() == Approx(0).margin(1e-2));
+        auto uv3 = patch.inverse_evaluate(q, 0, 1, -1.7, -1.5);
+        REQUIRE(patch.evaluate(uv3[0], uv3[1]).norm() > 0.1);
     }
 }
 
