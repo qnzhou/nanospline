@@ -24,8 +24,6 @@ public:
 
     virtual void initialize() {}
 
-    virtual void initialize() {}
-
     constexpr int get_dim() const { return _dim; }
     virtual int get_degree() const = 0;
     virtual bool in_domain(Scalar t) const = 0;
