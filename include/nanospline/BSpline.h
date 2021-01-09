@@ -70,6 +70,9 @@ public:
     Point evaluate(Scalar t) const override
     {
         Base::validate_curve();
+        if (Base::get_periodic()) {
+            t = Base::unwrap_parameter(t);
+        }
         const int p = Base::get_degree();
         const int k = Base::locate_span(t);
         assert(p >= 0);
@@ -102,9 +105,13 @@ public:
             control_pts.row(i) = alpha * (control_pts.row(i + 1) - control_pts.row(i));
         }
     }
+
     Point evaluate_derivative(Scalar t) const override
     {
         Base::validate_curve();
+        if (Base::get_periodic()) {
+            t = Base::unwrap_parameter(t);
+        }
         const int p = Base::get_degree();
         const int k = Base::locate_span(t);
         assert(p >= 0);
@@ -125,6 +132,9 @@ public:
     Point evaluate_2nd_derivative(Scalar t) const override
     {
         Base::validate_curve();
+        if (Base::get_periodic()) {
+            t = Base::unwrap_parameter(t);
+        }
         const int p = Base::get_degree();
         const int k = Base::locate_span(t);
         assert(p >= 0);

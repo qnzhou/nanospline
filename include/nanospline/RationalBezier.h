@@ -35,6 +35,9 @@ public:
 
     Point evaluate(Scalar t) const override
     {
+        if (Base::get_periodic()) {
+            t = Base::unwrap_parameter(t);
+        }
         validate_initialization();
         auto p = m_bezier_homogeneous.evaluate(t);
         return p.template head<_dim>() / p[_dim];
@@ -47,6 +50,9 @@ public:
 
     Point evaluate_derivative(Scalar t) const override
     {
+        if (Base::get_periodic()) {
+            t = Base::unwrap_parameter(t);
+        }
         validate_initialization();
         const auto p = m_bezier_homogeneous.evaluate(t);
         const auto d = m_bezier_homogeneous.evaluate_derivative(t);
@@ -56,6 +62,9 @@ public:
 
     Point evaluate_2nd_derivative(Scalar t) const override
     {
+        if (Base::get_periodic()) {
+            t = Base::unwrap_parameter(t);
+        }
         validate_initialization();
         const auto p0 = m_bezier_homogeneous.evaluate(t);
         const auto d1 = m_bezier_homogeneous.evaluate_derivative(t);

@@ -416,4 +416,33 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
         REQUIRE(dd0[0] == Approx(dd1[0]));
         REQUIRE(dd0[1] == Approx(-dd1[1]));
     }
+
+    SECTION("Periodic curve") {
+        Eigen::Matrix<Scalar, 4, 2> control_pts;
+        control_pts << 0.0, 0.0,
+                       1.0, 1.0,
+                       1.0, 0.0,
+                       0.0, 0.0;
+        RationalBezier<Scalar, 2, -1> curve;
+        curve.set_control_points(control_pts);
+        Eigen::Matrix<Scalar, 4, 1> weights;
+        weights << 1.0, 0.5, 0.5, 1.0;
+        curve.set_weights(weights);
+        curve.initialize();
+
+        REQUIRE(curve.is_closed());
+        REQUIRE(!curve.is_closed(1));
+        REQUIRE(!curve.is_closed(2));
+
+        curve.set_periodic(true);
+        Eigen::Matrix<Scalar, 1, 2> q(-1, -1);
+        Scalar t0 = curve.approximate_inverse_evaluate(q, 0, 1);
+        REQUIRE(curve.evaluate(t0).norm() == Approx(0.0));
+        Scalar t1 = curve.approximate_inverse_evaluate(q, 1.5, 2.5, 10);
+        REQUIRE(curve.evaluate(t1).norm() == Approx(0.0).margin(1e-3));
+        Scalar t2 = curve.approximate_inverse_evaluate(q, -2.1, -1.5, 10);
+        REQUIRE(curve.evaluate(t2).norm() == Approx(0.0).margin(1e-3));
+        Scalar t3 = curve.approximate_inverse_evaluate(q, 2.25, 2.75);
+        REQUIRE(curve.evaluate(t3).norm() > 0.1);
+    }
 }

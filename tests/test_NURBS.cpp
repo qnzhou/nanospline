@@ -487,4 +487,46 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
         REQUIRE(theta_1 + theta_2 == Approx(theta));
 #endif
     }
+
+    SECTION("Periodic curve") {
+        constexpr Scalar R = 1.1;
+        Eigen::Matrix<Scalar, 1, 2> c(0.0, R);
+        Eigen::Matrix<Scalar, 7, 2> control_pts;
+        control_pts << 0.0, 0.0,
+                    sqrt(3)*R, 0.0,
+                    0.5*sqrt(3)*R, 1.5*R,
+                    0.0, 3*R,
+                    -0.5*sqrt(3)*R, 1.5*R,
+                    -sqrt(3)*R, 0.0,
+                    0.0, 0.0;
+        Eigen::Matrix<Scalar, 10, 1> knots;
+        knots << 0.0, 0.0, 0.0,
+              1.0/3.0, 1.0/3.0,
+              2.0/3.0, 2.0/3.0,
+              1.0, 1.0, 1.0;
+
+        Eigen::Matrix<Scalar, 7, 1> weights;
+        weights << 1.0, 0.5, 1.0, 0.5, 1.0, 0.5, 1.0;
+
+        NURBS<Scalar, 2, 2, true> curve;
+        curve.set_control_points(control_pts);
+        curve.set_knots(knots);
+        curve.set_weights(weights);
+        curve.initialize();
+
+        REQUIRE(curve.is_closed());
+        REQUIRE(curve.is_closed(1, 1e-6));
+
+        curve.set_periodic(true);
+
+        Eigen::Matrix<Scalar, 1, 2> q(0.0, -1.0);
+        Scalar t0 = curve.approximate_inverse_evaluate(q, 0, 1);
+        REQUIRE(curve.evaluate(t0).norm() == Approx(0.0));
+        Scalar t1 = curve.approximate_inverse_evaluate(q, 1.5, 2.5);
+        REQUIRE(curve.evaluate(t1).norm() == Approx(0.0));
+        Scalar t2 = curve.approximate_inverse_evaluate(q, -10.1, -9.9);
+        REQUIRE(curve.evaluate(t2).norm() == Approx(0.0));
+        Scalar t3 = curve.approximate_inverse_evaluate(q, 2.25, 2.75);
+        REQUIRE(curve.evaluate(t3).norm() > 0.1);
+    }
 }
