@@ -5,6 +5,7 @@
 #include <nanospline/forward_declaration.h>
 #include <nanospline/save_msh.h>
 #include <nanospline/save_obj.h>
+#include <nanospline/save_msh.h>
 
 #include "validation_utils.h"
 
