@@ -587,5 +587,9 @@ TEST_CASE("Bezier", "[nonrational][bezier]") {
         REQUIRE(curve.evaluate(t2).norm() == Approx(0.0).margin(1e-3));
         Scalar t3 = curve.approximate_inverse_evaluate(q, -2.1, -1.9, 10);
         REQUIRE(curve.evaluate(t3).norm() == Approx(0.0).margin(1e-3));
+
+        auto curve2 = curve.elevate_degree();
+        REQUIRE(curve2.get_periodic());
+        assert_same(curve, curve2, 10);
     }
 }

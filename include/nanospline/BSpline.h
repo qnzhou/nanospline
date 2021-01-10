@@ -410,7 +410,9 @@ public:
             beziers2.push_back(curve.elevate_degree());
         });
 
-        return TargetType(beziers2, parameter_bounds);
+        TargetType new_curve(beziers2, parameter_bounds);
+        new_curve.set_periodic(Base::get_periodic());
+        return new_curve;
     }
 
     static Eigen::MatrixXd form_least_squares_matrix(

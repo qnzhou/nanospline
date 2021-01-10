@@ -322,6 +322,7 @@ public:
 
         TargetType new_curve;
         new_curve.set_control_points(std::move(target_ctrl_pts));
+        new_curve.set_periodic(Base::get_periodic());
         return new_curve;
     }
 
@@ -471,6 +472,7 @@ public:
         ctrl_pts.row(0) = Base::m_control_points.row(0);
         ctrl_pts.row(1) = Base::m_control_points.row(0);
         new_curve.set_control_points(std::move(ctrl_pts));
+        new_curve.set_periodic(Base::get_periodic());
         return new_curve;
     }
 };
@@ -538,6 +540,7 @@ public:
         ctrl_pts.row(1) = Base::m_control_points.colwise().mean();
         ctrl_pts.row(2) = Base::m_control_points.row(1);
         new_curve.set_control_points(std::move(ctrl_pts));
+        new_curve.set_periodic(Base::get_periodic());
         return new_curve;
     }
 
@@ -727,6 +730,7 @@ public:
             Base::m_control_points.row(1) * 2.0 / 3.0 + Base::m_control_points.row(2) / 3.0;
         ctrl_pts.row(3) = Base::m_control_points.row(2);
         new_curve.set_control_points(std::move(ctrl_pts));
+        new_curve.set_periodic(Base::get_periodic());
         return new_curve;
     }
 
@@ -1017,6 +1021,7 @@ public:
             Base::m_control_points.row(2) * 3.0 / 4.0 + Base::m_control_points.row(3) / 4.0;
         ctrl_pts.row(4) = Base::m_control_points.row(3);
         new_curve.set_control_points(std::move(ctrl_pts));
+        new_curve.set_periodic(Base::get_periodic());
         return new_curve;
     }
 };
