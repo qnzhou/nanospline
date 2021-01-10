@@ -300,6 +300,11 @@ public:
         const Scalar max_v,
         const int level = 3) const override
     {
+        // Use bisection for periodic patches.
+        if (Base::get_periodic_u() || Base::get_periodic_v()) {
+            return Base::approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v);
+        }
+
         // Only two control points at the endpoints, so finding the closest
         // point doesn't restrict the search at all; default to the parent
         // class function based on sampling where resolution isn't an issue
