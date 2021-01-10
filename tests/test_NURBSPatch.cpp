@@ -5,7 +5,6 @@
 #include <nanospline/forward_declaration.h>
 #include <nanospline/save_msh.h>
 #include <nanospline/save_obj.h>
-#include <nanospline/save_msh.h>
 
 #include "validation_utils.h"
 
@@ -404,5 +403,77 @@ TEST_CASE("NURBSPatch Benchmark", "[!benchmark][numbs_patch]")
         hessian.row(2) = patch.evaluate_2nd_derivative_uv(0.5, 0.6);
         return hessian;
     };
+}
+
+TEST_CASE("Periodic_debug", "[perioidc][nurbs]")
+{
+    using namespace nanospline;
+    using Scalar = double;
+
+    NURBSPatch<Scalar, 3, -1, -1> patch;
+    Eigen::Matrix<Scalar, 14, 3> control_grid;
+    control_grid << -12.7, 7.61831, 24.2906, 12.7, 7.61831, 24.2906, -12.7, 7.34012, 37.4859, 12.7,
+        7.34012, 37.4859, -12.7, -3.94825, 30.6473, 12.7, -3.94825, 30.6473, -12.7, -15.2366,
+        23.8088, 12.7, -15.2366, 23.8088, -12.7, -3.67006, 17.452, 12.7, -3.67006, 17.452, -12.7,
+        7.89649, 11.0953, 12.7, 7.89649, 11.0953, -12.7, 7.61831, 24.2906, 12.7, 7.61831, 24.2906;
+
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 1> weights(14);
+    weights << 1, 1, 0.5, 0.5, 1, 1, 0.5, 0.5, 1, 1, 0.5, 0.5, 1, 1;
+
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots_u(10);
+    knots_u << -12.2182, -12.2182, -12.2182, -10.1238, -10.1238, -8.0294, -8.0294, -5.93501,
+        -5.93501, -5.93501;
+
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots_v(4);
+    knots_v << -27.6225, -27.6225, -2.2225, -2.2225;
+
+    patch.set_control_grid(control_grid);
+    patch.set_knots_u(knots_u);
+    patch.set_knots_v(knots_v);
+    patch.set_weights(weights);
+    patch.set_degree_u(2);
+    patch.set_degree_v(1);
+    patch.set_periodic_u(true);
+    patch.initialize();
+
+    auto periodic_check = [](auto& patch, int num_samples=10) {
+        const Scalar u_min = patch.get_u_lower_bound();
+        const Scalar u_max = patch.get_u_upper_bound();
+        const Scalar v_min = patch.get_v_lower_bound();
+        const Scalar v_max = patch.get_v_upper_bound();
+        const Scalar u_period = u_max - u_min;
+
+        for (int i=0; i<=num_samples; i++) {
+            for (int j=0; j<=num_samples; j++) {
+                Scalar u = u_min + (u_max - u_min) * i / (Scalar)num_samples;
+                Scalar v = v_min + (v_max - v_min) * i / (Scalar)num_samples;
+                auto p0 = patch.evaluate(u, v);
+                auto p1 = patch.evaluate(u + u_period, v);
+                auto p2 = patch.evaluate(u - u_period, v);
+                REQUIRE((p0 - p1).norm() == Approx(0).margin(1e-6));
+                REQUIRE((p0 - p2).norm() == Approx(0).margin(1e-6));
+            }
+        }
+    };
+
+    SECTION("Point check")
+    {
+        periodic_check(patch);
+    }
+
+    SECTION("Copy")
+    {
+        auto patch_copy = patch;
+        REQUIRE(patch_copy.get_periodic_u());
+        REQUIRE(!patch_copy.get_periodic_v());
+        periodic_check(patch_copy);
+    }
+
+    SECTION("Clone") {
+        auto patch_clone = patch.clone();
+        REQUIRE(patch_clone->get_periodic_u());
+        REQUIRE(!patch_clone->get_periodic_v());
+        periodic_check(*patch_clone);
+    }
 }
 
