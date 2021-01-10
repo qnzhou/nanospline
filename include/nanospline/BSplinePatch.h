@@ -55,38 +55,6 @@ public:
         Base::set_degree_v(_degree_v);
     }
 
-    BSplinePatch(const ThisType& other)
-        : PatchBase<_Scalar, _dim>(other)
-        , m_knots_u(other.m_knots_u)
-        , m_knots_v(other.m_knots_v)
-    {}
-
-    BSplinePatch(ThisType&& other)
-        : PatchBase<_Scalar, _dim>(other)
-        , m_knots_u(std::move(other.m_knots_u))
-        , m_knots_v(std::move(other.m_knots_v))
-    {}
-
-    ThisType& operator=(const ThisType& other)
-    {
-        Base::m_control_grid = other.m_control_grid;
-        Base::m_degree_u = other.m_degree_u;
-        Base::m_degree_v = other.m_degree_v;
-        m_knots_u = other.m_knots_u;
-        m_knots_v = other.m_knots_v;
-        return *this;
-    }
-
-    ThisType& operator=(ThisType&& other)
-    {
-        swap_control_grid(other.m_control_grid);
-        Base::m_degree_u = other.m_degree_u;
-        Base::m_degree_v = other.m_degree_v;
-        m_knots_u.swap(other.m_knots_u);
-        m_knots_v.swap(other.m_knots_v);
-        return *this;
-    }
-
     std::unique_ptr<Base> clone() const override {
         return std::make_unique<ThisType>(*this);
     }
@@ -139,6 +107,9 @@ public:
         const auto num_u_knots = m_knots_u.size();
         const int degree_u = Base::get_degree_u();
         const int degree_v = Base::get_degree_v();
+        if (degree_u < 0 || degree_v < 0) {
+            throw invalid_setting_error("Patch uv degrees are not set.");
+        }
         if (Base::m_control_grid.rows() !=
             (num_u_knots - degree_u - 1) * (num_v_knots - degree_v - 1)) {
             throw invalid_setting_error("Control grid size mismatch uv degrees");
