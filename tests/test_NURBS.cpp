@@ -518,6 +518,7 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
         REQUIRE(curve.is_closed(1, 1e-6));
 
         curve.set_periodic(true);
+        curve.initialize();
 
         Eigen::Matrix<Scalar, 1, 2> q(0.0, -1.0);
         Scalar t0 = curve.approximate_inverse_evaluate(q, 0, 1);
@@ -528,5 +529,9 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
         REQUIRE(curve.evaluate(t2).norm() == Approx(0.0));
         Scalar t3 = curve.approximate_inverse_evaluate(q, 2.25, 2.75);
         REQUIRE(curve.evaluate(t3).norm() > 0.1);
+
+        auto curve2 = curve.elevate_degree();
+        REQUIRE(curve2.get_periodic());
+        assert_same(curve, curve2, 10);
     }
 }

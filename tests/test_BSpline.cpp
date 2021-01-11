@@ -751,5 +751,9 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
         Scalar t3 =
             curve.approximate_inverse_evaluate(q, t_min - period / 5, t_min + period / 5, 10);
         REQUIRE((curve.evaluate(t3) - p).norm() == Approx(s).margin(2e-2));
+
+        auto curve2 = curve.elevate_degree();
+        REQUIRE(curve2.get_periodic() == curve.get_periodic());
+        assert_same(curve, curve2, 10);
     }
 }

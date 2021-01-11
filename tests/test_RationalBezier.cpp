@@ -435,6 +435,8 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
         REQUIRE(!curve.is_closed(2));
 
         curve.set_periodic(true);
+        curve.initialize();
+
         Eigen::Matrix<Scalar, 1, 2> q(-1, -1);
         Scalar t0 = curve.approximate_inverse_evaluate(q, 0, 1);
         REQUIRE(curve.evaluate(t0).norm() == Approx(0.0));
@@ -444,5 +446,9 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
         REQUIRE(curve.evaluate(t2).norm() == Approx(0.0).margin(1e-3));
         Scalar t3 = curve.approximate_inverse_evaluate(q, 2.25, 2.75);
         REQUIRE(curve.evaluate(t3).norm() > 0.1);
+
+        auto curve2 = curve.elevate_degree();
+        REQUIRE(curve2.get_periodic());
+        assert_same(curve, curve2, 10);
     }
 }

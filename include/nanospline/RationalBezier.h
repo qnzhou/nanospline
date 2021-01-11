@@ -35,9 +35,6 @@ public:
 
     Point evaluate(Scalar t) const override
     {
-        if (Base::get_periodic()) {
-            t = Base::unwrap_parameter(t);
-        }
         validate_initialization();
         auto p = m_bezier_homogeneous.evaluate(t);
         return p.template head<_dim>() / p[_dim];
@@ -50,9 +47,6 @@ public:
 
     Point evaluate_derivative(Scalar t) const override
     {
-        if (Base::get_periodic()) {
-            t = Base::unwrap_parameter(t);
-        }
         validate_initialization();
         const auto p = m_bezier_homogeneous.evaluate(t);
         const auto d = m_bezier_homogeneous.evaluate_derivative(t);
@@ -62,9 +56,6 @@ public:
 
     Point evaluate_2nd_derivative(Scalar t) const override
     {
-        if (Base::get_periodic()) {
-            t = Base::unwrap_parameter(t);
-        }
         validate_initialization();
         const auto p0 = m_bezier_homogeneous.evaluate(t);
         const auto d1 = m_bezier_homogeneous.evaluate_derivative(t);
@@ -223,6 +214,7 @@ public:
         ctrl_pts.template rightCols<1>() = m_weights;
 
         m_bezier_homogeneous.set_control_points(std::move(ctrl_pts));
+        m_bezier_homogeneous.set_periodic(Base::get_periodic());
     }
 
     const WeightVector& get_weights() const { return m_weights; }
@@ -248,6 +240,7 @@ public:
         m_weights = ctrl_pts.template rightCols<1>();
         Base::m_control_points =
             ctrl_pts.template leftCols<_dim>().array().colwise() / m_weights.array();
+        Base::set_periodic(homogeneous.get_periodic());
         validate_initialization();
     }
 
@@ -259,6 +252,7 @@ public:
               _degree<0 ? _degree : _degree + 1, _generic>;
         TargetType new_curve;
         new_curve.set_homogeneous(m_bezier_homogeneous.elevate_degree());
+        assert(new_curve.get_periodic() == Base::get_periodic());
         return new_curve;
     }
 
@@ -269,6 +263,9 @@ private:
         if (ctrl_pts.rows() != Base::m_control_points.rows() ||
             ctrl_pts.rows() != m_weights.rows()) {
             throw invalid_setting_error("Rational Bezier curve is not initialized.");
+        }
+        if (m_bezier_homogeneous.get_periodic() != Base::get_periodic()) {
+            throw invalid_setting_error("Rational Bezier curve has inconsistent periodicity.");
         }
     }
 

@@ -286,9 +286,6 @@ public:
 public:
     int locate_span(Scalar t) const
     {
-        if (Base::get_periodic()) {
-            t = Base::unwrap_parameter(t);
-        }
         const auto p = get_degree();
         const auto num_knots = m_knots.rows();
         assert(num_knots > m_control_points.rows());

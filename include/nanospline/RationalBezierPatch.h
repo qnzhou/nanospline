@@ -157,6 +157,8 @@ public:
         m_weights = ctrl_pts.template rightCols<1>();
         Base::m_control_grid =
             ctrl_pts.template leftCols<_dim>().array().colwise() / m_weights.array();
+        Base::set_periodic_u(homogeneous.get_periodic_u());
+        Base::set_periodic_v(homogeneous.get_periodic_v());
         validate_initialization();
     }
 
@@ -298,6 +300,11 @@ public:
         const Scalar max_v,
         const int level = 3) const override
     {
+        // Use bisection for periodic patches.
+        if (Base::get_periodic_u() || Base::get_periodic_v()) {
+            return Base::approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v);
+        }
+
         // Only two control points at the endpoints, so finding the closest
         // point doesn't restrict the search at all; default to the parent
         // class function based on sampling where resolution isn't an issue
@@ -355,6 +362,15 @@ protected:
         const auto& ctrl_pts = m_homogeneous.get_control_grid();
         if (ctrl_pts.rows() != Base::m_control_grid.rows() || ctrl_pts.rows() != m_weights.rows()) {
             throw invalid_setting_error("Rational Bezier patch is not initialized.");
+        }
+        if (Base::get_degree_u() < 0 || Base::get_degree_v() < 0) {
+            throw invalid_setting_error("Rational Bezier patch degrees are not initialized.");
+        }
+        if (m_homogeneous.get_periodic_u() != Base::get_periodic_u()) {
+            throw invalid_setting_error("Rational Bezier patch is inconsistent in u periodicity.");
+        }
+        if (m_homogeneous.get_periodic_v() != Base::get_periodic_v()) {
+            throw invalid_setting_error("Rational Bezier patch is inconsistent in v periodicity.");
         }
     }
 

@@ -48,9 +48,6 @@ public:
     Point evaluate(Scalar t) const override
     {
         validate_initialization();
-        if (Base::get_periodic()) {
-            t = Base::unwrap_parameter(t);
-        }
         auto p = m_bspline_homogeneous.evaluate(t);
         return p.template segment<_dim>(0) / p[_dim];
     }
@@ -63,9 +60,6 @@ public:
     Point evaluate_derivative(Scalar t) const override
     {
         validate_initialization();
-        if (Base::get_periodic()) {
-            t = Base::unwrap_parameter(t);
-        }
         const auto p = m_bspline_homogeneous.evaluate(t);
         const auto d = m_bspline_homogeneous.evaluate_derivative(t);
 
@@ -75,9 +69,6 @@ public:
     Point evaluate_2nd_derivative(Scalar t) const override
     {
         validate_initialization();
-        if (Base::get_periodic()) {
-            t = Base::unwrap_parameter(t);
-        }
         const auto p0 = m_bspline_homogeneous.evaluate(t);
         const auto d1 = m_bspline_homogeneous.evaluate_derivative(t);
         const auto d2 = m_bspline_homogeneous.evaluate_2nd_derivative(t);
@@ -309,6 +300,7 @@ public:
 
         m_bspline_homogeneous.set_control_points(std::move(ctrl_pts));
         m_bspline_homogeneous.set_knots(Base::m_knots);
+        m_bspline_homogeneous.set_periodic(Base::get_periodic());
     }
 
     const WeightVector& get_weights() const { return m_weights; }
@@ -335,6 +327,7 @@ public:
         Base::m_control_points =
             ctrl_pts.template leftCols<_dim>().array().colwise() / m_weights.array();
         Base::m_knots = homogeneous.get_knots();
+        Base::set_periodic(homogeneous.get_periodic());
         validate_initialization();
     }
 
@@ -344,6 +337,7 @@ public:
         using TargetType = NURBS < _Scalar, _dim, _degree<0 ? _degree : _degree + 1, _generic>;
         TargetType new_curve;
         new_curve.set_homogeneous(m_bspline_homogeneous.elevate_degree());
+        assert(new_curve.get_periodic() == Base::get_periodic());
         return new_curve;
     }
 
@@ -355,6 +349,9 @@ private:
         if (ctrl_pts.rows() != Base::m_control_points.rows() ||
             ctrl_pts.rows() != m_weights.rows()) {
             throw invalid_setting_error("NURBS curve is not initialized.");
+        }
+        if (m_bspline_homogeneous.get_periodic() != Base::get_periodic()) {
+            throw invalid_setting_error("NURBS curve has inconsistent periodicity.");
         }
     }
 

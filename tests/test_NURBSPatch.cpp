@@ -5,7 +5,6 @@
 #include <nanospline/forward_declaration.h>
 #include <nanospline/save_msh.h>
 #include <nanospline/save_obj.h>
-#include <nanospline/save_msh.h>
 
 #include "validation_utils.h"
 
@@ -404,5 +403,129 @@ TEST_CASE("NURBSPatch Benchmark", "[!benchmark][numbs_patch]")
         hessian.row(2) = patch.evaluate_2nd_derivative_uv(0.5, 0.6);
         return hessian;
     };
+}
+
+TEST_CASE("Periodic_debug", "[perioidc][nurbs]")
+{
+    using namespace nanospline;
+    using Scalar = double;
+
+    NURBSPatch<Scalar, 3, -1, -1> patch;
+    Eigen::Matrix<Scalar, 14, 3> control_grid;
+    control_grid << -12.7, 7.61831, 24.2906, 12.7, 7.61831, 24.2906, -12.7, 7.34012, 37.4859, 12.7,
+        7.34012, 37.4859, -12.7, -3.94825, 30.6473, 12.7, -3.94825, 30.6473, -12.7, -15.2366,
+        23.8088, 12.7, -15.2366, 23.8088, -12.7, -3.67006, 17.452, 12.7, -3.67006, 17.452, -12.7,
+        7.89649, 11.0953, 12.7, 7.89649, 11.0953, -12.7, 7.61831, 24.2906, 12.7, 7.61831, 24.2906;
+
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 1> weights(14);
+    weights << 1, 1, 0.5, 0.5, 1, 1, 0.5, 0.5, 1, 1, 0.5, 0.5, 1, 1;
+
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots_u(10);
+    knots_u << -12.2182, -12.2182, -12.2182, -10.1238, -10.1238, -8.0294, -8.0294, -5.93501,
+        -5.93501, -5.93501;
+
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots_v(4);
+    knots_v << -27.6225, -27.6225, -2.2225, -2.2225;
+
+    patch.set_control_grid(control_grid);
+    patch.set_knots_u(knots_u);
+    patch.set_knots_v(knots_v);
+    patch.set_weights(weights);
+    patch.set_degree_u(2);
+    patch.set_degree_v(1);
+    patch.set_periodic_u(true);
+    patch.initialize();
+
+    auto periodic_check = [](auto& patch, int num_samples = 10) {
+        const Scalar u_min = patch.get_u_lower_bound();
+        const Scalar u_max = patch.get_u_upper_bound();
+        const Scalar v_min = patch.get_v_lower_bound();
+        const Scalar v_max = patch.get_v_upper_bound();
+        const Scalar u_period = u_max - u_min;
+
+        for (int i = 0; i <= num_samples; i++) {
+            for (int j = 0; j <= num_samples; j++) {
+                Scalar u = u_min + (u_max - u_min) * i / (Scalar)num_samples;
+                Scalar v = v_min + (v_max - v_min) * i / (Scalar)num_samples;
+                auto p0 = patch.evaluate(u, v);
+                auto p1 = patch.evaluate(u + u_period, v);
+                auto p2 = patch.evaluate(u - u_period, v);
+                REQUIRE((p0 - p1).norm() == Approx(0).margin(1e-6));
+                REQUIRE((p0 - p2).norm() == Approx(0).margin(1e-6));
+            }
+        }
+    };
+
+    SECTION("Point check") { periodic_check(patch); }
+
+    SECTION("Copy")
+    {
+        auto patch_copy = patch;
+        REQUIRE(patch_copy.get_periodic_u());
+        REQUIRE(!patch_copy.get_periodic_v());
+        periodic_check(patch_copy);
+    }
+
+    SECTION("Clone")
+    {
+        auto patch_clone = patch.clone();
+        REQUIRE(patch_clone->get_periodic_u());
+        REQUIRE(!patch_clone->get_periodic_v());
+        periodic_check(*patch_clone);
+    }
+}
+
+TEST_CASE("Periodic_debug_2", "[periodic][numbs_patch]")
+{
+    using namespace nanospline;
+    using Scalar = double;
+
+    NURBSPatch<Scalar, 3, -1, -1> patch;
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 3> control_grid(28, 3);
+    control_grid << 12.7, 6.35, 31.3416, 10.9942, 6.35, 31.3416, 10.9942, 6.35, 33.0474, 12.7, 6.35,
+        33.0474, 14.4058, 6.35, 33.0474, 14.4058, 6.35, 31.3416, 12.7, 6.35, 31.3416, 12.7, 6.35,
+        29.6707, 7.65245, 6.35, 29.6707, 7.65245, 6.35, 34.7183, 12.7, 6.35, 34.7183, 17.7476, 6.35,
+        34.7183, 17.7476, 6.35, 29.6707, 12.7, 6.35, 29.6707, 12.7, 5.38532, 28.3065, 4.92392,
+        5.38532, 28.3065, 4.92392, 5.38532, 36.0825, 12.7, 5.38532, 36.0825, 20.4761, 5.38532,
+        36.0825, 20.4761, 5.38532, 28.3065, 12.7, 5.38532, 28.3065, 12.7, 3.81, 27.7495, 3.81, 3.81,
+        27.7495, 3.81, 3.81, 36.6395, 12.7, 3.81, 36.6395, 21.59, 3.81, 36.6395, 21.59, 3.81,
+        27.7495, 12.7, 3.81, 27.7495;
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots_u(8);
+    knots_u << 6.91638e-08, 6.91638e-08, 6.91638e-08, 6.91638e-08, 6.28319, 6.28319, 6.28319,
+        6.28319;
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots_v(11);
+    knots_v << 0.955317, 0.955317, 0.955317, 0.955317, 1.5708, 1.5708, 1.5708, 2.18628, 2.18628,
+        2.18628, 2.18628;
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 1> weights(28);
+    weights << 1, 0.333333, 0.333333, 1, 0.333333, 0.333333, 1, 0.877664, 0.292555, 0.292555,
+        0.877664, 0.292555, 0.292555, 0.877664, 0.877664, 0.292555, 0.292555, 0.877664, 0.292555,
+        0.292555, 0.877664, 1, 0.333333, 0.333333, 1, 0.333333, 0.333333, 1;
+
+    patch.set_control_grid(control_grid);
+    patch.set_knots_u(knots_u);
+    patch.set_knots_v(knots_v);
+    patch.set_weights(weights);
+    patch.set_degree_u(3);
+    patch.set_degree_v(3);
+    patch.set_periodic_v(true);
+    patch.initialize();
+
+    const Scalar u_min = patch.get_u_lower_bound();
+    const Scalar u_max = patch.get_u_upper_bound();
+    const Scalar v_min = patch.get_v_lower_bound();
+    const Scalar v_max = patch.get_v_upper_bound();
+    const Scalar u_delta = (u_max - u_min) / 5;
+    const Scalar v_delta = (v_max - v_min) / 5;
+    const Scalar prev_u = 1.38328e-07;
+    const Scalar prev_v = 0.669671;
+
+    Eigen::Matrix<double, 1, 3> q(13.4386, 6.35, 32.6209);
+    auto uv = patch.inverse_evaluate(
+        q, prev_u - u_delta, prev_u + u_delta, prev_v - v_delta, prev_v + v_delta);
+    Eigen::Matrix<double, 1, 3> p = patch.evaluate(uv[0], uv[1]);
+
+    REQUIRE((q - p).norm() == Approx(0).margin(1e-6));
+    REQUIRE(uv[0] == Approx(prev_u).margin(1e-3));
+    REQUIRE(std::abs(uv[1] - prev_v) < 0.2);
 }
 
