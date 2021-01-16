@@ -128,7 +128,10 @@ public:
         constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 100;
         const int num_samples = std::max(num_control_points_u(), num_control_points_v()) + 1;
         UVPoint uv = approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v, 10);
-        return newton_raphson(p, uv, 20, TOL, min_u, max_u, min_v, max_v);
+        uv = newton_raphson(p, uv, 20, TOL, min_u, max_u, min_v, max_v);
+        assert(uv[0] >= min_u && uv[0] <= max_u);
+        assert(uv[1] >= min_v && uv[1] <= max_v);
+        return uv;
     }
 
 public:
@@ -169,9 +172,9 @@ protected:
         UVPoint uv(min_u, min_v);
         Scalar min_dist = std::numeric_limits<Scalar>::max();
         for (int i = 0; i <= num_samples; i++) {
-            const Scalar u = i * (max_u - min_u) / num_samples + min_u;
+            const Scalar u = (i == num_samples) ? max_u : i * (max_u - min_u) / num_samples + min_u;
             for (int j = 0; j <= num_samples; j++) {
-                const Scalar v = j * (max_v - min_v) / num_samples + min_v;
+                const Scalar v = (j == num_samples) ? max_v : j * (max_v - min_v) / num_samples + min_v;
                 const Point q = this->evaluate(u, v);
                 const auto dist = (p - q).squaredNorm();
                 if (dist < min_dist) {
