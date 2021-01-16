@@ -55,9 +55,7 @@ public:
         Base::set_degree_v(_degree_v);
     }
 
-    std::unique_ptr<Base> clone() const override {
-        return std::make_unique<ThisType>(*this);
-    }
+    std::unique_ptr<Base> clone() const override { return std::make_unique<ThisType>(*this); }
 
 public:
     Point evaluate(Scalar u, Scalar v) const override
@@ -626,13 +624,29 @@ public:
                 p, num_samples, min_u, max_u, min_v, max_v, level);
         }
 
+        // When there are too few control points, this approach does not
+        // effectively shrink the search region.  Roll back to sampling.
+        if (num_control_points_u() <= 3 || num_control_points_v() <= 3) {
+            return Base::approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v);
+        }
+
         // 1. find closest control point
         auto closest_control_pt_index = Base::find_closest_control_point(p);
         int i_min = closest_control_pt_index.first;
         int j_min = closest_control_pt_index.second;
 
+        auto clamp_2d = [](auto& uv, Scalar min_u, Scalar max_u, Scalar min_v, Scalar max_v) {
+            uv[0] = std::max(uv[0], min_u);
+            uv[0] = std::min(uv[0], max_u);
+            uv[1] = std::max(uv[1], min_v);
+            uv[1] = std::min(uv[1], max_v);
+        };
+
+
         if (level <= 0) {
-            return get_control_point_preimage(i_min, j_min);
+            auto uv = get_control_point_preimage(i_min, j_min);
+            clamp_2d(uv, min_u, max_u, min_v, max_v);
+            return uv;
 
         } else {
             // 2. Control points c_{i+/-1,j+/-1} bound the domain containing our
@@ -644,6 +658,8 @@ public:
             UVPoint uv_max =
                 get_control_point_preimage(i_min < num_control_points_u() - 1 ? i_min + 1 : i_min,
                     j_min < num_control_points_v() - 1 ? j_min + 1 : j_min);
+            clamp_2d(uv_min, min_u, max_u, min_v, max_v);
+            clamp_2d(uv_max, min_u, max_u, min_v, max_v);
 
             // 3. split a subcurve to find closest ctrl points on subdomain
             ThisType patch = subpatch(uv_min(0), uv_max(0), uv_min(1), uv_max(1));

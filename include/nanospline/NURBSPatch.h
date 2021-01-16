@@ -32,9 +32,7 @@ public:
         Base::set_degree_v(_degree_v);
     }
 
-    std::unique_ptr<Base> clone() const override {
-        return std::make_unique<ThisType>(*this);
-    }
+    std::unique_ptr<Base> clone() const override { return std::make_unique<ThisType>(*this); }
 
 
 public:
@@ -173,7 +171,7 @@ public:
         Base::set_control_point(i, j, p);
 
         auto q = m_homogeneous.get_control_point(i, j);
-        q.template segment<_dim>(0) = p * get_weight(i ,j);
+        q.template segment<_dim>(0) = p * get_weight(i, j);
         m_homogeneous.set_control_point(i, j, q);
     }
 
@@ -195,13 +193,15 @@ public:
 
     virtual int get_num_knots_u() const override { return static_cast<int>(m_knots_u.rows()); }
     virtual Scalar get_knot_u(int i) const override { return m_knots_u[i]; }
-    virtual void set_knot_u(int i, Scalar val) override {
+    virtual void set_knot_u(int i, Scalar val) override
+    {
         m_knots_u[i] = val;
         m_homogeneous.set_knot_u(i, val);
     }
     virtual int get_num_knots_v() const override { return static_cast<int>(m_knots_v.rows()); }
     virtual Scalar get_knot_v(int i) const override { return m_knots_v[i]; }
-    virtual void set_knot_v(int i, Scalar val) override {
+    virtual void set_knot_v(int i, Scalar val) override
+    {
         m_knots_v[i] = val;
         m_homogeneous.set_knot_v(i, val);
     }
@@ -347,6 +347,12 @@ public:
             return Base::approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v);
         }
 
+        // When there are too few control points, this approach does not
+        // effectively shrink the search region.  Roll back to sampling.
+        if (num_control_points_u() <= 3 || num_control_points_v() <= 3) {
+            return Base::approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v);
+        }
+
         // 1. find closest control point
         // (works for points with 0 weight: Base::m_control_grid is scaled by
         // corresponding weights when initialized, so c_i/w_i = inf as w_i-> 0
@@ -355,9 +361,18 @@ public:
         int i_min = closest_control_pt_index.first;
         int j_min = closest_control_pt_index.second;
 
-        if (level <= 0) {
-            return get_control_point_preimage(i_min, j_min);
+        auto clamp_2d = [](auto& uv, Scalar min_u, Scalar max_u, Scalar min_v, Scalar max_v) {
+            uv[0] = std::max(uv[0], min_u);
+            uv[0] = std::min(uv[0], max_u);
+            uv[1] = std::max(uv[1], min_v);
+            uv[1] = std::min(uv[1], max_v);
+        };
 
+
+        if (level <= 0) {
+            auto uv = get_control_point_preimage(i_min, j_min);
+            clamp_2d(uv, min_u, max_u, min_v, max_v);
+            return uv;
         } else {
             // 2. Control points c_{i+/-1,j+/-1} bound the domain containing our
             // desired initial guess; find subdomain corresponding to control
@@ -368,6 +383,8 @@ public:
             UVPoint uv_max =
                 get_control_point_preimage(i_min < num_control_points_u() - 1 ? i_min + 1 : i_min,
                     j_min < num_control_points_v() - 1 ? j_min + 1 : j_min);
+            clamp_2d(uv_min, min_u, max_u, min_v, max_v);
+            clamp_2d(uv_max, min_u, max_u, min_v, max_v);
 
             // 3. split a subcurve to find closest ctrl points on subdomain
             ThisType patch = subpatch(uv_min(0), uv_max(0), uv_min(1), uv_max(1));

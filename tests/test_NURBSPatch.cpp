@@ -3,6 +3,8 @@
 
 #include <nanospline/NURBSPatch.h>
 #include <nanospline/forward_declaration.h>
+#include <nanospline/load_msh.h>
+#include <nanospline/sample.h>
 #include <nanospline/save_msh.h>
 #include <nanospline/save_obj.h>
 
@@ -527,5 +529,163 @@ TEST_CASE("Periodic_debug_2", "[periodic][numbs_patch]")
     REQUIRE((q - p).norm() == Approx(0).margin(1e-6));
     REQUIRE(uv[0] == Approx(prev_u).margin(1e-3));
     REQUIRE(std::abs(uv[1] - prev_v) < 0.2);
+}
+
+TEST_CASE("Inverse_evaluate_debug", "[nurbs_patch][inverse_evaluation][singularity]")
+{
+    using namespace nanospline;
+    using Scalar = double;
+
+    NURBSPatch<Scalar, 3, -1, -1> patch;
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 3> control_grid(9, 3);
+    control_grid << 19.2165, -8.5725, 10.9601, 19.2165, -8.5725, 12.4841, 19.2165, -7.0485, 12.4841,
+        19.2165, -8.5725, 10.9601, 22.0718, -8.5725, 12.4841, 22.0718, -7.0485, 12.4841, 19.2165,
+        -8.5725, 10.9601, 20.4826, -8.5725, 10.1119, 20.4826, -7.0485, 10.1119;
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots_u(6);
+    knots_u << 4.71239, 4.71239, 4.71239, 6.87343, 6.87343, 6.87343;
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots_v(6);
+    knots_v << -1.5708, -1.5708, -1.5708, 0, 0, 0;
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 1> weights(9);
+    weights << 1, 0.707107, 1, 0.470868, 0.332954, 0.470868, 1, 0.707107, 1;
+
+    patch.set_control_grid(control_grid);
+    patch.set_knots_u(knots_u);
+    patch.set_knots_v(knots_v);
+    patch.set_weights(weights);
+    patch.set_degree_u(2);
+    patch.set_degree_v(2);
+    patch.initialize();
+
+    auto validate = [&](const auto& q, Scalar min_u, Scalar max_u, Scalar min_v, Scalar max_v) {
+        auto uv = patch.inverse_evaluate(q, min_u, max_u, min_v, max_v);
+        REQUIRE(uv[0] >= min_u);
+        REQUIRE(uv[0] <= max_u);
+        REQUIRE(uv[1] >= min_v);
+        REQUIRE(uv[1] <= max_v);
+
+        constexpr Scalar eps = 1e-6;
+        if (uv[0] > min_u + eps && uv[0] < max_u - eps && uv[1] > min_v + eps &&
+            uv[1] < max_v - eps) {
+            auto p = patch.evaluate(uv[0], uv[1]);
+            REQUIRE((p - q).norm() < 1e-6);
+        }
+    };
+
+    auto check_curve_projection = [&](auto curve) {
+        auto samples = sample(curve, 10);
+        for (auto t : samples) {
+            auto p = curve.evaluate(t);
+            validate(p,
+                patch.get_u_lower_bound(),
+                patch.get_u_upper_bound(),
+                patch.get_v_lower_bound(),
+                patch.get_v_upper_bound());
+        }
+    };
+
+    SECTION("Sample 1")
+    {
+        Eigen::Matrix<Scalar, 1, 3> p(19.234620905067995, -8.5723435895248201, 10.947948027288934);
+        Scalar min_u = 4.7123889803846879;
+        Scalar max_u = 4.9284934154767051;
+        Scalar min_v = -1.5707963267948966;
+        Scalar max_v = -1.4137166941154069;
+        validate(p, min_u, max_u, min_v, max_v);
+    }
+
+    SECTION("Sample 2")
+    {
+        Eigen::Matrix<Scalar, 1, 3> p(19.835675738832879, -8.3778249004781031, 10.545294801612789);
+        validate(p,
+            patch.get_u_lower_bound(),
+            patch.get_u_upper_bound(),
+            patch.get_v_lower_bound(),
+            patch.get_v_upper_bound());
+    }
+
+    SECTION("Batch")
+    {
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 3, Eigen::RowMajor> pts(18, 3);
+        pts << 19.847621068486124, -8.3696625160634959, 10.537290071933757, 19.811630218749425,
+            -8.3936441595428803, 10.561400879151087, 19.775189107434223, -8.416100490592946,
+            10.585813323317703, 19.738362645992495, -8.4370188104524733, 10.61048391928345,
+            19.701215595691497, -8.4563915624868713, 10.635369282509167, 19.663812231954171,
+            -8.4742162301906916, 10.660426353930045, 19.62621602403852, -8.490495199308814,
+            10.685612614543189, 19.588489332895676, -8.5052355870670269, 10.71088628781702,
+            19.550693129645612, -8.5184490418280951, 10.736206528288594, 19.512886736686692,
+            -8.5301515167349393, 10.761533594998161, 19.475127593021917, -8.540363021068945,
+            10.786829008700622, 19.437471044951092, -8.5491073531393678, 10.812055692083986,
+            19.399970162853982, -8.5564118185342153, 10.837178092509046, 19.362675584383521,
+            -8.5623069375084633, 10.862162287056583, 19.325635384007459, -8.5668261451694221,
+            10.886976069923399, 19.288894968487522, -8.5700054879490057, 10.911589022442341,
+            19.252496997572315, -8.5718833196373421, 10.935972566211355, 19.2164813289059,
+            -8.5724999999999998, 10.960100000000001;
+
+        Scalar min_u = 4.7123889803846879;
+        Scalar max_u = 6.8734333313048612;
+        Scalar min_v = -0.7;
+        Scalar max_v = 0;
+
+        for (int i = 0; i < 18; i++) {
+            validate(pts.row(i).eval(), min_u, max_u, min_v, max_v);
+        }
+    }
+
+    SECTION("Boundary curves 1")
+    {
+        NURBS<Scalar, 3, -1> curve;
+        Eigen::Matrix<Scalar, 3, 3, Eigen::RowMajor> control_pts;
+        control_pts << 19.2165, -7.0485, 12.4841, 22.0718, -7.0485, 12.4841, 20.4826, -7.0485,
+            10.1119;
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots(6);
+        knots << 0, 0, 0, 2.16104, 2.16104, 2.16104;
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> weights(3);
+        weights << 1, 0.470868, 1;
+
+        curve.set_control_points(control_pts);
+        curve.set_knots(knots);
+        curve.set_weights(weights);
+        curve.initialize();
+
+        check_curve_projection(curve);
+    }
+
+    SECTION("Boundary curves 2")
+    {
+        NURBS<Scalar, 3, -1> curve;
+        Eigen::Matrix<Scalar, 3, 3, Eigen::RowMajor> control_pts;
+        control_pts << 19.2165, -8.5725, 10.9601, 20.4826, -8.5725, 10.1119, 20.4826, -7.0485,
+            10.1119;
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots(6);
+        knots << 4.71239, 4.71239, 4.71239, 6.28319, 6.28319, 6.28319;
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> weights(3);
+        weights << 1, 0.707107, 1;
+
+        curve.set_control_points(control_pts);
+        curve.set_knots(knots);
+        curve.set_weights(weights);
+        curve.initialize();
+
+        check_curve_projection(curve);
+    }
+
+    SECTION("Boundary curves 3")
+    {
+        NURBS<Scalar, 3, -1> curve;
+        Eigen::Matrix<Scalar, 3, 3, Eigen::RowMajor> control_pts;
+        control_pts << 19.2165, -7.0485, 12.4841, 19.2165, -8.5725, 12.4841, 19.2165, -8.5725,
+            10.9601;
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots(6);
+        knots << 3.14159, 3.14159, 3.14159, 4.71239, 4.71239, 4.71239;
+        Eigen::Matrix<Scalar, Eigen::Dynamic, 1> weights(3);
+        weights << 1, 0.707107, 1;
+
+        curve.set_control_points(control_pts);
+        curve.set_knots(knots);
+        curve.set_weights(weights);
+        curve.initialize();
+
+        check_curve_projection(curve);
+    }
 }
 
