@@ -172,9 +172,9 @@ protected:
         UVPoint uv(min_u, min_v);
         Scalar min_dist = std::numeric_limits<Scalar>::max();
         for (int i = 0; i <= num_samples; i++) {
-            const Scalar u = i * (max_u - min_u) / num_samples + min_u;
+            const Scalar u = (i == num_samples) ? max_u : i * (max_u - min_u) / num_samples + min_u;
             for (int j = 0; j <= num_samples; j++) {
-                const Scalar v = j * (max_v - min_v) / num_samples + min_v;
+                const Scalar v = (j == num_samples) ? max_v : j * (max_v - min_v) / num_samples + min_v;
                 const Point q = this->evaluate(u, v);
                 const auto dist = (p - q).squaredNorm();
                 if (dist < min_dist) {
