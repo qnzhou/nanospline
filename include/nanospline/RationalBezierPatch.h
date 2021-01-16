@@ -354,8 +354,7 @@ public:
             ThisType patch = subpatch(uv_min(0), uv_max(0), uv_min(1), uv_max(1));
 
             // repeat recursively
-            UVPoint uv = patch.approximate_inverse_evaluate(
-                p, num_samples, uv_min(0), uv_max(0), uv_min(1), uv_max(1), level - 1);
+            UVPoint uv = patch.approximate_inverse_evaluate(p, num_samples, 0, 1, 0, 1, level - 1);
 
             // remap solution up through affine subdomain transformations
             uv(0) = (uv_max(0) - uv_min(0)) * uv(0) + uv_min(0);
