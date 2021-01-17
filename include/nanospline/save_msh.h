@@ -70,6 +70,26 @@ void add_curve_sampled(MshSpec& spec, const CurveType& curve, const size_t N, in
             element_block.data.push_back(node_offset + i + 2);
         }
     }
+
+    // Add entity tag as element data.
+    if (spec.element_data.empty()) {
+        spec.element_data.emplace_back();
+        auto& data = spec.element_data.back();
+        data.header.string_tags.push_back("curve_entity");
+        data.header.real_tags.push_back(0);
+        data.header.int_tags.push_back(0); // time step
+        data.header.int_tags.push_back(1); // num fields
+        data.header.int_tags.push_back(0); // num entries
+        data.header.int_tags.push_back(0); // partition
+    }
+    auto& data = spec.element_data.back();
+    data.header.int_tags[2] += static_cast<int>(N);
+    for (size_t i = 0; i < N; i++) {
+        data.entries.emplace_back();
+        auto& entry = data.entries.back();
+        entry.tag = element_offset + i + 1;
+        entry.data.push_back(tag);
+    }
 }
 
 template <typename CurveType>
@@ -189,6 +209,26 @@ void add_patch_sampled(MshSpec& spec,
                 element_block.data.push_back(node_offset + i * (num_v_samples + 1) + j + 2);
             }
         }
+    }
+
+    // Add entity tag as element data.
+    if (spec.element_data.size() <= 1) {
+        spec.element_data.emplace_back();
+        auto& data = spec.element_data.back();
+        data.header.string_tags.push_back("patch_entity");
+        data.header.real_tags.push_back(0);
+        data.header.int_tags.push_back(0); // time step
+        data.header.int_tags.push_back(1); // num fields
+        data.header.int_tags.push_back(0); // num entries
+        data.header.int_tags.push_back(0); // partition
+    }
+    auto& data = spec.element_data.back();
+    data.header.int_tags[2] += static_cast<int>(M);
+    for (size_t i = 0; i < M; i++) {
+        data.entries.emplace_back();
+        auto& entry = data.entries.back();
+        entry.tag = element_offset + i + 1;
+        entry.data.push_back(tag);
     }
 }
 
