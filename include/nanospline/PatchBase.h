@@ -169,33 +169,54 @@ protected:
         const Scalar max_v,
         const int level = 3) const
     {
-        UVPoint uv(min_u, min_v);
+        UVPoint uv(min_u, min_v), uv_2(min_u, min_v);
         Scalar min_dist = std::numeric_limits<Scalar>::max();
+        Scalar min_dist_2 = std::numeric_limits<Scalar>::max();
         for (int i = 0; i <= num_samples; i++) {
             const Scalar u = (i == num_samples) ? max_u : i * (max_u - min_u) / num_samples + min_u;
             for (int j = 0; j <= num_samples; j++) {
-                const Scalar v = (j == num_samples) ? max_v : j * (max_v - min_v) / num_samples + min_v;
+                const Scalar v =
+                    (j == num_samples) ? max_v : j * (max_v - min_v) / num_samples + min_v;
                 const Point q = this->evaluate(u, v);
                 const auto dist = (p - q).squaredNorm();
                 if (dist < min_dist) {
+                    min_dist_2 = min_dist;
+                    uv_2 = uv;
                     min_dist = dist;
                     uv = {u, v};
+                } else if (dist < min_dist_2) {
+                    min_dist_2 = dist;
+                    uv_2 = {u, v};
                 }
             }
         }
 
-        if (level <= 0) {
-            return uv;
-        } else {
+        auto check_sub_range = [&](Scalar u, Scalar v) {
             const auto delta_u = (max_u - min_u) / num_samples;
             const auto delta_v = (max_v - min_v) / num_samples;
             return PatchBase::approximate_inverse_evaluate(p,
                 num_samples,
-                std::max(uv[0] - delta_u, min_u),
-                std::min(uv[0] + delta_u, max_u),
-                std::max(uv[1] - delta_v, min_v),
-                std::min(uv[1] + delta_v, max_v),
+                std::max(u - delta_u, min_u),
+                std::min(u + delta_u, max_u),
+                std::max(v - delta_v, min_v),
+                std::min(v + delta_v, max_v),
                 level - 1);
+        };
+
+        if (level <= 0) {
+            return uv;
+        } else if (std::abs(min_dist - min_dist_2) > min_dist * 1e-3) {
+            return check_sub_range(uv[0], uv[1]);
+        } else {
+            // Handle the case where two uv points are nearly equally close to
+            // the query point.  This is likely due to periodic UV domain.
+            // TODO: the unlucky case where more than two uv points are all
+            // equally close to the query point is not handled...
+            const auto c1 = check_sub_range(uv[0], uv[1]);
+            const auto c2 = check_sub_range(uv_2[0], uv_2[1]);
+            const auto d1 = (this->evaluate(c1[0], c1[1]) - p).squaredNorm();
+            const auto d2 = (this->evaluate(c2[0], c2[1]) - p).squaredNorm();
+            return d1 < d2 ? c1 : c2;
         }
     }
 
