@@ -23,10 +23,11 @@ public:
         m_frame.setZero();
         m_frame(0, 0) = 1;
         m_frame(1, 1) = 1;
-        Base::set_periodic(true);
+        update_periodicity();
     }
 
-    std::unique_ptr<Base> clone() const override {
+    std::unique_ptr<Base> clone() const override
+    {
         auto ptr = std::make_unique<Circle<_Scalar, _dim>>();
         ptr->set_radius(m_radius);
         ptr->set_center(m_center);
@@ -45,8 +46,16 @@ public:
     const Frame get_frame() const { return m_frame; }
     void set_frame(const Frame& f) { m_frame = f; }
 
-    void set_domain_lower_bound(Scalar t) { m_lower = t; }
-    void set_domain_upper_bound(Scalar t) { m_upper = t; }
+    void set_domain_lower_bound(Scalar t)
+    {
+        m_lower = t;
+        update_periodicity();
+    }
+    void set_domain_upper_bound(Scalar t)
+    {
+        m_upper = t;
+        update_periodicity();
+    }
 
 public:
     int get_degree() const override { return -1; }
@@ -79,7 +88,7 @@ public:
     }
 
     Scalar approximate_inverse_evaluate(
-        const Point& p, const Scalar lower, const Scalar upper, const int level=3) const override
+        const Point& p, const Scalar lower, const Scalar upper, const int level = 3) const override
     {
         (void)level; // Level is not needed here.
 
@@ -140,6 +149,16 @@ public:
     std::vector<Scalar> compute_singularities(const Scalar, const Scalar) const override
     {
         return {};
+    }
+
+private:
+    void update_periodicity()
+    {
+        if (std::abs(fmod(m_upper - m_lower, 2 * M_PI)) < 1e-6) {
+            Base::set_periodic(true);
+        } else {
+            Base::set_periodic(false);
+        }
     }
 
 private:
