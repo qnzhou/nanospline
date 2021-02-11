@@ -45,11 +45,14 @@ public:
     const Frame get_frame() const { return m_frame; }
     void set_frame(const Frame& f) { m_frame = f; }
 
+    void set_domain_lower_bound(Scalar t) { m_lower = t; }
+    void set_domain_upper_bound(Scalar t) { m_upper = t; }
+
 public:
     int get_degree() const override { return -1; }
-    bool in_domain(Scalar t) const override { return true; }
-    Scalar get_domain_lower_bound() const override { return 0; }
-    Scalar get_domain_upper_bound() const override { return 2 * M_PI; }
+    bool in_domain(Scalar t) const override { return t >= m_lower && t <= m_upper; }
+    Scalar get_domain_lower_bound() const override { return m_lower; }
+    Scalar get_domain_upper_bound() const override { return m_upper; }
 
 public:
     Point evaluate(Scalar t) const override
@@ -143,6 +146,8 @@ private:
     Point m_center = Point::Zero();
     Frame m_frame;
     Scalar m_radius = 0;
+    Scalar m_lower = 0;
+    Scalar m_upper = 2 * M_PI;
 };
 
 } // namespace nanospline

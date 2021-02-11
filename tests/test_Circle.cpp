@@ -1,7 +1,6 @@
 #include <catch2/catch.hpp>
 
 #include <nanospline/Circle.h>
-#include <nanospline/save_msh.h>
 
 #include "validation_utils.h"
 
