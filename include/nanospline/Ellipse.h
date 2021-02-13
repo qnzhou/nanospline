@@ -6,7 +6,7 @@
 namespace nanospline {
 
 template <typename _Scalar, int _dim>
-class Circle final : public CurveBase<_Scalar, _dim>
+class Ellipse final : public CurveBase<_Scalar, _dim>
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -17,7 +17,7 @@ public:
     using Frame = Eigen::Matrix<_Scalar, 2, _dim>;
 
 public:
-    Circle()
+    Ellipse()
         : Base()
     {
         m_frame.setZero();
@@ -28,21 +28,25 @@ public:
 
     std::unique_ptr<Base> clone() const override
     {
-        auto ptr = std::make_unique<Circle<_Scalar, _dim>>();
-        ptr->set_radius(m_radius);
+        auto ptr = std::make_unique<Ellipse<_Scalar, _dim>>();
+        ptr->set_major_radius(m_major_radius);
+        ptr->set_minor_radius(m_minor_radius);
         ptr->set_center(m_center);
         ptr->set_frame(m_frame);
         return ptr;
     }
 
 public:
-    Scalar get_radius() const { return m_radius; }
-    void set_radius(Scalar r) { m_radius = r; }
+    Scalar get_major_radius() const { return m_major_radius; }
+    void set_major_radius(Scalar r) { m_major_radius = r; }
+
+    Scalar get_minor_radius() const { return m_minor_radius; }
+    void set_minor_radius(Scalar r) { m_minor_radius = r; }
 
     const Point& get_center() const { return m_center; }
     void set_center(const Point& c) { m_center = c; }
 
-    // Circle is embedded in the plane spanned by the first 2 axes of the frame.
+    // Ellipse is embedded in the plane spanned by the first 2 axes of the frame.
     const Frame get_frame() const { return m_frame; }
     void set_frame(const Frame& f) { m_frame = f; }
 
@@ -66,7 +70,8 @@ public:
 public:
     Point evaluate(Scalar t) const override
     {
-        return m_center + m_radius * (m_frame.row(0) * std::cos(t) + m_frame.row(1) * std::sin(t));
+        return m_center + m_major_radius * (m_frame.row(0) * std::cos(t)) +
+               m_minor_radius * (m_frame.row(1) * std::sin(t));
     }
 
     Scalar inverse_evaluate(const Point& p) const override
@@ -76,12 +81,14 @@ public:
 
     Point evaluate_derivative(Scalar t) const override
     {
-        return m_radius * (-m_frame.row(0) * std::sin(t) + m_frame.row(1) * std::cos(t));
+        return m_major_radius * (-m_frame.row(0)) * std::sin(t) +
+               m_minor_radius * m_frame.row(1) * std::cos(t);
     }
 
     Point evaluate_2nd_derivative(Scalar t) const override
     {
-        return m_radius * (-m_frame.row(0) * std::cos(t) - m_frame.row(1) * std::sin(t));
+        return -m_major_radius * m_frame.row(0) * std::cos(t) -
+               m_minor_radius * m_frame.row(1) * std::sin(t);
     }
 
     Scalar approximate_inverse_evaluate(
@@ -89,12 +96,11 @@ public:
     {
         (void)level; // Level is not needed here.
         assert(lower < upper);
+        auto x = (p - m_center).dot(m_frame.row(0)) / m_frame.row(0).norm();
+        auto y = (p - m_center).dot(m_frame.row(1)) / m_frame.row(1).norm();
+        auto t = std::atan2(y * m_major_radius, x * m_minor_radius);
 
-        const Scalar x = m_frame.row(0).dot(p - m_center) / m_frame.row(0).norm();
-        const Scalar y = m_frame.row(1).dot(p - m_center) / m_frame.row(1).norm();
-        auto t = std::atan2(y, x);
-
-        while(t < lower) {
+        while (t < lower) {
             t += 2 * M_PI;
         }
 
@@ -114,31 +120,31 @@ public:
     int get_num_control_points() const override { return 0; }
     Point get_control_point(int) const override
     {
-        throw not_implemented_error("Circle does not support control points.");
+        throw not_implemented_error("Ellipse does not support control points.");
     }
     void set_control_point(int, const Point&) override
     {
-        throw not_implemented_error("Circle does not support control points.");
+        throw not_implemented_error("Ellipse does not support control points.");
     }
 
     int get_num_weights() const override { return 0; }
     Scalar get_weight(int) const override
     {
-        throw not_implemented_error("Circle does not support weights.");
+        throw not_implemented_error("Ellipse does not support weights.");
     }
     void set_weight(int, Scalar) override
     {
-        throw not_implemented_error("Circle does not support weights.");
+        throw not_implemented_error("Ellipse does not support weights.");
     }
 
     int get_num_knots() const override { return 0; }
     Scalar get_knot(int) const override
     {
-        throw not_implemented_error("Circle does not support knots.");
+        throw not_implemented_error("Ellipse does not support knots.");
     }
     void set_knot(int, Scalar) override
     {
-        throw not_implemented_error("Circle does not support knots.");
+        throw not_implemented_error("Ellipse does not support knots.");
     }
 
 public:
@@ -150,7 +156,7 @@ public:
     std::vector<Scalar> reduce_turning_angle(const Scalar, const Scalar) const override
     {
         // TODO.
-        throw not_implemented_error("Turning angle of a circle cannot be reduced.");
+        throw not_implemented_error("Turning angle of a Ellipse cannot be reduced.");
     }
 
     std::vector<Scalar> compute_singularities(const Scalar, const Scalar) const override
@@ -171,7 +177,8 @@ private:
 private:
     Point m_center = Point::Zero();
     Frame m_frame;
-    Scalar m_radius = 0;
+    Scalar m_major_radius = 0;
+    Scalar m_minor_radius = 0;
     Scalar m_lower = 0;
     Scalar m_upper = 2 * M_PI;
 };
