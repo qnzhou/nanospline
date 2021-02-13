@@ -95,7 +95,7 @@ public:
         const Point& p, const Scalar lower, const Scalar upper, const int level = 3) const override
     {
         (void)level; // Level is not needed here.
-        assert(lower < upper);
+        assert(lower <= upper);
         auto x = (p - m_center).dot(m_frame.row(0)) / m_frame.row(0).norm();
         auto y = (p - m_center).dot(m_frame.row(1)) / m_frame.row(1).norm();
         auto t = std::atan2(y * m_major_radius, x * m_minor_radius);

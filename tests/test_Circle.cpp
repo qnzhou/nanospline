@@ -45,4 +45,16 @@ TEST_CASE("Circle", "[primitive][circle]")
         curve.set_center({1, 1, 1});
         check_circle(curve);
     }
+
+    SECTION("Circle arc")
+    {
+        Circle<Scalar, 2> curve;
+        curve.set_radius(1);
+        curve.set_domain_lower_bound(0);
+        curve.set_domain_upper_bound(M_PI);
+
+        REQUIRE(!curve.get_periodic());
+        REQUIRE(!curve.is_closed());
+        REQUIRE(curve.get_turning_angle(0, M_PI) == Approx(M_PI));
+    }
 }

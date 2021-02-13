@@ -88,7 +88,7 @@ public:
         const Point& p, const Scalar lower, const Scalar upper, const int level = 3) const override
     {
         (void)level; // Level is not needed here.
-        assert(lower < upper);
+        assert(lower <= upper);
 
         const Scalar x = m_frame.row(0).dot(p - m_center) / m_frame.row(0).norm();
         const Scalar y = m_frame.row(1).dot(p - m_center) / m_frame.row(1).norm();
@@ -147,15 +147,27 @@ public:
         return {};
     }
 
-    std::vector<Scalar> reduce_turning_angle(const Scalar, const Scalar) const override
+    std::vector<Scalar> reduce_turning_angle(const Scalar lower, const Scalar upper) const override
     {
-        // TODO.
-        throw not_implemented_error("Turning angle of a circle cannot be reduced.");
+        if (_dim != 2) {
+            throw std::runtime_error("Turning angle reduction is for 2D curves only");
+        }
+        assert(lower <= upper);
+        return {(lower + upper) / 2};
     }
 
     std::vector<Scalar> compute_singularities(const Scalar, const Scalar) const override
     {
         return {};
+    }
+
+    Scalar get_turning_angle(Scalar t0, Scalar t1) const override
+    {
+        if (_dim != 2) {
+            throw std::runtime_error("Turning angle reduction is for 2D curves only");
+        }
+        assert(t0 <= t1);
+        return t1 - t0;
     }
 
 private:

@@ -116,6 +116,16 @@ public:
         return {};
     }
 
+    Scalar get_turning_angle(Scalar t0, Scalar t1) const override
+    {
+        (void)t0;
+        (void)t1;
+        if (_dim != 2) {
+            throw std::runtime_error("Turning angle reduction is for 2D curves only");
+        }
+        return 0;
+    }
+
 private:
     Point m_location = Point::Zero();
     Point m_direction;
