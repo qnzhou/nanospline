@@ -26,6 +26,8 @@ public:
         update_periodicity();
     }
 
+    CurveEnum get_curve_type() const override { return CurveEnum::ELLIPSE; }
+
     std::unique_ptr<Base> clone() const override
     {
         auto ptr = std::make_unique<Ellipse<_Scalar, _dim>>();

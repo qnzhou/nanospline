@@ -10,7 +10,7 @@ class Line final : public CurveBase<_Scalar, _dim>
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-    static_assert(_dim > 1, "Dimension must be greater than 1.");
+    static_assert(_dim > 0, "Dimension must be greater than 0.");
     using Base = CurveBase<_Scalar, _dim>;
     using typename Base::Point;
     using typename Base::Scalar;
@@ -22,6 +22,8 @@ public:
         m_direction.setZero();
         m_direction[0] = 1;
     }
+
+    CurveEnum get_curve_type() const override { return CurveEnum::LINE; }
 
     std::unique_ptr<Base> clone() const override
     {

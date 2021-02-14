@@ -40,7 +40,10 @@ public:
         combine_rational_Beziers(curves, parameter_bounds);
     }
 
-    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override {
+    CurveEnum get_curve_type() const override { return CurveEnum::NURBS; }
+
+    std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override
+    {
         return std::make_unique<ThisType>(*this);
     }
 
@@ -81,7 +84,8 @@ public:
     }
 
 public:
-    virtual void set_control_point(int i, const Point& p) override {
+    virtual void set_control_point(int i, const Point& p) override
+    {
         validate_initialization();
         Base::set_control_point(i, p);
 
@@ -92,10 +96,7 @@ public:
 
     virtual int get_num_weights() const override { return Base::get_num_control_points(); }
 
-    virtual Scalar get_weight(int i) const override
-    {
-        return m_weights[i];
-    }
+    virtual Scalar get_weight(int i) const override { return m_weights[i]; }
 
     virtual void set_weight(int i, Scalar val) override
     {
@@ -108,7 +109,8 @@ public:
         m_bspline_homogeneous.set_control_point(i, q);
     }
 
-    virtual void set_knot(int i, Scalar val) override {
+    virtual void set_knot(int i, Scalar val) override
+    {
         Base::set_knot(i, val);
         m_bspline_homogeneous.set_knot(i, val);
     }
@@ -153,8 +155,7 @@ public:
         return {segments, parameter_bounds};
     }
 
-    std::vector<Scalar> compute_inflections(
-        const Scalar lower, const Scalar upper) const override
+    std::vector<Scalar> compute_inflections(const Scalar lower, const Scalar upper) const override
     {
         std::vector<RationalBezier<Scalar, _dim, _degree, _generic>> segments;
         std::vector<Scalar> parameter_bounds;
@@ -207,8 +208,7 @@ public:
         return theta;
     }
 
-    std::vector<Scalar> reduce_turning_angle(
-        const Scalar lower, const Scalar upper) const override
+    std::vector<Scalar> reduce_turning_angle(const Scalar lower, const Scalar upper) const override
     {
         if (_dim != 2) {
             throw std::runtime_error("Turning angle reduction is for 2D curves only");
@@ -248,8 +248,7 @@ public:
         return res;
     }
 
-    std::vector<Scalar> compute_singularities(
-        const Scalar lower, const Scalar upper) const override
+    std::vector<Scalar> compute_singularities(const Scalar lower, const Scalar upper) const override
     {
         if (_dim != 2) {
             throw std::runtime_error("Singularity computation is for 2D curves only");

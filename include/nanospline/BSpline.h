@@ -49,6 +49,8 @@ public:
         combine_Beziers(beziers, parameter_bounds);
     }
 
+    CurveEnum get_curve_type() const override { return CurveEnum::BSPLINE; }
+
     std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override {
         return std::make_unique<ThisType>(*this);
     }

@@ -26,6 +26,8 @@ public:
         update_periodicity();
     }
 
+    CurveEnum get_curve_type() const override { return CurveEnum::CIRCLE; }
+
     std::unique_ptr<Base> clone() const override
     {
         auto ptr = std::make_unique<Circle<_Scalar, _dim>>();

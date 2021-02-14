@@ -6,7 +6,10 @@ enum class CurveEnum {
     BEZIER = 1,
     RATIONAL_BEZIER = 2,
     BSPLINE = 3,
-    NURBS = 4
+    NURBS = 4,
+    LINE = 5,
+    CIRCLE = 6,
+    ELLIPSE = 7
 };
 
 enum class PatchEnum {
