@@ -30,7 +30,14 @@ public:
         auto ptr = std::make_unique<Line<_Scalar, _dim>>();
         ptr->set_direction(m_direction);
         ptr->set_location(m_location);
+        ptr->set_domain_lower_bound(m_lower);
+        ptr->set_domain_upper_bound(m_upper);
         return ptr;
+    }
+
+    void initialize() override {
+        constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon();
+        assert(m_direction.squaredNorm() > TOL);
     }
 
 public:
@@ -54,7 +61,7 @@ public:
 
     Scalar inverse_evaluate(const Point& p) const override
     {
-        return (p - m_location).dot(m_direction) / m_direction.squaredNorm();
+        return approximate_inverse_evaluate(p, m_lower, m_upper);
     }
 
     Point evaluate_derivative(Scalar t) const override { return m_direction; }
@@ -65,7 +72,7 @@ public:
         const Point& p, const Scalar lower, const Scalar upper, const int level = 3) const override
     {
         (void)level;
-        Scalar t = inverse_evaluate(p);
+        Scalar t = (p - m_location).dot(m_direction) / m_direction.squaredNorm();
         if (t < lower) return lower;
         if (t > upper) return upper;
         return t;

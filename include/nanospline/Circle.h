@@ -34,7 +34,17 @@ public:
         ptr->set_radius(m_radius);
         ptr->set_center(m_center);
         ptr->set_frame(m_frame);
+        ptr->set_domain_lower_bound(m_lower);
+        ptr->set_domain_upper_bound(m_upper);
         return ptr;
+    }
+
+    void initialize() override
+    {
+        constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 10;
+        assert(m_radius > 0);
+        assert(std::abs(m_frame.row(0).dot(m_frame.row(1))) < TOL);
+        assert(m_upper >= m_lower);
     }
 
 public:
