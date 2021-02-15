@@ -5,7 +5,7 @@
 
 #include "validation_utils.h"
 
-TEST_CASE("Plane", "[plane]")
+TEST_CASE("Plane", "[plane][primitive]")
 {
     using namespace nanospline;
     using Scalar = double;
