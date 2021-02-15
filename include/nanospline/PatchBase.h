@@ -1,11 +1,11 @@
 #pragma once
 
 #include <nanospline/Exceptions.h>
-#include <nanospline/split.h>
+#include <nanospline/enums.h>
+
 #include <Eigen/Core>
 #include <utility>
 #include <vector>
-
 
 namespace nanospline {
 
@@ -22,6 +22,7 @@ public:
 public:
     virtual ~PatchBase() = default;
     virtual std::unique_ptr<PatchBase> clone() const = 0;
+    virtual PatchEnum get_patch_type() const = 0;
 
 public:
     constexpr int get_dim() const { return _dim; }

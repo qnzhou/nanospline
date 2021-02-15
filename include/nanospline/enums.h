@@ -16,7 +16,14 @@ enum class PatchEnum {
     BEZIER = 1,
     RATIONAL_BEZIER = 2,
     BSPLINE = 3,
-    NURBS = 4
+    NURBS = 4,
+    PLANE = 5,
+    CYLINDER = 6,
+    CONE = 7,
+    SPHERE = 8,
+    TORUS = 9,
+    REVOLUTION = 10,
+    EXTRUSION = 11
 };
 
 enum class SampleMethod {

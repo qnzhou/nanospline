@@ -31,6 +31,7 @@ public:
     }
 
     std::unique_ptr<Base> clone() const override { return std::make_unique<ThisType>(*this); }
+    PatchEnum get_patch_type() const override { return PatchEnum::CYLINDER; }
 
     const Point& get_location() const { return m_location; }
     void set_location(const Point& p) { m_location = p; }

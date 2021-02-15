@@ -2,6 +2,7 @@
 
 #include <nanospline/Bezier.h>
 #include <nanospline/PatchBase.h>
+#include <nanospline/split.h>
 
 namespace nanospline {
 
@@ -42,6 +43,7 @@ public:
     }
 
     std::unique_ptr<Base> clone() const override { return std::make_unique<ThisType>(*this); }
+    PatchEnum get_patch_type() const override { return PatchEnum::BEZIER; }
 
 public:
     Point evaluate(Scalar u, Scalar v) const override
