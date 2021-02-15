@@ -5,21 +5,21 @@
 namespace nanospline {
 
 template <typename _Scalar, int _dim>
-class Cylinder final : public PatchBase<_Scalar, _dim>
+class Sphere final : public PatchBase<_Scalar, _dim>
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     static_assert(_dim > 2, "Dimension must be larger than 2.");
 
     using Base = PatchBase<_Scalar, _dim>;
-    using ThisType = Cylinder<_Scalar, _dim>;
+    using ThisType = Sphere<_Scalar, _dim>;
     using Scalar = typename Base::Scalar;
     using Point = typename Base::Point;
     using UVPoint = typename Base::UVPoint;
     using Frame = Eigen::Matrix<Scalar, 3, _dim>;
 
 public:
-    Cylinder()
+    Sphere()
     {
         m_location.setZero();
         m_frame.setZero();
@@ -27,7 +27,7 @@ public:
         m_frame(1, 1) = 1;
         m_frame(2, 2) = 1;
         Base::set_degree_u(2);
-        Base::set_degree_v(1);
+        Base::set_degree_v(2);
     }
 
     std::unique_ptr<Base> clone() const override { return std::make_unique<ThisType>(*this); }
@@ -44,24 +44,43 @@ public:
 public:
     Point evaluate(Scalar u, Scalar v) const override
     {
-        return m_location + m_frame.row(0) * std::cos(u) * m_radius +
-               m_frame.row(1) * std::sin(u) * m_radius + m_frame.row(2) * v;
+        return m_location +
+               m_radius * std::cos(v) *
+                   (std::cos(u) * m_frame.row(0) + std::sin(u) * m_frame.row(1)) +
+               m_radius * std::sin(v) * m_frame.row(2);
     }
 
     Point evaluate_derivative_u(Scalar u, Scalar v) const override
     {
-        return -m_frame.row(0) * std::sin(u) * m_radius + m_frame.row(1) * std::cos(u) * m_radius;
+        return m_radius * std::cos(v) *
+               (-std::sin(u) * m_frame.row(0) + std::cos(u) * m_frame.row(1));
     }
 
-    Point evaluate_derivative_v(Scalar u, Scalar v) const override { return m_frame.row(2); }
-
-    Point evaluate_2nd_derivative_uu(Scalar u, Scalar v) const override {
-        return -m_frame.row(0) * std::cos(u) * m_radius - m_frame.row(1) * std::sin(u) * m_radius;
+    Point evaluate_derivative_v(Scalar u, Scalar v) const override
+    {
+        return -m_radius * std::sin(v) *
+                   (std::cos(u) * m_frame.row(0) + std::sin(u) * m_frame.row(1)) +
+               m_radius * std::cos(v) * m_frame.row(2);
     }
 
-    Point evaluate_2nd_derivative_vv(Scalar u, Scalar v) const override { return Point::Zero(); }
+    Point evaluate_2nd_derivative_uu(Scalar u, Scalar v) const override
+    {
+        return m_radius * std::cos(v) *
+               (-std::cos(u) * m_frame.row(0) - std::sin(u) * m_frame.row(1));
+    }
 
-    Point evaluate_2nd_derivative_uv(Scalar u, Scalar v) const override { return Point::Zero(); }
+    Point evaluate_2nd_derivative_vv(Scalar u, Scalar v) const override
+    {
+        return -m_radius * std::cos(v) *
+                   (std::cos(u) * m_frame.row(0) + std::sin(u) * m_frame.row(1)) -
+               m_radius * std::sin(v) * m_frame.row(2);
+    }
+
+    Point evaluate_2nd_derivative_uv(Scalar u, Scalar v) const override
+    {
+        return -m_radius * std::sin(v) *
+               (-std::sin(u) * m_frame.row(0) + std::cos(u) * m_frame.row(1));
+    }
 
     UVPoint inverse_evaluate(const Point& p,
         const Scalar min_u,
@@ -74,13 +93,17 @@ public:
         const Scalar y = (p - m_location).dot(m_frame.row(1));
         const Scalar z = (p - m_location).dot(m_frame.row(2));
         uv[0] = std::atan2(y, x);
-        uv[1] = z;
+        uv[1] = std::atan2(z, std::hypot(x, y));
 
-        uv[1] = std::max(min_v, std::min(uv[1], max_v));
         if (uv[0] < min_u){
             int n = static_cast<int>(std::ceil((min_u - uv[0]) / (2 * M_PI)));
             uv[0] += n * 2 * M_PI;
         }
+        if (uv[1] < min_v){
+            int n = static_cast<int>(std::ceil((min_v - uv[1]) / (2 * M_PI)));
+            uv[1] += n * 2 * M_PI;
+        }
+
         if (uv[0] > max_u) {
             const Scalar du_min = 2 * M_PI - (uv[0] - min_u);
             const Scalar du_max = uv[0] - max_u;
@@ -88,6 +111,16 @@ public:
                 uv[0] = min_u;
             } else {
                 uv[0] = max_u;
+            }
+        }
+
+        if (uv[1] > max_v) {
+            const Scalar dv_min = 2 * M_PI - (uv[1] - min_v);
+            const Scalar dv_max = uv[1] - max_v;
+            if (dv_min < dv_max) {
+                uv[1] = min_v;
+            } else {
+                uv[1] = max_v;
             }
         }
 
@@ -122,31 +155,31 @@ public:
     virtual int get_num_weights_v() const override { return 0; }
     virtual Scalar get_weight(int i, int j) const override
     {
-        throw not_implemented_error("Cylinder patch does not support weight");
+        throw not_implemented_error("Sphere patch does not support weight");
     }
     virtual void set_weight(int i, int j, Scalar val) override
     {
-        throw not_implemented_error("Cylinder patch does not support weight");
+        throw not_implemented_error("Sphere patch does not support weight");
     }
 
     virtual int get_num_knots_u() const override { return 0; }
     virtual Scalar get_knot_u(int i) const override
     {
-        throw not_implemented_error("Cylinder patch does not support knots");
+        throw not_implemented_error("Sphere patch does not support knots");
     }
     virtual void set_knot_u(int i, Scalar val) override
     {
-        throw not_implemented_error("Cylinder patch does not support knots");
+        throw not_implemented_error("Sphere patch does not support knots");
     }
 
     virtual int get_num_knots_v() const override { return 0; }
     virtual Scalar get_knot_v(int i) const override
     {
-        throw not_implemented_error("Cylinder patch does not support knots");
+        throw not_implemented_error("Sphere patch does not support knots");
     }
     virtual void set_knot_v(int i, Scalar val) override
     {
-        throw not_implemented_error("Cylinder patch does not support knots");
+        throw not_implemented_error("Sphere patch does not support knots");
     }
 
 public:
@@ -156,7 +189,7 @@ public:
 
     UVPoint get_control_point_preimage(int i, int j) const override
     {
-        throw not_implemented_error("Cylinder does not need control points.");
+        throw not_implemented_error("Sphere does not need control points.");
     }
 
 private:
@@ -165,8 +198,8 @@ private:
     Scalar m_radius = 1;
     Scalar m_u_lower = 0;
     Scalar m_u_upper = 2 * M_PI;
-    Scalar m_v_lower = 0;
-    Scalar m_v_upper = 1;
+    Scalar m_v_lower = -M_PI / 2;
+    Scalar m_v_upper = M_PI / 2;
 };
 
 } // namespace nanospline
