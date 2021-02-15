@@ -450,6 +450,10 @@ void validate_inverse_evaluation_3d(const PatchType& patch,
             auto q_u = patch.evaluate_derivative_u(u, v);
             auto q_v = patch.evaluate_derivative_v(u, v);
             auto n = q_u.cross(q_v);
+            if (n.norm() < 1e-12) {
+                // Singular pt. Skipping for now.
+                continue;
+            }
             n = n / n.norm();
             q = q + .05 * n;
             const auto uv = patch.inverse_evaluate(q, u_min, u_max, v_min, v_max);
