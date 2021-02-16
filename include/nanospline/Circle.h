@@ -23,7 +23,6 @@ public:
         m_frame.setZero();
         m_frame(0, 0) = 1;
         m_frame(1, 1) = 1;
-        update_periodicity();
     }
 
     CurveEnum get_curve_type() const override { return CurveEnum::CIRCLE; }
@@ -45,6 +44,7 @@ public:
         assert(m_radius > 0);
         assert(std::abs(m_frame.row(0).dot(m_frame.row(1))) < TOL);
         assert(m_upper >= m_lower);
+        update_periodicity(TOL);
     }
 
 public:
@@ -61,12 +61,10 @@ public:
     void set_domain_lower_bound(Scalar t)
     {
         m_lower = t;
-        update_periodicity();
     }
     void set_domain_upper_bound(Scalar t)
     {
         m_upper = t;
-        update_periodicity();
     }
 
 public:
@@ -183,9 +181,9 @@ public:
     }
 
 private:
-    void update_periodicity()
+    void update_periodicity(Scalar TOL)
     {
-        if (std::abs(fmod(m_upper - m_lower, 2 * M_PI)) < 1e-6) {
+        if (std::abs(fmod(m_upper - m_lower, 2 * M_PI)) < TOL) {
             Base::set_periodic(true);
         } else {
             Base::set_periodic(false);

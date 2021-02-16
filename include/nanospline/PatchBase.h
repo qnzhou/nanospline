@@ -204,9 +204,20 @@ protected:
                 level - 1);
         };
 
+        const Scalar u_range = get_u_upper_bound() - get_u_lower_bound();
+        const Scalar v_range = get_v_upper_bound() - get_v_lower_bound();
+        auto on_opposite_boundary = [&](Scalar u1, Scalar v1, Scalar u2, Scalar v2) {
+            constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 10;
+            bool r = false;
+            r |= std::abs(std::abs(u1 - u2) - u_range) < TOL;
+            r |= std::abs(std::abs(v1 - v2) - v_range) < TOL;
+            return r;
+        };
+
         if (level <= 0) {
             return uv;
-        } else if (std::abs(min_dist - min_dist_2) > min_dist * 1e-3) {
+        } else if (std::abs(min_dist - min_dist_2) > min_dist * 1e-3 ||
+                   !on_opposite_boundary(uv[0], uv[1], uv_2[0], uv_2[1])) {
             return check_sub_range(uv[0], uv[1]);
         } else {
             // Handle the case where two uv points are nearly equally close to
