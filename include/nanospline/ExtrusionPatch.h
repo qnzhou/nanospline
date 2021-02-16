@@ -101,6 +101,7 @@ public:
     void initialize() override
     {
         constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 10;
+        (void)TOL; // Avoid warning.
         assert_valid_profile();
         assert(std::abs(m_frame.row(0).squaredNorm() - 1) < TOL);
         assert(std::abs(m_frame.row(1).squaredNorm() - 1) < TOL);

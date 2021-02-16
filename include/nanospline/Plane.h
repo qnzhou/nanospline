@@ -74,6 +74,7 @@ public:
     void initialize() override
     {
         constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 10;
+        (void)TOL; // Avoid warning.
         assert(m_frame.row(0).squaredNorm() > TOL);
         assert(m_frame.row(1).squaredNorm() > TOL);
         assert(m_u_upper > m_u_lower);

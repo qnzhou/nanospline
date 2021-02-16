@@ -36,8 +36,7 @@ public:
     }
 
     void initialize() override {
-        constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon();
-        assert(m_direction.squaredNorm() > TOL);
+        assert(m_direction.squaredNorm() > std::numeric_limits<Scalar>::epsilon());
     }
 
 public:
