@@ -96,11 +96,11 @@ public:
         uv[0] = std::atan2(y, x);
         uv[1] = std::atan2(z, std::hypot(x, y));
 
-        if (uv[0] < min_u){
+        if (uv[0] < min_u) {
             int n = static_cast<int>(std::ceil((min_u - uv[0]) / (2 * M_PI)));
             uv[0] += n * 2 * M_PI;
         }
-        if (uv[1] < min_v){
+        if (uv[1] < min_v) {
             int n = static_cast<int>(std::ceil((min_v - uv[1]) / (2 * M_PI)));
             uv[1] += n * 2 * M_PI;
         }
@@ -139,6 +139,13 @@ public:
         assert(std::abs(m_frame.row(2).dot(m_frame.row(0))) < TOL);
         assert(m_u_upper > m_u_lower);
         assert(m_v_upper > m_v_lower);
+
+        Base::set_periodic_u((fmod(m_u_upper - m_u_lower, 2 * M_PI) < TOL));
+        if (std::abs(m_v_lower + M_PI / 2) < TOL && std::abs(m_v_upper - M_PI / 2) < TOL) {
+            Base::set_periodic_v(true);
+        } else {
+            Base::set_periodic_v(false);
+        }
     }
 
     Scalar get_u_lower_bound() const override { return m_u_lower; }

@@ -35,6 +35,7 @@ TEST_CASE("Circle", "[primitive][circle]")
     {
         Circle<Scalar, 2> curve;
         curve.set_radius(1);
+        curve.initialize();
         check_circle(curve);
     }
 
@@ -43,6 +44,7 @@ TEST_CASE("Circle", "[primitive][circle]")
         Circle<Scalar, 3> curve;
         curve.set_radius(2);
         curve.set_center({1, 1, 1});
+        curve.initialize();
         check_circle(curve);
     }
 
@@ -52,6 +54,7 @@ TEST_CASE("Circle", "[primitive][circle]")
         curve.set_radius(1);
         curve.set_domain_lower_bound(0);
         curve.set_domain_upper_bound(M_PI);
+        curve.initialize();
 
         REQUIRE(!curve.get_periodic());
         REQUIRE(!curve.is_closed());

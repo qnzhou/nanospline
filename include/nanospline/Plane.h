@@ -78,6 +78,8 @@ public:
         assert(m_frame.row(1).squaredNorm() > TOL);
         assert(m_u_upper > m_u_lower);
         assert(m_v_upper > m_v_lower);
+        Base::set_periodic_u(false);
+        Base::set_periodic_v(false);
     }
 
     Scalar get_u_lower_bound() const override { return m_u_lower; }

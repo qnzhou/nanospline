@@ -136,6 +136,8 @@ public:
         Base::set_periodic_u(m_profile->get_periodic());
         if (m_v_upper - m_v_lower > 2 * M_PI - TOL) {
             Base::set_periodic_v(true);
+        } else {
+            Base::set_periodic_v(false);
         }
     }
 

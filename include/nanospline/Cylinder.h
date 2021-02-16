@@ -106,6 +106,9 @@ public:
         assert(std::abs(m_frame.row(2).dot(m_frame.row(0))) < TOL);
         assert(m_u_upper > m_u_lower);
         assert(m_v_upper > m_v_lower);
+
+        Base::set_periodic_u((fmod(m_u_upper - m_u_lower, 2 * M_PI) < TOL));
+        Base::set_periodic_v(false);
     }
 
     Scalar get_u_lower_bound() const override { return m_u_lower; }
