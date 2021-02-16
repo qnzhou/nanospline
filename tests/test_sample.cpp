@@ -1,5 +1,6 @@
 #include <catch2/catch.hpp>
 
+#include <nanospline/nanospline.h>
 #include <nanospline/sample.h>
 
 TEST_CASE("sample", "[sample]") {

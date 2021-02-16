@@ -28,6 +28,8 @@ public:
     using BezierHomogeneous = Bezier<_Scalar, _dim + 1, _degree, _generic>;
 
 public:
+    CurveEnum get_curve_type() const override { return CurveEnum::RATIONAL_BEZIER; }
+
     std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override
     {
         return std::make_unique<ThisType>(*this);

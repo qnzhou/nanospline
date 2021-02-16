@@ -1,13 +1,16 @@
 #pragma once
 
+#include <nanospline/Exceptions.h>
+#include <nanospline/enums.h>
+
+#include <Eigen/Core>
+
+#include <cassert>
 #include <cmath>
-#include <iostream>
 #include <limits>
 #include <memory>
 #include <vector>
 
-#include <nanospline/Exceptions.h>
-#include <Eigen/Core>
 namespace nanospline {
 
 template <typename _Scalar, int _dim>
@@ -23,6 +26,8 @@ public:
     virtual std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const = 0;
 
     virtual void initialize() {}
+
+    virtual CurveEnum get_curve_type() const = 0;
 
     constexpr int get_dim() const { return _dim; }
     virtual int get_degree() const = 0;

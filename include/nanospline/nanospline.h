@@ -12,6 +12,16 @@
 #include <nanospline/NURBSPatch.h>
 #include <nanospline/RationalBezierPatch.h>
 
+// Curve primitive types.
+#include <nanospline/Line.h>
+#include <nanospline/Circle.h>
+#include <nanospline/Ellipse.h>
+
+// Patch primitive types.
+#include <nanospline/Plane.h>
+#include <nanospline/Cylinder.h>
+#include <nanospline/Sphere.h>
+
 // IO
 #include <nanospline/load_msh.h>
 #include <nanospline/save_msh.h>

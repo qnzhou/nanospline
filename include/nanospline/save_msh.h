@@ -110,13 +110,7 @@ void add_curve(MshSpec& spec, const CurveType& curve, int tag = 1)
     }
 
     curve_spec.curve_tag = static_cast<size_t>(tag);
-    if (num_knots == 0) {
-        curve_spec.curve_type = static_cast<size_t>(
-            (num_weights == 0) ? CurveEnum::BEZIER : CurveEnum::RATIONAL_BEZIER);
-    } else {
-        curve_spec.curve_type =
-            static_cast<size_t>((num_weights == 0) ? CurveEnum::BSPLINE : CurveEnum::NURBS);
-    }
+    curve_spec.curve_type = static_cast<size_t>(curve.get_curve_type());
     curve_spec.curve_degree = static_cast<size_t>(degree);
     curve_spec.num_control_points = static_cast<size_t>(num_control_points);
     curve_spec.num_knots = static_cast<size_t>(num_knots);

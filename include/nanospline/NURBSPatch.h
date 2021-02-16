@@ -3,6 +3,7 @@
 #include <nanospline/BSplinePatch.h>
 #include <nanospline/NURBS.h>
 #include <nanospline/PatchBase.h>
+#include <nanospline/split.h>
 
 namespace nanospline {
 
@@ -33,7 +34,7 @@ public:
     }
 
     std::unique_ptr<Base> clone() const override { return std::make_unique<ThisType>(*this); }
-
+    PatchEnum get_patch_type() const override { return PatchEnum::NURBS; }
 
 public:
     int num_control_points_u() const override { return m_homogeneous.num_control_points_u(); }

@@ -33,6 +33,8 @@ public:
 public:
     Bezier() = default;
 
+    CurveEnum get_curve_type() const override { return CurveEnum::BEZIER; }
+
     std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override
     {
         return std::make_unique<ThisType>(*this);
@@ -432,6 +434,8 @@ public:
     using ControlPoints = typename Base::ControlPoints;
 
 public:
+    CurveEnum get_curve_type() const override { return CurveEnum::BEZIER; }
+
     std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override
     {
         return std::make_unique<Bezier<_Scalar, _dim, 0, false>>(*this);
@@ -488,6 +492,8 @@ public:
     using ControlPoints = typename Base::ControlPoints;
 
 public:
+    CurveEnum get_curve_type() const override { return CurveEnum::BEZIER; }
+
     std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override
     {
         return std::make_unique<Bezier<_Scalar, _dim, 1, false>>(*this);
@@ -582,6 +588,8 @@ public:
     using ControlPoints = typename Base::ControlPoints;
 
 public:
+    CurveEnum get_curve_type() const override { return CurveEnum::BEZIER; }
+
     std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override
     {
         return std::make_unique<Bezier<_Scalar, _dim, 2, false>>(*this);
@@ -772,6 +780,8 @@ public:
     using ControlPoints = typename Base::ControlPoints;
 
 public:
+    CurveEnum get_curve_type() const override { return CurveEnum::BEZIER; }
+
     std::unique_ptr<CurveBase<_Scalar, _dim>> clone() const override
     {
         return std::make_unique<Bezier<_Scalar, _dim, 3, false>>(*this);

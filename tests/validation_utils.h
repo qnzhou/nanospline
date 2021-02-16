@@ -1,6 +1,6 @@
 #pragma once
-#include <nanospline/hodograph.h>
 #include <nanospline/PatchBase.h>
+#include <nanospline/hodograph.h>
 #include <Eigen/Core>
 #include <catch2/catch.hpp>
 #include <limits>
@@ -427,6 +427,19 @@ void validate_inverse_evaluation_3d(const PatchType& patch, int u_samples, int v
     const auto u_max = patch.get_u_upper_bound();
     const auto v_min = patch.get_v_lower_bound();
     const auto v_max = patch.get_v_upper_bound();
+    validate_inverse_evaluation_3d(patch, u_samples, v_samples, {u_min, u_max, v_min, v_max});
+}
+
+template <typename PatchType>
+void validate_inverse_evaluation_3d(const PatchType& patch,
+    int u_samples,
+    int v_samples,
+    const std::array<typename PatchType::Scalar, 4>& domain)
+{
+    const auto u_min = domain[0];
+    const auto u_max = domain[1];
+    const auto v_min = domain[2];
+    const auto v_max = domain[3];
 
     for (int i = 0; i <= u_samples; i++) {
         for (int j = 0; j <= v_samples; j++) {
@@ -437,6 +450,10 @@ void validate_inverse_evaluation_3d(const PatchType& patch, int u_samples, int v
             auto q_u = patch.evaluate_derivative_u(u, v);
             auto q_v = patch.evaluate_derivative_v(u, v);
             auto n = q_u.cross(q_v);
+            if (n.norm() < 1e-12) {
+                // Singular pt. Skipping for now.
+                continue;
+            }
             n = n / n.norm();
             q = q + .05 * n;
             const auto uv = patch.inverse_evaluate(q, u_min, u_max, v_min, v_max);
