@@ -20,7 +20,11 @@
 // Patch primitive types.
 #include <nanospline/Plane.h>
 #include <nanospline/Cylinder.h>
+#include <nanospline/Cone.h>
 #include <nanospline/Sphere.h>
+#include <nanospline/Torus.h>
+#include <nanospline/RevolutionPatch.h>
+#include <nanospline/ExtrusionPatch.h>
 
 // IO
 #include <nanospline/load_msh.h>
