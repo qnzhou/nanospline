@@ -3,6 +3,8 @@
 #include <nanospline/CurveBase.h>
 #include <nanospline/Exceptions.h>
 
+#include <cmath>
+
 namespace nanospline {
 
 template <typename _Scalar, int _dim>

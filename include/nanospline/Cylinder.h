@@ -2,6 +2,8 @@
 
 #include <nanospline/PatchBase.h>
 
+#include <cmath>
+
 namespace nanospline {
 
 template <typename _Scalar, int _dim>

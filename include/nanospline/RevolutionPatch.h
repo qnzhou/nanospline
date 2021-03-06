@@ -31,7 +31,18 @@ public:
         Base::set_degree_v(2);
     }
 
-    std::unique_ptr<Base> clone() const override { return std::make_unique<ThisType>(*this); }
+    std::unique_ptr<Base> clone() const override {
+        auto patch = std::make_unique<ThisType>();
+        patch->set_location(get_location());
+        patch->set_frame(get_frame());
+        patch->set_profile(get_profile());
+        patch->set_u_lower_bound(get_u_lower_bound());
+        patch->set_u_upper_bound(get_u_upper_bound());
+        patch->set_v_lower_bound(get_v_lower_bound());
+        patch->set_v_upper_bound(get_v_upper_bound());
+        patch->initialize();
+        return patch;
+    }
     PatchEnum get_patch_type() const override { return PatchEnum::REVOLUTION; }
 
     const Point& get_location() const { return m_location; }
@@ -40,8 +51,15 @@ public:
     const Frame& get_frame() const { return m_frame; }
     void set_frame(const Frame& f) { m_frame = f; }
 
-    const ProfileType* get_profile() const { return m_profile; }
-    void set_profile(const ProfileType* profile) { m_profile = profile; }
+    const ProfileType* get_profile() const { return m_profile.get(); }
+    void set_profile(const ProfileType* profile) {
+        if (profile != nullptr) {
+            m_profile = profile->clone();
+        } else {
+            m_profile = nullptr;
+        }
+    }
+    void set_profile(std::unique_ptr<ProfileType>&& profile) { m_profile = std::move(profile); }
 
 public:
     Point evaluate(Scalar u, Scalar v) const override
@@ -204,7 +222,7 @@ private:
 private:
     Point m_location;
     Frame m_frame;
-    const ProfileType* m_profile = nullptr;
+    std::unique_ptr<ProfileType> m_profile = nullptr;
     Scalar m_u_lower = 0;
     Scalar m_u_upper = 1;
     Scalar m_v_lower = 0;
