@@ -16,17 +16,13 @@ public:
     using Scalar = typename Base::Scalar;
     using Point = typename Base::Point;
     using UVPoint = typename Base::UVPoint;
-    using Frame = Eigen::Matrix<Scalar, 3, _dim>;
     using ProfileType = CurveBase<_Scalar, _dim>;
 
 public:
     RevolutionPatch()
     {
         m_location.setZero();
-        m_frame.setZero();
-        m_frame(0, 0) = 1;
-        m_frame(1, 1) = 1;
-        m_frame(2, 2) = 1;
+        m_axis << 0, 0, 1;
         Base::set_degree_u(2);
         Base::set_degree_v(2);
     }
@@ -34,7 +30,7 @@ public:
     std::unique_ptr<Base> clone() const override {
         auto patch = std::make_unique<ThisType>();
         patch->set_location(get_location());
-        patch->set_frame(get_frame());
+        patch->set_axis(get_axis());
         patch->set_profile(get_profile());
         patch->set_u_lower_bound(get_u_lower_bound());
         patch->set_u_upper_bound(get_u_upper_bound());
@@ -48,8 +44,8 @@ public:
     const Point& get_location() const { return m_location; }
     void set_location(const Point& p) { m_location = p; }
 
-    const Frame& get_frame() const { return m_frame; }
-    void set_frame(const Frame& f) { m_frame = f; }
+    const Point& get_axis() const { return m_axis; }
+    void set_axis(const Point& d) { m_axis = d; }
 
     const ProfileType* get_profile() const { return m_profile.get(); }
     void set_profile(const ProfileType* profile) {
@@ -66,7 +62,7 @@ public:
     {
         assert_valid_profile();
         const auto p = m_profile->evaluate(u);
-        Eigen::AngleAxis<Scalar> R(v, m_frame.row(2));
+        Eigen::AngleAxis<Scalar> R(v, m_axis);
         return m_location + (R * (p - m_location).transpose()).transpose();
     }
 
@@ -74,7 +70,7 @@ public:
     {
         assert_valid_profile();
         const auto d = m_profile->evaluate_derivative(u);
-        Eigen::AngleAxis<Scalar> R(v, m_frame.row(2));
+        Eigen::AngleAxis<Scalar> R(v, m_axis);
         return (R * d.transpose()).transpose();
     }
 
@@ -82,11 +78,11 @@ public:
     {
         assert_valid_profile();
         const auto p = evaluate(u, v);
-        Point d = m_frame.row(2).cross(p - m_location);
+        Point d = m_axis.cross(p - m_location);
         constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 10;
         if (d.norm() > TOL) {
             const Point v = p - m_location;
-            const Scalar r = (v - v.dot(m_frame.row(2)) * m_frame.row(2)).norm();
+            const Scalar r = (v - v.dot(m_axis) * m_axis).norm();
             d = d.normalized() * r;
         }
         return d;
@@ -96,7 +92,7 @@ public:
     {
         assert_valid_profile();
         const auto d = m_profile->evaluate_2nd_derivative(u);
-        Eigen::AngleAxis<Scalar> R(v, m_frame.row(2));
+        Eigen::AngleAxis<Scalar> R(v, m_axis);
         return (R * d.transpose()).transpose();
     }
 
@@ -105,18 +101,18 @@ public:
         assert_valid_profile();
         const auto p = evaluate(u, v);
         Point d = p - m_location;
-        return -d + d.dot(m_frame.row(2)) * m_frame.row(2);
+        return -d + d.dot(m_axis) * m_axis;
     }
 
     Point evaluate_2nd_derivative_uv(Scalar u, Scalar v) const override
     {
         assert_valid_profile();
         Point du = evaluate_derivative_u(u, v);
-        Point duv = m_frame.row(2).cross(du);
+        Point duv = m_axis.cross(du);
 
         constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 10;
         if (duv.norm() > TOL) {
-            const Scalar r = (duv - duv.dot(m_frame.row(2)) * m_frame.row(2)).norm();
+            const Scalar r = (duv - duv.dot(m_axis) * m_axis).norm();
             duv = duv.normalized() * r;
         }
         return duv;
@@ -142,12 +138,7 @@ public:
     {
         constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 10;
         assert_valid_profile();
-        assert(std::abs(m_frame.row(0).squaredNorm() - 1) < TOL);
-        assert(std::abs(m_frame.row(1).squaredNorm() - 1) < TOL);
-        assert(std::abs(m_frame.row(2).squaredNorm() - 1) < TOL);
-        assert(std::abs(m_frame.row(0).dot(m_frame.row(1))) < TOL);
-        assert(std::abs(m_frame.row(1).dot(m_frame.row(2))) < TOL);
-        assert(std::abs(m_frame.row(2).dot(m_frame.row(0))) < TOL);
+        assert(std::abs(m_axis.squaredNorm() - 1) < TOL);
         assert(m_u_upper > m_u_lower);
         assert(m_v_upper > m_v_lower);
 
@@ -221,7 +212,7 @@ private:
 
 private:
     Point m_location;
-    Frame m_frame;
+    Point m_axis;
     std::unique_ptr<ProfileType> m_profile = nullptr;
     Scalar m_u_lower = 0;
     Scalar m_u_upper = 1;
