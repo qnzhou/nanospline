@@ -60,4 +60,14 @@ TEST_CASE("Circle", "[primitive][circle]")
         REQUIRE(!curve.is_closed());
         REQUIRE(curve.get_turning_angle(0, M_PI) == Approx(M_PI));
     }
+
+    SECTION("Degenerate circle")
+    {
+        Circle<Scalar, 3> curve;
+        curve.set_radius(0);
+        curve.set_center({-1, 1, 1});
+        curve.initialize();
+        check_circle(curve);
+    }
+
 }
