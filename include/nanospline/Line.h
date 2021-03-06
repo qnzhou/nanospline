@@ -36,6 +36,7 @@ public:
     }
 
     void initialize() override {
+        assert(m_upper >= m_lower);
         assert(m_direction.squaredNorm() > std::numeric_limits<Scalar>::epsilon());
     }
 

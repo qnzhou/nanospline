@@ -121,8 +121,8 @@ public:
         (void)TOL; // Avoid warning.
         assert_valid_profile();
         assert(std::abs(m_direction.squaredNorm() - 1) < TOL);
-        assert(m_u_upper > m_u_lower);
-        assert(m_v_upper > m_v_lower);
+        assert(m_u_upper >= m_u_lower);
+        assert(m_v_upper >= m_v_lower);
 
         Base::set_periodic_u(m_profile->get_periodic());
         Base::set_periodic_v(false);

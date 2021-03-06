@@ -77,8 +77,8 @@ public:
         (void)TOL; // Avoid warning.
         assert(m_frame.row(0).squaredNorm() > TOL);
         assert(m_frame.row(1).squaredNorm() > TOL);
-        assert(m_u_upper > m_u_lower);
-        assert(m_v_upper > m_v_lower);
+        assert(m_u_upper >= m_u_lower);
+        assert(m_v_upper >= m_v_lower);
         Base::set_periodic_u(false);
         Base::set_periodic_v(false);
     }

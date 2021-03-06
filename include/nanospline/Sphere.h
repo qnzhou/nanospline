@@ -139,8 +139,8 @@ public:
         assert(std::abs(m_frame.row(0).dot(m_frame.row(1))) < TOL);
         assert(std::abs(m_frame.row(1).dot(m_frame.row(2))) < TOL);
         assert(std::abs(m_frame.row(2).dot(m_frame.row(0))) < TOL);
-        assert(m_u_upper > m_u_lower);
-        assert(m_v_upper > m_v_lower);
+        assert(m_u_upper >= m_u_lower);
+        assert(m_v_upper >= m_v_lower);
 
         Base::set_periodic_u((fmod(m_u_upper - m_u_lower, 2 * M_PI) < TOL));
         if (std::abs(m_v_lower + M_PI / 2) < TOL && std::abs(m_v_upper - M_PI / 2) < TOL) {

@@ -61,42 +61,34 @@ public:
     Point evaluate(Scalar u, Scalar v) const override
     {
         assert_valid_profile();
-        const auto p = m_profile->evaluate(u);
-        Eigen::AngleAxis<Scalar> R(v, m_axis);
+        const auto p = m_profile->evaluate(v);
+        Eigen::AngleAxis<Scalar> R(u, m_axis);
         return m_location + (R * (p - m_location).transpose()).transpose();
     }
 
     Point evaluate_derivative_u(Scalar u, Scalar v) const override
     {
         assert_valid_profile();
-        const auto d = m_profile->evaluate_derivative(u);
-        Eigen::AngleAxis<Scalar> R(v, m_axis);
-        return (R * d.transpose()).transpose();
-    }
-
-    Point evaluate_derivative_v(Scalar u, Scalar v) const override
-    {
-        assert_valid_profile();
         const auto p = evaluate(u, v);
-        Point d = m_axis.cross(p - m_location);
+        Point s = p - m_location;
+        Point d = m_axis.cross(s);
         constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 10;
         if (d.norm() > TOL) {
-            const Point v = p - m_location;
-            const Scalar r = (v - v.dot(m_axis) * m_axis).norm();
+            const Scalar r = (s - s.dot(m_axis) * m_axis).norm();
             d = d.normalized() * r;
         }
         return d;
     }
 
-    Point evaluate_2nd_derivative_uu(Scalar u, Scalar v) const override
+    Point evaluate_derivative_v(Scalar u, Scalar v) const override
     {
         assert_valid_profile();
-        const auto d = m_profile->evaluate_2nd_derivative(u);
-        Eigen::AngleAxis<Scalar> R(v, m_axis);
+        const auto d = m_profile->evaluate_derivative(v);
+        Eigen::AngleAxis<Scalar> R(u, m_axis);
         return (R * d.transpose()).transpose();
     }
 
-    Point evaluate_2nd_derivative_vv(Scalar u, Scalar v) const override
+    Point evaluate_2nd_derivative_uu(Scalar u, Scalar v) const override
     {
         assert_valid_profile();
         const auto p = evaluate(u, v);
@@ -104,11 +96,19 @@ public:
         return -d + d.dot(m_axis) * m_axis;
     }
 
+    Point evaluate_2nd_derivative_vv(Scalar u, Scalar v) const override
+    {
+        assert_valid_profile();
+        const auto d = m_profile->evaluate_2nd_derivative(v);
+        Eigen::AngleAxis<Scalar> R(u, m_axis);
+        return (R * d.transpose()).transpose();
+    }
+
     Point evaluate_2nd_derivative_uv(Scalar u, Scalar v) const override
     {
         assert_valid_profile();
-        Point du = evaluate_derivative_u(u, v);
-        Point duv = m_axis.cross(du);
+        Point dv = evaluate_derivative_v(u, v);
+        Point duv = m_axis.cross(dv);
 
         constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 10;
         if (duv.norm() > TOL) {
@@ -139,14 +139,14 @@ public:
         constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 10;
         assert_valid_profile();
         assert(std::abs(m_axis.squaredNorm() - 1) < TOL);
-        assert(m_u_upper > m_u_lower);
-        assert(m_v_upper > m_v_lower);
+        assert(m_u_upper >= m_u_lower);
+        assert(m_v_upper >= m_v_lower);
 
         Base::set_periodic_u(m_profile->get_periodic());
-        if (m_v_upper - m_v_lower > 2 * M_PI - TOL) {
-            Base::set_periodic_v(true);
+        if (m_u_upper - m_u_lower > 2 * M_PI - TOL) {
+            Base::set_periodic_u(true);
         } else {
-            Base::set_periodic_v(false);
+            Base::set_periodic_u(false);
         }
     }
 
