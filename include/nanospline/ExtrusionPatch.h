@@ -23,6 +23,7 @@ public:
     {
         m_location.setZero();
         m_direction.setZero();
+        m_direction[_dim-1] = 1;
         Base::set_degree_u(2);
         Base::set_degree_v(2);
     }
