@@ -95,17 +95,24 @@ public:
         uv[0] = std::atan2(y, x);
 
         const Point v = std::cos(uv[0]) * m_frame.row(0) + std::sin(uv[0]) * m_frame.row(1);
-        const Point q = m_radius * v;
+        const Point q = m_location + m_radius * v;
         const Point d = std::sin(m_angle) * v + std::cos(m_angle) * m_frame.row(2);
-        uv[1] = (p - q).dot(d) / d.squaredNorm();
+        assert(std::abs(d.norm() - 1) < 1e-6);
+        uv[1] = (p - q).dot(d);
         assert(uv.array().isFinite().all());
 
         uv[1] = std::max(min_v, std::min(uv[1], max_v));
         if (uv[0] < min_u) {
             int n = static_cast<int>(std::ceil((min_u - uv[0]) / (2 * M_PI)));
             uv[0] += n * 2 * M_PI;
+        } else {
+            uv[0] = min_u + std::fmod(uv[0] - min_u, 2 * M_PI);
         }
+
         if (uv[0] > max_u) {
+            // Handle the case where u is out of its valid domain (i.e. cylinder
+            // patch is not periodic in u).  Check the 2 arc boundaries.
+            assert(!Base::get_periodic_u());
             const Scalar du_min = 2 * M_PI - (uv[0] - min_u);
             const Scalar du_max = uv[0] - max_u;
             if (du_min < du_max) {

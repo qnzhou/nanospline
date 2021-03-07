@@ -21,6 +21,29 @@ TEST_CASE("Cone", "[Cone][primitive]")
         validate_inverse_evaluation_3d(patch, 10, 10);
     }
 
+    SECTION("Simple 3D 2")
+    {
+        Cone<Scalar, 3> patch;
+        patch.set_location({1, 2, 3});
+
+        const Scalar c = std::sqrt(2) / 2;
+        Eigen::Matrix<Scalar, 3, 3> frame;
+        frame << 0, 0, 1, c, c, 0, -c, c, 0;
+        patch.set_frame(frame);
+
+        patch.set_radius(0.5);
+        patch.set_angle(M_PI / 6);
+
+        patch.initialize();
+
+        REQUIRE(patch.get_dim() == 3);
+        REQUIRE(patch.get_periodic_u());
+
+        validate_derivative(patch, 10, 10);
+        validate_inverse_evaluation(patch, 10, 10);
+        validate_inverse_evaluation_3d(patch, 10, 10);
+    }
+
     SECTION("Paritial Cone")
     {
         Cone<Scalar, 3> patch;
@@ -52,6 +75,60 @@ TEST_CASE("Cone", "[Cone][primitive]")
                 patch.get_v_upper_bound());
             auto q = patch.evaluate(uv[0], uv[1]);
             REQUIRE(q == patch.get_location());
+        }
+    }
+
+    SECTION("Singularity")
+    {
+        Cone<Scalar, 3> patch;
+        Eigen::Matrix<Scalar, 1, 3> l(2.4492935982947e-16, 32.0, 31.8354970464981);
+        patch.set_location(l);
+        patch.set_radius(0);
+        patch.set_angle(0.7853981634);
+        patch.set_u_lower_bound(M_PI);
+        patch.set_u_upper_bound(3 * M_PI);
+        patch.set_v_lower_bound(0);
+        patch.set_v_upper_bound(1.414213562373095);
+        patch.initialize();
+
+        validate_derivative(patch, 10, 10);
+        validate_inverse_evaluation(patch, 10, 10);
+        validate_inverse_evaluation_3d(patch, 10, 10);
+
+        // Ensure `l` is the singularity
+        REQUIRE((patch.evaluate(0, 0) - l).norm() == Approx(0));
+        REQUIRE(patch.evaluate_derivative_u(0, 0).norm() == Approx(0));
+        REQUIRE((patch.evaluate(1, 0) - l).norm() == Approx(0));
+        REQUIRE((patch.evaluate(M_PI, 0) - l).norm() == Approx(0));
+
+        SECTION("Query at singularity") {
+            Eigen::Matrix<Scalar, 1, 3> q1(l[0], l[1], l[2]);
+            auto uv = patch.inverse_evaluate(q1,
+                patch.get_u_lower_bound(),
+                patch.get_u_upper_bound(),
+                patch.get_v_lower_bound(),
+                patch.get_v_upper_bound());
+            REQUIRE(uv[1] == Approx(0));
+        }
+
+        SECTION("Query outside of the cone") {
+            Eigen::Matrix<Scalar, 1, 3> q1(l[0], l[1], l[2] - 1);
+            auto uv = patch.inverse_evaluate(q1,
+                patch.get_u_lower_bound(),
+                patch.get_u_upper_bound(),
+                patch.get_v_lower_bound(),
+                patch.get_v_upper_bound());
+            REQUIRE(uv[1] == Approx(0));
+        }
+
+        SECTION("Query inside of the cone") {
+            Eigen::Matrix<Scalar, 1, 3> q1(l[0], l[1], l[2] + 1);
+            auto uv = patch.inverse_evaluate(q1,
+                patch.get_u_lower_bound(),
+                patch.get_u_upper_bound(),
+                patch.get_v_lower_bound(),
+                patch.get_v_upper_bound());
+            REQUIRE(uv[1] > 0);
         }
     }
 }
