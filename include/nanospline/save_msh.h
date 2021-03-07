@@ -288,8 +288,8 @@ void add_patch(MshSpec& spec, const PatchType& patch, int tag = 1)
 
 template <typename Scalar, int dim = 3>
 void save_msh(const std::string& filename,
-    const std::vector<CurveBase<Scalar, dim>*>& curves,
-    const std::vector<PatchBase<Scalar, dim>*>& patches,
+    const std::vector<const CurveBase<Scalar, dim>*>& curves,
+    const std::vector<const PatchBase<Scalar, dim>*>& patches,
     bool binary = true,
     bool save_sampled = true)
 {
@@ -312,11 +312,9 @@ void save_msh(const std::string& filename,
     for (auto& patch : patches) {
         internal::add_patch(spec, *patch, tag);
         if (save_sampled) {
-            internal::add_patch_sampled(spec,
-                *patch,
-                static_cast<size_t>(5 * patch->num_control_points_u()),
-                static_cast<size_t>(5 * patch->num_control_points_v()),
-                tag);
+            size_t num_u_samples = static_cast<size_t>(std::max(64, patch->num_control_points_u() * 5));
+            size_t num_v_samples = static_cast<size_t>(std::max(64, patch->num_control_points_v() * 5));
+            internal::add_patch_sampled(spec, *patch, num_u_samples, num_v_samples, tag);
         }
         tag++;
     }

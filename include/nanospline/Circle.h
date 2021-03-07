@@ -3,6 +3,8 @@
 #include <nanospline/CurveBase.h>
 #include <nanospline/Exceptions.h>
 
+#include <cmath>
+
 namespace nanospline {
 
 template <typename _Scalar, int _dim>
@@ -35,13 +37,15 @@ public:
         ptr->set_frame(m_frame);
         ptr->set_domain_lower_bound(m_lower);
         ptr->set_domain_upper_bound(m_upper);
+        ptr->initialize();
         return ptr;
     }
 
     void initialize() override
     {
         constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 10;
-        assert(m_radius > 0);
+        assert(std::abs(m_frame.row(0).squaredNorm() - 1) < TOL);
+        assert(std::abs(m_frame.row(1).squaredNorm() - 1) < TOL);
         assert(std::abs(m_frame.row(0).dot(m_frame.row(1))) < TOL);
         assert(m_upper >= m_lower);
         update_periodicity(TOL);
@@ -58,14 +62,8 @@ public:
     const Frame get_frame() const { return m_frame; }
     void set_frame(const Frame& f) { m_frame = f; }
 
-    void set_domain_lower_bound(Scalar t)
-    {
-        m_lower = t;
-    }
-    void set_domain_upper_bound(Scalar t)
-    {
-        m_upper = t;
-    }
+    void set_domain_lower_bound(Scalar t) { m_lower = t; }
+    void set_domain_upper_bound(Scalar t) { m_upper = t; }
 
 public:
     int get_degree() const override { return -1; }
@@ -100,11 +98,11 @@ public:
         (void)level; // Level is not needed here.
         assert(lower <= upper);
 
-        const Scalar x = m_frame.row(0).dot(p - m_center) / m_frame.row(0).norm();
-        const Scalar y = m_frame.row(1).dot(p - m_center) / m_frame.row(1).norm();
+        const Scalar x = m_frame.row(0).dot(p - m_center);
+        const Scalar y = m_frame.row(1).dot(p - m_center);
         auto t = std::atan2(y, x);
 
-        while(t < lower) {
+        while (t < lower) {
             t += 2 * M_PI;
         }
 
@@ -183,11 +181,8 @@ public:
 private:
     void update_periodicity(Scalar TOL)
     {
-        if (std::abs(fmod(m_upper - m_lower, 2 * M_PI)) < TOL) {
-            Base::set_periodic(true);
-        } else {
-            Base::set_periodic(false);
-        }
+        auto rounded_winding = std::round((m_upper - m_lower) / (2 * M_PI)) * 2 * M_PI;
+        Base::set_periodic(std::abs(m_upper - m_lower - rounded_winding) < TOL);
     }
 
 private:

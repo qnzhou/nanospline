@@ -2,6 +2,8 @@
 
 #include <nanospline/PatchBase.h>
 
+#include <cmath>
+
 namespace nanospline {
 
 template <typename _Scalar, int _dim>
@@ -141,10 +143,13 @@ public:
         assert(std::abs(m_frame.row(0).dot(m_frame.row(1))) < TOL);
         assert(std::abs(m_frame.row(1).dot(m_frame.row(2))) < TOL);
         assert(std::abs(m_frame.row(2).dot(m_frame.row(0))) < TOL);
-        assert(m_u_upper > m_u_lower);
-        assert(m_v_upper > m_v_lower);
-        Base::set_periodic_u((fmod(m_u_upper - m_u_lower, 2 * M_PI) < TOL));
-        Base::set_periodic_v((fmod(m_v_upper - m_v_lower, 2 * M_PI) < TOL));
+        assert(m_u_upper >= m_u_lower);
+        assert(m_v_upper >= m_v_lower);
+
+        auto rounded_winding = std::round((m_u_upper - m_u_lower) / (2 * M_PI)) * 2 * M_PI;
+        Base::set_periodic_u(std::abs(m_u_upper - m_u_lower - rounded_winding) < TOL);
+        rounded_winding = std::round((m_v_upper - m_v_lower) / (2 * M_PI)) * 2 * M_PI;
+        Base::set_periodic_v(std::abs(m_v_upper - m_v_lower - rounded_winding) < TOL);
     }
 
     Scalar get_u_lower_bound() const override { return m_u_lower; }

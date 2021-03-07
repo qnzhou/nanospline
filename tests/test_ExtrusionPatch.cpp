@@ -21,6 +21,7 @@ TEST_CASE("ExtrusionPatch", "[extrusion_patch][primitive]")
 
         ExtrusionPatch<Scalar, 3> patch;
         patch.set_profile(&profile);
+        patch.set_direction({0, 0, 1});
         patch.initialize();
         REQUIRE(patch.get_dim() == 3);
 
@@ -44,6 +45,7 @@ TEST_CASE("ExtrusionPatch", "[extrusion_patch][primitive]")
         patch.set_profile(&profile);
         patch.set_u_upper_bound(M_PI);
         patch.set_v_upper_bound(10);
+        patch.set_direction({0, 0, 1});
         patch.initialize();
         REQUIRE(patch.get_dim() == 3);
 

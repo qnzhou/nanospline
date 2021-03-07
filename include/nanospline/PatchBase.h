@@ -4,6 +4,10 @@
 #include <nanospline/enums.h>
 
 #include <Eigen/Core>
+
+#include <cassert>
+#include <limits>
+#include <memory>
 #include <utility>
 #include <vector>
 
@@ -25,7 +29,7 @@ public:
     virtual PatchEnum get_patch_type() const = 0;
 
 public:
-    constexpr int get_dim() const { return _dim; }
+    static constexpr int get_dim() { return _dim; }
     virtual void initialize() = 0;
     virtual Scalar get_u_lower_bound() const = 0;
     virtual Scalar get_u_upper_bound() const = 0;
@@ -248,7 +252,7 @@ protected:
         for (int i = 0; i < num_iterations; i++) {
             const Point r = this->evaluate(u, v) - p;
             const Scalar dist = r.norm();
-            if (dist < tol) {
+            if (dist < tol || std::abs(dist - prev_dist) < tol) {
                 break;
             }
 
