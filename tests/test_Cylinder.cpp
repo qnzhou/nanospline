@@ -1,10 +1,6 @@
 #include <catch2/catch.hpp>
-#include <iostream>
 
 #include <nanospline/Cylinder.h>
-#include <nanospline/Line.h>
-#include <nanospline/load_msh.h>
-#include <nanospline/save_msh.h>
 
 #include "validation_utils.h"
 
