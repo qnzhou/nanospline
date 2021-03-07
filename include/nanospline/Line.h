@@ -32,6 +32,7 @@ public:
         ptr->set_location(m_location);
         ptr->set_domain_lower_bound(m_lower);
         ptr->set_domain_upper_bound(m_upper);
+        ptr->initialize();
         return ptr;
     }
 

@@ -137,7 +137,9 @@ public:
         assert(std::abs(m_frame.row(2).dot(m_frame.row(0))) < TOL);
         assert(m_u_upper >= m_u_lower);
         assert(m_v_upper >= m_v_lower);
-        Base::set_periodic_u((fmod(m_u_upper - m_u_lower, 2 * M_PI) < TOL));
+
+        auto rounded_winding = std::round((m_u_upper - m_u_lower) / (2 * M_PI)) * 2 * M_PI;
+        Base::set_periodic_u(std::abs(m_u_upper - m_u_lower - rounded_winding) < TOL);
         Base::set_periodic_v(false);
     }
 

@@ -125,7 +125,13 @@ public:
         assert(m_u_upper >= m_u_lower);
         assert(m_v_upper >= m_v_lower);
 
-        Base::set_periodic_u(m_profile->get_periodic());
+        if (m_profile->get_periodic()) {
+            const auto p0 = m_profile->evaluate(m_u_lower);
+            const auto p1 = m_profile->evaluate(m_u_upper);
+            Base::set_periodic_u((p1-p0).squaredNorm() < TOL);
+        } else {
+            Base::set_periodic_u(false);
+        }
         Base::set_periodic_v(false);
     }
 

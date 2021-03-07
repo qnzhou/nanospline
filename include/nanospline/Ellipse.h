@@ -38,6 +38,7 @@ public:
         ptr->set_frame(m_frame);
         ptr->set_domain_lower_bound(m_lower);
         ptr->set_domain_upper_bound(m_upper);
+        ptr->initialize();
         return ptr;
     }
 
@@ -234,13 +235,10 @@ public:
     }
 
 private:
-    void update_periodicity(const Scalar tol)
+    void update_periodicity(const Scalar TOL)
     {
-        if (std::abs(fmod(m_upper - m_lower, 2 * M_PI)) < tol) {
-            Base::set_periodic(true);
-        } else {
-            Base::set_periodic(false);
-        }
+        auto rounded_winding = std::round((m_upper - m_lower) / (2 * M_PI)) * 2 * M_PI;
+        Base::set_periodic(std::abs(m_upper - m_lower - rounded_winding) < TOL);
     }
 
 private:
