@@ -458,11 +458,21 @@ void validate_inverse_evaluation_3d(const PatchType& patch,
             q = q + .05 * n;
             const auto uv = patch.inverse_evaluate(q, u_min, u_max, v_min, v_max);
             const auto p = patch.evaluate(uv[0], uv[1]);
-            auto true_uv(uv);
-            true_uv[0] = u;
-            true_uv[1] = v;
             REQUIRE((p - q).norm() == Approx(0.05).margin(1e-13));
-            REQUIRE((true_uv - uv).norm() == Approx(0.0).margin(1e-8));
+            if (patch.get_periodic_u()) {
+                const auto u_period = patch.get_u_upper_bound() - patch.get_u_lower_bound();
+                const auto rounded_u = std::round((uv[0] - u) / u_period) * u_period + u;
+                REQUIRE(std::fmod(rounded_u - uv[0], u_period) == Approx(0).margin(1e-8));
+            } else {
+                REQUIRE(std::abs(uv[0] - u) == Approx(0).margin(1e-8));
+            }
+            if (patch.get_periodic_v()) {
+                const auto v_period = patch.get_v_upper_bound() - patch.get_v_lower_bound();
+                const auto rounded_v = std::round((uv[1] - v) / v_period) * v_period + v;
+                REQUIRE(std::fmod(rounded_v - uv[1], v_period) == Approx(0).margin(1e-8));
+            } else {
+                REQUIRE(std::abs(uv[1] - v) == Approx(0).margin(1e-8));
+            }
         }
     }
 }

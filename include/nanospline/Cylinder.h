@@ -83,8 +83,14 @@ public:
         if (uv[0] < min_u){
             int n = static_cast<int>(std::ceil((min_u - uv[0]) / (2 * M_PI)));
             uv[0] += n * 2 * M_PI;
+        } else {
+            uv[0] = min_u + std::fmod(uv[0] - min_u, 2 * M_PI);
         }
+
         if (uv[0] > max_u) {
+            // Handle the case where u is out of its valid domain (i.e. cylinder
+            // patch is not periodic in u).  Check the 2 arc boundaries.
+            assert(!Base::get_periodic_u());
             const Scalar du_min = 2 * M_PI - (uv[0] - min_u);
             const Scalar du_max = uv[0] - max_u;
             if (du_min < du_max) {
