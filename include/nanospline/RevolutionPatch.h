@@ -27,7 +27,8 @@ public:
         Base::set_degree_v(2);
     }
 
-    std::unique_ptr<Base> clone() const override {
+    std::unique_ptr<Base> clone() const override
+    {
         auto patch = std::make_unique<ThisType>();
         patch->set_location(get_location());
         patch->set_axis(get_axis());
@@ -48,7 +49,8 @@ public:
     void set_axis(const Point& d) { m_axis = d; }
 
     const ProfileType* get_profile() const { return m_profile.get(); }
-    void set_profile(const ProfileType* profile) {
+    void set_profile(const ProfileType* profile)
+    {
         if (profile != nullptr) {
             m_profile = profile->clone();
         } else {
@@ -126,8 +128,9 @@ public:
     {
         assert_valid_profile();
         constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 100;
-        const int num_samples = std::max(m_profile->get_num_control_points(), 7) + 1;
-        UVPoint uv = Base::approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v, 10);
+        const int num_samples = std::max(m_profile->get_num_control_points(), 15) + 1;
+        UVPoint uv =
+            Base::approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v, 10);
         uv = Base::newton_raphson(p, uv, 20, TOL, min_u, max_u, min_v, max_v);
         assert(uv[0] >= min_u && uv[0] <= max_u);
         assert(uv[1] >= min_v && uv[1] <= max_v);
@@ -142,11 +145,17 @@ public:
         assert(m_u_upper >= m_u_lower);
         assert(m_v_upper >= m_v_lower);
 
-        Base::set_periodic_u(m_profile->get_periodic());
-        if (m_u_upper - m_u_lower > 2 * M_PI - TOL) {
-            Base::set_periodic_u(true);
+        // Set u periodicity.
+        auto rounded_winding = std::round((m_u_upper - m_u_lower) / (2 * M_PI)) * 2 * M_PI;
+        Base::set_periodic_u(std::abs(m_u_upper - m_u_lower - rounded_winding) < TOL);
+
+        // Set v periodicity.
+        if (m_profile->get_periodic()) {
+            const auto p0 = m_profile->evaluate(m_v_lower);
+            const auto p1 = m_profile->evaluate(m_v_upper);
+            Base::set_periodic_v((p1-p0).squaredNorm() < TOL);
         } else {
-            Base::set_periodic_u(false);
+            Base::set_periodic_v(false);
         }
     }
 
@@ -215,9 +224,9 @@ private:
     Point m_axis;
     std::unique_ptr<ProfileType> m_profile = nullptr;
     Scalar m_u_lower = 0;
-    Scalar m_u_upper = 1;
+    Scalar m_u_upper = 2 * M_PI;
     Scalar m_v_lower = 0;
-    Scalar m_v_upper = 2 * M_PI;
+    Scalar m_v_upper = 1;
 };
 
 } // namespace nanospline
