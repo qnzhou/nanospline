@@ -1,6 +1,8 @@
 #pragma once
 #include <nanospline/PatchBase.h>
 #include <nanospline/hodograph.h>
+#include <nanospline/Line.h>
+#include <nanospline/save_msh.h>
 #include <Eigen/Core>
 #include <catch2/catch.hpp>
 #include <limits>
@@ -402,10 +404,12 @@ void validate_approximate_inverse_evaluation(const CurveType& curve, int num_sam
 template <typename PatchType>
 void validate_inverse_evaluation(const PatchType& patch, int u_samples, int v_samples)
 {
+    using Scalar = typename PatchType::Scalar;
     const auto u_min = patch.get_u_lower_bound();
     const auto u_max = patch.get_u_upper_bound();
     const auto v_min = patch.get_v_lower_bound();
     const auto v_max = patch.get_v_upper_bound();
+    constexpr Scalar TOL = 1e-13;
 
     for (int i = 0; i <= u_samples; i++) {
         for (int j = 0; j <= v_samples; j++) {
@@ -415,7 +419,7 @@ void validate_inverse_evaluation(const PatchType& patch, int u_samples, int v_sa
             const auto q = patch.evaluate(u, v);
             const auto uv = patch.inverse_evaluate(q, u_min, u_max, v_min, v_max);
             const auto p = patch.evaluate(uv[0], uv[1]);
-            REQUIRE((p - q).norm() == Approx(0.0).margin(1e-13));
+            REQUIRE((p - q).norm() == Approx(0.0).margin(TOL));
         }
     }
 }
@@ -458,20 +462,33 @@ void validate_inverse_evaluation_3d(const PatchType& patch,
             q = q + .05 * n;
             const auto uv = patch.inverse_evaluate(q, u_min, u_max, v_min, v_max);
             const auto p = patch.evaluate(uv[0], uv[1]);
-            REQUIRE((p - q).norm() == Approx(0.05).margin(1e-13));
+            if (std::abs((p - q).norm() - 0.05) > 1e-13) {
+                nanospline::Line<typename PatchType::Scalar, 3> line;
+                line.set_location(p);
+                line.set_direction(q-p);
+                line.initialize();
+                nanospline::Line<typename PatchType::Scalar, 3> line2;
+                line2.set_location(q);
+                line2.set_direction(-n);
+                line2.set_domain_upper_bound(0.05);
+                line2.initialize();
+                save_msh<typename PatchType::Scalar>("validate.msh", {&line, &line2}, {&patch});
+                //assert(false);
+            }
+            CHECK((p - q).norm() == Approx(0.05).margin(1e-13));
             if (patch.get_periodic_u()) {
                 const auto u_period = patch.get_u_upper_bound() - patch.get_u_lower_bound();
                 const auto rounded_u = std::round((uv[0] - u) / u_period) * u_period + u;
-                REQUIRE(std::fmod(rounded_u - uv[0], u_period) == Approx(0).margin(1e-8));
+                CHECK(std::fmod(rounded_u - uv[0], u_period) == Approx(0).margin(1e-8));
             } else {
-                REQUIRE(std::abs(uv[0] - u) == Approx(0).margin(1e-8));
+                CHECK(std::abs(uv[0] - u) == Approx(0).margin(1e-8));
             }
             if (patch.get_periodic_v()) {
                 const auto v_period = patch.get_v_upper_bound() - patch.get_v_lower_bound();
                 const auto rounded_v = std::round((uv[1] - v) / v_period) * v_period + v;
-                REQUIRE(std::fmod(rounded_v - uv[1], v_period) == Approx(0).margin(1e-8));
+                CHECK(std::fmod(rounded_v - uv[1], v_period) == Approx(0).margin(1e-8));
             } else {
-                REQUIRE(std::abs(uv[1] - v) == Approx(0).margin(1e-8));
+                CHECK(std::abs(uv[1] - v) == Approx(0).margin(1e-8));
             }
         }
     }

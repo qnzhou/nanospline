@@ -128,9 +128,65 @@ public:
     {
         assert_valid_profile();
         constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 100;
-        const int num_samples = std::max(m_profile->get_num_control_points(), 15) + 1;
-        UVPoint uv =
-            Base::approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v, 10);
+
+        // Pick a pivot point `q` using approximated profile center.
+        // TODO: We are assuming `q` is not on the rotation axis here.
+        Point q;
+        q.setZero();
+        constexpr int N = 10;
+        for (int i = 0; i < N; i++) {
+            Scalar t = (Scalar)i / (Scalar)(N - 1);
+            q += evaluate(0, min_v * (1 - t) + max_v * t);
+        }
+        q /= N;
+        Scalar delta = 0;
+        UVPoint uv;
+
+        do {
+            // Compute u assuming v is fixed.
+            Point d1 = q - m_location;
+            d1 = d1 - d1.dot(m_axis) * m_axis;
+            Point d2 = m_axis.cross(d1);
+
+            d1.normalize();
+            d2.normalize();
+            assert(d1.array().isFinite().all());
+            assert(d2.array().isFinite().all());
+
+            Scalar x = (p - m_location).dot(d1);
+            Scalar y = (p - m_location).dot(d2);
+            Scalar u = std::atan2(y, x);
+
+            if (u < min_u) {
+                auto n = std::ceil((min_u - u) / (2 * M_PI));
+                u += n * 2 * M_PI;
+            } else {
+                u = min_u + std::fmod(u - min_u, 2 * M_PI);
+            }
+
+            if (u > max_u) {
+                const Scalar du_min = 2 * M_PI - (u - min_u);
+                const Scalar du_max = u - max_u;
+                if (du_min < du_max) {
+                    u = min_u;
+                } else {
+                    u = max_u;
+                }
+            }
+
+            // Compute v assuming u is fixed.
+            Eigen::AngleAxis<Scalar> R(-u, m_axis);
+            const Point p2 = m_location + (R * (p - m_location).transpose()).transpose();
+            Scalar v = m_profile->approximate_inverse_evaluate(p2, min_v, max_v);
+
+            uv = {u, v};
+
+            // Update pivot point.
+            Point q2 = evaluate(0, v);
+            delta = (q - q2).squaredNorm();
+            q = q2;
+        } while (delta > TOL);
+
         uv = Base::newton_raphson(p, uv, 20, TOL, min_u, max_u, min_v, max_v);
         assert(uv[0] >= min_u && uv[0] <= max_u);
         assert(uv[1] >= min_v && uv[1] <= max_v);
@@ -153,7 +209,7 @@ public:
         if (m_profile->get_periodic()) {
             const auto p0 = m_profile->evaluate(m_v_lower);
             const auto p1 = m_profile->evaluate(m_v_upper);
-            Base::set_periodic_v((p1-p0).squaredNorm() < TOL);
+            Base::set_periodic_v((p1 - p0).squaredNorm() < TOL);
         } else {
             Base::set_periodic_v(false);
         }

@@ -288,8 +288,8 @@ void add_patch(MshSpec& spec, const PatchType& patch, int tag = 1)
 
 template <typename Scalar, int dim = 3>
 void save_msh(const std::string& filename,
-    const std::vector<CurveBase<Scalar, dim>*>& curves,
-    const std::vector<PatchBase<Scalar, dim>*>& patches,
+    const std::vector<const CurveBase<Scalar, dim>*>& curves,
+    const std::vector<const PatchBase<Scalar, dim>*>& patches,
     bool binary = true,
     bool save_sampled = true)
 {
