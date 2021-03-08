@@ -39,11 +39,11 @@ void adaptive_sample(const CurveBase<Scalar, DIM>& curve,
 template <typename Scalar, int DIM>
 std::vector<Scalar> sample(const CurveBase<Scalar, DIM>& curve,
     size_t num_samples,
+    Scalar min_t,
+    Scalar max_t,
     SampleMethod method = SampleMethod::UNIFORM_DOMAIN)
 {
     assert(num_samples > 1);
-    const Scalar min_t = curve.get_domain_lower_bound();
-    const Scalar max_t = curve.get_domain_upper_bound();
     std::vector<Scalar> samples;
     samples.reserve(num_samples);
 
@@ -73,6 +73,16 @@ std::vector<Scalar> sample(const CurveBase<Scalar, DIM>& curve,
     }
 
     return samples;
+}
+
+template <typename Scalar, int DIM>
+std::vector<Scalar> sample(const CurveBase<Scalar, DIM>& curve,
+    size_t num_samples,
+    SampleMethod method = SampleMethod::UNIFORM_DOMAIN)
+{
+    const Scalar min_t = curve.get_domain_lower_bound();
+    const Scalar max_t = curve.get_domain_upper_bound();
+    return sample(curve, num_samples, min_t, max_t, method);
 }
 
 } // namespace nanospline
