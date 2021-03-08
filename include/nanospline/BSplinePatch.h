@@ -114,6 +114,9 @@ public:
             (num_u_knots - degree_u - 1) * (num_v_knots - degree_v - 1)) {
             throw invalid_setting_error("Control grid size mismatch uv degrees");
         }
+
+        compute_all_iso_curves_u();
+        compute_all_iso_curves_v();
     }
 
     Scalar get_u_lower_bound() const override
@@ -325,18 +328,23 @@ public:
     }
 
 private:
+    const std::vector<IsoCurveU>& get_all_iso_curves_u() const
+    {
+        return m_iso_curves_u;
+    }
+
     // Construct the implicit isocurves determined by each rows of control points
     // i.e. fixed values of v. This copies these rows into
     // individual matrices of control points and returns the resulting
     // curves
-    std::vector<IsoCurveU> get_all_iso_curves_u() const
-    {
+    void compute_all_iso_curves_u() {
         const int num_control_pts_u = num_control_points_u();
         const int num_control_pts_v = num_control_points_v();
 
         typename IsoCurveV::ControlPoints control_points_v(num_control_pts_v, _dim);
 
-        std::vector<IsoCurveU> iso_curves;
+        std::vector<IsoCurveU>& iso_curves = m_iso_curves_u;
+        iso_curves.clear();
         iso_curves.reserve((size_t)num_control_pts_v);
         for (int vj = 0; vj < num_control_pts_v; vj++) {
             typename IsoCurveU::ControlPoints control_points_u(num_control_pts_u, _dim);
@@ -350,20 +358,24 @@ private:
             iso_curve_u.set_periodic(Base::get_periodic_u());
             iso_curves.push_back(std::move(iso_curve_u));
         }
-        return iso_curves;
+    }
+
+    const std::vector<IsoCurveV>& get_all_iso_curves_v() const
+    {
+        return m_iso_curves_v;
     }
 
     // Construct the implicit isocurves determined by each column of control points
     // i.e. fixed values of u. This copies these columns into
     // individual matrices of control points and returns the resulting
     // curves
-    std::vector<IsoCurveV> get_all_iso_curves_v() const
-    {
+    void compute_all_iso_curves_v() {
         const int num_control_pts_u = num_control_points_u();
         const int num_control_pts_v = num_control_points_v();
 
         typename IsoCurveU::ControlPoints control_points_u(num_control_pts_u, _dim);
-        std::vector<IsoCurveV> iso_curves;
+        std::vector<IsoCurveV>& iso_curves = m_iso_curves_v;
+        iso_curves.clear();
         iso_curves.reserve((size_t)num_control_pts_u);
         for (int ui = 0; ui < num_control_pts_u; ui++) {
             typename IsoCurveV::ControlPoints control_points_v(num_control_pts_v, _dim);
@@ -378,7 +390,6 @@ private:
             iso_curve_v.set_periodic(Base::get_periodic_v());
             iso_curves.push_back(std::move(iso_curve_v));
         }
-        return iso_curves;
     }
 
 public:
@@ -445,6 +456,7 @@ public:
                 split_patch.set_degree_u(ref_curve.get_degree());
                 split_patch.set_degree_v(Base::get_degree_v());
             }
+            split_patch.initialize();
             results[ci] = split_patch;
         }
         return results;
@@ -515,6 +527,7 @@ public:
                 split_patch.set_degree_v(ref_curve.get_degree());
                 split_patch.set_degree_u(Base::get_degree_u());
             }
+            split_patch.initialize();
             results[ci] = split_patch;
         }
         return results;
@@ -764,6 +777,8 @@ public:
 protected:
     KnotVector m_knots_u;
     KnotVector m_knots_v;
+    std::vector<IsoCurveU> m_iso_curves_u;
+    std::vector<IsoCurveV> m_iso_curves_v;
 };
 
 } // namespace nanospline
