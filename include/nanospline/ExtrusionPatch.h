@@ -106,10 +106,9 @@ public:
     {
         assert_valid_profile();
         UVPoint uv;
-        uv[1] = (p - m_location).dot(m_direction);
+        uv[0] = m_profile->approximate_inverse_evaluate(p-m_location, min_u, max_u);
+        uv[1] = (p - m_profile->evaluate(uv[0])).dot(m_direction);
         uv[1] = std::min(max_v, std::max(min_v, uv[1]));
-        uv[0] = m_profile->approximate_inverse_evaluate(
-            p - m_location - m_direction * uv[1], min_u, max_u);
 
         assert(uv[0] >= min_u && uv[0] <= max_u);
         assert(uv[1] >= min_v && uv[1] <= max_v);
