@@ -8,7 +8,7 @@
 
 #include "validation_utils.h"
 
-TEST_CASE("RevolutionPatch", "[revolution_patch][primitive][!mayfail]")
+TEST_CASE("RevolutionPatch", "[revolution_patch][primitive]")
 {
     using namespace nanospline;
     using Scalar = double;
@@ -28,7 +28,7 @@ TEST_CASE("RevolutionPatch", "[revolution_patch][primitive][!mayfail]")
 
         validate_derivative(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
-        validate_inverse_evaluation_3d(patch, 10, 10, {0, 2 * M_PI - 0.1, 0, 1});
+        validate_inverse_evaluation_3d(patch, 10, 10, {0, 2 * M_PI, 0, 1});
     }
 
     SECTION("Torus")
@@ -48,7 +48,7 @@ TEST_CASE("RevolutionPatch", "[revolution_patch][primitive][!mayfail]")
 
         validate_derivative(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
-        validate_inverse_evaluation_3d(patch, 10, 10, {0, 2 * M_PI - 0.1, 0, 1});
+        validate_inverse_evaluation_3d(patch, 10, 10, {0, 2 * M_PI, 0, 1});
     }
 
     SECTION("Orthogonal revolution")
@@ -78,7 +78,7 @@ TEST_CASE("RevolutionPatch", "[revolution_patch][primitive][!mayfail]")
 
         validate_derivative(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
-        validate_inverse_evaluation_3d(patch, 10, 10, {0, 2 * M_PI - 0.1, 0, 1});
+        validate_inverse_evaluation_3d(patch, 10, 10, {0, 2 * M_PI, 0, 1});
     }
 
     SECTION("Non-orthogonal revolution")
@@ -108,6 +108,6 @@ TEST_CASE("RevolutionPatch", "[revolution_patch][primitive][!mayfail]")
 
         validate_derivative(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
-        validate_inverse_evaluation_3d(patch, 10, 10, {0, 2 * M_PI - 0.1, 0, 1});
+        validate_inverse_evaluation_3d(patch, 10, 10, {0, 2 * M_PI, 0, 1});
     }
 }
