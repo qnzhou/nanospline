@@ -133,7 +133,7 @@ public:
         constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 100;
         const int num_samples = std::max(num_control_points_u(), num_control_points_v()) + 1;
         UVPoint uv = approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v, 10);
-        uv = newton_raphson(p, uv, 20, TOL, min_u, max_u, min_v, max_v);
+        newton_raphson(p, uv, 20, TOL, min_u, max_u, min_v, max_v);
         assert(uv[0] >= min_u && uv[0] <= max_u);
         assert(uv[1] >= min_v && uv[1] <= max_v);
         return uv;
@@ -236,8 +236,8 @@ protected:
         }
     }
 
-    UVPoint newton_raphson(const Point& p,
-        const UVPoint uv,
+    bool newton_raphson(const Point& p,
+        UVPoint& uv,
         const int num_iterations,
         const Scalar tol,
         const Scalar min_u,
@@ -259,7 +259,8 @@ protected:
             if (dist > prev_dist) {
                 // Ops, Newton Raphson diverged...
                 // Use the best result so far.
-                return prev_uv;
+                uv = prev_uv;
+                return false;
             }
             prev_dist = dist;
             prev_uv = {u, v};
@@ -286,7 +287,8 @@ protected:
             if (v < min_v) v = min_v;
             if (v > max_v) v = max_v;
         }
-        return {u, v};
+        uv = {u, v};
+        return true;
     }
 
     std::pair<int, int> find_closest_control_point(Point p) const

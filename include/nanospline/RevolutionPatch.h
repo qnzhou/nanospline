@@ -187,7 +187,7 @@ public:
             q = q2;
         } while (delta > TOL);
 
-        uv = Base::newton_raphson(p, uv, 20, TOL, min_u, max_u, min_v, max_v);
+        Base::newton_raphson(p, uv, 20, TOL, min_u, max_u, min_v, max_v);
         assert(uv[0] >= min_u && uv[0] <= max_u);
         assert(uv[1] >= min_v && uv[1] <= max_v);
         return uv;
