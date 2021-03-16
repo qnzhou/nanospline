@@ -130,10 +130,40 @@ public:
         const Scalar min_v,
         const Scalar max_v) const
     {
-        constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 100;
         const int num_samples = std::max(num_control_points_u(), num_control_points_v()) + 1;
         UVPoint uv = approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v, 10);
-        newton_raphson(p, uv, 20, TOL, min_u, max_u, min_v, max_v);
+        return inverse_evaluate(p, uv[0], uv[1], min_u, max_u, min_v, max_v);
+        return uv;
+    }
+
+    /**
+     * Inverse evaluate with initial guess.
+     *
+     * @param[in] p       The query point.
+     * @param[in] u       Initial guess for u.
+     * @param[in] v       Initial guess for v.
+     * @param[in] min_u   The lower bound on u.
+     * @param[in] max_u   The upper bound on u.
+     * @param[in] min_v   The lower bound on v.
+     * @param[in] max_v   The upper bound on v.
+     * @param[in] num_iterations  The max number of allowed iterations.
+     * @param[in] TOL     Convergence tolerence.
+     *
+     * @returns  The uv that evaluates to the closest point to p.
+     */
+    virtual UVPoint inverse_evaluate(const Point& p,
+        const Scalar u,
+        const Scalar v,
+        const Scalar min_u,
+        const Scalar max_u,
+        const Scalar min_v,
+        const Scalar max_v,
+        const int num_iterations = 20,
+        const Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 100
+        ) const
+    {
+        UVPoint uv{u, v};
+        newton_raphson(p, uv, num_iterations, TOL, min_u, max_u, min_v, max_v);
         assert(uv[0] >= min_u && uv[0] <= max_u);
         assert(uv[1] >= min_v && uv[1] <= max_v);
         return uv;

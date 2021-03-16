@@ -1,13 +1,13 @@
 #include <catch2/catch.hpp>
 #include <iostream>
 
+#include <nanospline/Line.h>
 #include <nanospline/NURBSPatch.h>
 #include <nanospline/forward_declaration.h>
 #include <nanospline/load_msh.h>
 #include <nanospline/sample.h>
 #include <nanospline/save_msh.h>
 #include <nanospline/save_obj.h>
-#include <nanospline/Line.h>
 
 #include "validation_utils.h"
 
@@ -1275,13 +1275,30 @@ TEST_CASE("Inverse evaluation singularity", "[inverse_evaluation][nurbs_patch][!
     patch.set_degree_v(3);
     patch.initialize();
 
-    Eigen::Matrix<Scalar, 1, 3> q(44.530049812622238, -5.95954502452875, 50.13288085248999);
-    auto uv = patch.inverse_evaluate(q,
-        patch.get_u_lower_bound(),
-        patch.get_u_upper_bound(),
-        patch.get_v_lower_bound(),
-        patch.get_v_upper_bound());
-    auto p = patch.evaluate(uv[0], uv[1]);
+    SECTION("inverse evaluate")
+    {
+        Eigen::Matrix<Scalar, 1, 3> q(44.530049812622238, -5.95954502452875, 50.13288085248999);
+        auto uv = patch.inverse_evaluate(q,
+            patch.get_u_lower_bound(),
+            patch.get_u_upper_bound(),
+            patch.get_v_lower_bound(),
+            patch.get_v_upper_bound());
+        auto p = patch.evaluate(uv[0], uv[1]);
 
-    REQUIRE((q - p).norm() == Approx(0).margin(1e-5));
+        REQUIRE((q - p).norm() == Approx(0).margin(1e-5));
+    }
+
+    SECTION("inverse evaluate with initial guess")
+    {
+        Eigen::Matrix<Scalar, 1, 3> q(44.530049812622238, -5.95954502452875, 50.13288085248999);
+        auto uv = patch.inverse_evaluate(q,
+            0.5, 0.5,
+            patch.get_u_lower_bound(),
+            patch.get_u_upper_bound(),
+            patch.get_v_lower_bound(),
+            patch.get_v_upper_bound());
+        auto p = patch.evaluate(uv[0], uv[1]);
+
+        REQUIRE((q - p).norm() == Approx(0).margin(1e-5));
+    }
 }
