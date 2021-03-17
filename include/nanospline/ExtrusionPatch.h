@@ -98,7 +98,7 @@ public:
         return Point::Zero();
     }
 
-    UVPoint inverse_evaluate(const Point& p,
+    std::tuple<UVPoint, bool> inverse_evaluate(const Point& p,
         const Scalar min_u,
         const Scalar max_u,
         const Scalar min_v,
@@ -112,7 +112,7 @@ public:
 
         assert(uv[0] >= min_u && uv[0] <= max_u);
         assert(uv[1] >= min_v && uv[1] <= max_v);
-        return uv;
+        return {uv, true};
     }
 
     void initialize() override

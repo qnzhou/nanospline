@@ -419,7 +419,9 @@ void validate_inverse_evaluation(const PatchType& patch,
             const auto v = j * (v_max - v_min) / (v_samples) + v_min;
 
             const auto q = patch.evaluate(u, v);
-            const auto uv = patch.inverse_evaluate(q, u_min, u_max, v_min, v_max);
+            typename PatchType::UVPoint uv;
+            bool converged;
+            std::tie(uv, converged) = patch.inverse_evaluate(q, u_min, u_max, v_min, v_max);
             const auto p = patch.evaluate(uv[0], uv[1]);
             REQUIRE((p - q).norm() == Approx(0.0).margin(TOL));
         }
@@ -462,7 +464,9 @@ void validate_inverse_evaluation_3d(const PatchType& patch,
             }
             n = n / n.norm();
             q = q + .05 * n;
-            const auto uv = patch.inverse_evaluate(q, u_min, u_max, v_min, v_max);
+            typename PatchType::UVPoint uv;
+            bool converged;
+            std::tie(uv, converged) = patch.inverse_evaluate(q, u_min, u_max, v_min, v_max);
             const auto p = patch.evaluate(uv[0], uv[1]);
             if (std::abs((p - q).norm() - 0.05) > 1e-13) {
                 nanospline::Line<typename PatchType::Scalar, 3> line;

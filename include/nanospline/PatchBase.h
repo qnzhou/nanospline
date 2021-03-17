@@ -124,7 +124,24 @@ public:
     virtual Point evaluate_2nd_derivative_vv(Scalar u, Scalar v) const = 0;
     virtual Point evaluate_2nd_derivative_uv(Scalar u, Scalar v) const = 0;
 
-    virtual UVPoint inverse_evaluate(const Point& p,
+    /**
+     * Inverse evaluate. i.e. finding the closest point on patch to a given
+     * query point.
+     *
+     * @param[in] p       The query point.
+     * @param[in] min_u   The lower bound on u.
+     * @param[in] max_u   The upper bound on u.
+     * @param[in] min_v   The lower bound on v.
+     * @param[in] max_v   The upper bound on v.
+     *
+     * @returns  A tuple that contains:
+     *           * uv         The uv corresponding to the closest point to p.
+     *           * converged  Whether Newton-Raphson has converged.
+     *
+     * @note This algorithm may not work well if the search region
+     * [min_u, max_u] x [min_v, max_v] contains singular points.
+     */
+    virtual std::tuple<UVPoint, bool> inverse_evaluate(const Point& p,
         const Scalar min_u,
         const Scalar max_u,
         const Scalar min_v,
@@ -134,8 +151,7 @@ public:
         const int num_samples_v = num_control_points_v() + 1;
         UVPoint uv = approximate_inverse_evaluate(
             p, num_samples_u, num_samples_v, min_u, max_u, min_v, max_v, 10);
-        auto r = inverse_evaluate(p, uv[0], uv[1], min_u, max_u, min_v, max_v);
-        return std::get<0>(r);
+        return inverse_evaluate(p, uv[0], uv[1], min_u, max_u, min_v, max_v);
     }
 
     /**
@@ -154,6 +170,9 @@ public:
      * @returns  A tuple that contains:
      *           * uv         The uv corresponding to the closest point to p.
      *           * converged  Whether Newton-Raphson has converged.
+     *
+     * @note This algorithm may not work well if the search region
+     * [min_u, max_u] x [min_v, max_v] contains singular points.
      */
     virtual std::tuple<UVPoint, bool> inverse_evaluate(const Point& p,
         const Scalar u,

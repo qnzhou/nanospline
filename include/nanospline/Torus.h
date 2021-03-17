@@ -88,7 +88,7 @@ public:
                (std::sin(u) * m_frame.row(0) - std::cos(u) * m_frame.row(1));
     }
 
-    UVPoint inverse_evaluate(const Point& p,
+    std::tuple<UVPoint, bool> inverse_evaluate(const Point& p,
         const Scalar min_u,
         const Scalar max_u,
         const Scalar min_v,
@@ -131,7 +131,7 @@ public:
             }
         }
 
-        return uv;
+        return {uv, true};
     }
 
     void initialize() override

@@ -102,15 +102,15 @@ TEST_CASE("NURBSPatch", "[rational][nurbs_patch]")
 
         auto q = patch.evaluate(u_min, v_mid);
         constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 100;
-        const auto uv0 = patch.inverse_evaluate(q, u_min, u_max, v_min, v_max);
+        const auto uv0 = std::get<0>(patch.inverse_evaluate(q, u_min, u_max, v_min, v_max));
         REQUIRE((patch.evaluate(uv0[0], uv0[1]) - q).norm() == Approx(0).margin(TOL));
-        const auto uv1 = patch.inverse_evaluate(q, u_max - d, u_max + d, v_min, v_max);
+        const auto uv1 = std::get<0>(patch.inverse_evaluate(q, u_max - d, u_max + d, v_min, v_max));
         REQUIRE((patch.evaluate(uv1[0], uv1[1]) - q).norm() == Approx(0).margin(TOL));
         const auto uv2 =
-            patch.inverse_evaluate(q, u_min - 2 * period - d, u_min - 2 * period + d, v_min, v_max);
+            std::get<0>(patch.inverse_evaluate(q, u_min - 2 * period - d, u_min - 2 * period + d, v_min, v_max));
         REQUIRE((patch.evaluate(uv2[0], uv2[1]) - q).norm() == Approx(0).margin(TOL));
         const auto uv3 =
-            patch.inverse_evaluate(q, u_min - period + d, u_max - period - d, v_min, v_max);
+            std::get<0>(patch.inverse_evaluate(q, u_min - period + d, u_max - period - d, v_min, v_max));
         REQUIRE((patch.evaluate(uv3[0], uv3[1]) - q).norm() > 0.1);
     }
 }
@@ -354,7 +354,7 @@ TEST_CASE("NURBSPatch 6", "[rational][nurbs_patch]")
         for (int i = 0; i < 4; i++) {
             Eigen::Matrix<Scalar, 1, 3> p = query_pts.row(i);
             Eigen::Matrix<Scalar, 1, 2> p_uv =
-                patch.inverse_evaluate(p, u_min, u_max, v_min, v_max);
+                std::get<0>(patch.inverse_evaluate(p, u_min, u_max, v_min, v_max));
             Eigen::Matrix<Scalar, 1, 3> q = patch.evaluate(p_uv[0], p_uv[1]);
 
             REQUIRE((p - q).norm() < (bbox_max - bbox_min).norm() * 1e-3);
@@ -525,8 +525,8 @@ TEST_CASE("Periodic_debug_2", "[periodic][numbs_patch]")
     const Scalar prev_v = 0.669671;
 
     Eigen::Matrix<double, 1, 3> q(13.4386, 6.35, 32.6209);
-    auto uv = patch.inverse_evaluate(
-        q, prev_u - u_delta, prev_u + u_delta, prev_v - v_delta, prev_v + v_delta);
+    auto uv = std::get<0>(patch.inverse_evaluate(
+        q, prev_u - u_delta, prev_u + u_delta, prev_v - v_delta, prev_v + v_delta));
     Eigen::Matrix<double, 1, 3> p = patch.evaluate(uv[0], uv[1]);
 
     REQUIRE((q - p).norm() == Approx(0).margin(1e-6));
@@ -560,7 +560,7 @@ TEST_CASE("Inverse_evaluate_debug", "[nurbs_patch][inverse_evaluation][singulari
     patch.initialize();
 
     auto validate = [&](const auto& q, Scalar min_u, Scalar max_u, Scalar min_v, Scalar max_v) {
-        auto uv = patch.inverse_evaluate(q, min_u, max_u, min_v, max_v);
+        auto uv = std::get<0>(patch.inverse_evaluate(q, min_u, max_u, min_v, max_v));
         REQUIRE(uv[0] >= min_u);
         REQUIRE(uv[0] <= max_u);
         REQUIRE(uv[1] >= min_v);
@@ -1175,7 +1175,7 @@ TEST_CASE("Spiral", "[nurbs_patch][inverse_evaluation]")
     SECTION("Sample 1")
     {
         Eigen::Matrix<Scalar, 1, 3> q(-12.7001, -2.05839, 19.8273);
-        auto uv = patch.inverse_evaluate(q, u_min, u_max, v_min, v_max);
+        auto uv = std::get<0>(patch.inverse_evaluate(q, u_min, u_max, v_min, v_max));
         auto p = patch.evaluate(uv[0], uv[1]);
         REQUIRE((p - q).norm() < 1e-3);
     }
@@ -1183,7 +1183,7 @@ TEST_CASE("Spiral", "[nurbs_patch][inverse_evaluation]")
     SECTION("Sample 1 with incorrect range")
     {
         Eigen::Matrix<Scalar, 1, 3> q(-12.7001, -2.05839, 19.8273);
-        auto uv = patch.inverse_evaluate(q, 0.664387, 0.744951, 0.769556, 0.928571);
+        auto uv = std::get<0>(patch.inverse_evaluate(q, 0.664387, 0.744951, 0.769556, 0.928571));
         auto p = patch.evaluate(uv[0], uv[1]);
         REQUIRE((p - q).norm() > 1);
     }
@@ -1221,11 +1221,11 @@ TEST_CASE("Inverse_eval_debug", "[inverse_evaluation][nurbs_patch]")
     validate_derivative(patch, 10, 10, 1e-3);
 
     Eigen::Matrix<Scalar, 1, 3> q(-8.3820000000000014, 7.2159715908498701, 21.681703857772202);
-    auto uv = patch.inverse_evaluate(q,
+    auto uv = std::get<0>(patch.inverse_evaluate(q,
         patch.get_u_lower_bound(),
         patch.get_u_upper_bound(),
         patch.get_v_lower_bound(),
-        patch.get_v_upper_bound());
+        patch.get_v_upper_bound()));
     auto p = patch.evaluate(uv[0], uv[1]);
 
     REQUIRE((q - p).norm() == Approx(0).margin(1e-5));
@@ -1282,8 +1282,8 @@ TEST_CASE("Inverse evaluation singularity", "[inverse_evaluation][nurbs_patch]")
     SECTION("inverse evaluate")
     {
         Eigen::Matrix<Scalar, 1, 3> q(44.530049812622238, -5.95954502452875, 50.13288085248999);
-        auto uv = patch.inverse_evaluate(
-            q, 0.0102719692398306, 0.93560518468040033, 0.059533170036664362, 1);
+        auto uv = std::get<0>(patch.inverse_evaluate(
+            q, 0.0102719692398306, 0.93560518468040033, 0.059533170036664362, 1));
         auto p = patch.evaluate(uv[0], uv[1]);
 
         REQUIRE((q - p).norm() == Approx(0).margin(1e-5));
@@ -1292,7 +1292,7 @@ TEST_CASE("Inverse evaluation singularity", "[inverse_evaluation][nurbs_patch]")
     SECTION("inverse evaluate 2")
     {
         Eigen::Matrix<Scalar, 1, 3> q(59.4612, 2.64846, 3.1301);
-        auto uv = patch.inverse_evaluate(q, patch.get_u_lower_bound()+1e-3, patch.get_u_upper_bound(), 0.0, 1.0);
+        auto uv = std::get<0>(patch.inverse_evaluate(q, patch.get_u_lower_bound()+1e-3, patch.get_u_upper_bound(), 0.0, 1.0));
         auto p = patch.evaluate(uv[0], uv[1]);
 
         REQUIRE((q - p).norm() == Approx(0).margin(1e-3));
@@ -1458,7 +1458,6 @@ TEST_CASE("Inverse evaluation debug 2", "[inverse_evaluation][nurbs_patch]")
         patch.get_u_upper_bound(),
         patch.get_v_lower_bound(),
         patch.get_v_upper_bound());
-    auto p = patch.evaluate(uv[0], uv[1]);
 
     // This failed simply because the initial guess is too far from the closest
     // point.
