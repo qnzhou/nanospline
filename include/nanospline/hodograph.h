@@ -27,6 +27,10 @@ Bezier<Scalar, dim, (degree <= 0 ? degree : degree - 1), generic> compute_hodogr
         ctrl_pts_2.row(i) = (num_ctrl_pts - 1) * (ctrl_pts.row(i + 1) - ctrl_pts.row(i));
     }
     hodograph.set_control_points(std::move(ctrl_pts_2));
+
+    if (curve.get_periodic() && curve.is_closed(1)) {
+        hodograph.set_periodic(true);
+    }
     return hodograph;
 }
 
@@ -63,6 +67,9 @@ BSpline<Scalar, dim, (degree <= 0 ? degree : degree - 1), generic> compute_hodog
     }
 
     hodograph.set_control_points(std::move(ctrl_pts_2));
+    if (curve.get_periodic() && curve.is_closed(1)) {
+        hodograph.set_periodic(true);
+    }
     return hodograph;
 }
 
