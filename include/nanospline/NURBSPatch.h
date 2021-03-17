@@ -329,7 +329,8 @@ public:
     }
 
     UVPoint approximate_inverse_evaluate(const Point& p,
-        const int num_samples,
+        const int num_samples_u,
+        const int num_samples_v,
         const Scalar min_u,
         const Scalar max_u,
         const Scalar min_v,
@@ -338,27 +339,33 @@ public:
     {
         // Use bisection for periodic patches.
         if (Base::get_periodic_u() || Base::get_periodic_v()) {
-            return Base::approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v);
+            return Base::approximate_inverse_evaluate(
+                p, num_samples_u, num_samples_v, min_u, max_u, min_v, max_v);
         }
 
         // Only two control points at the endpoints, so finding the closest
         // point doesn't restrict the search at all; default to the parent
         // class function based on sampling where resolution isn't an issue
         if (Base::get_degree_u() < 2 || Base::get_degree_v() < 2) {
-            return Base::approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v);
+            return Base::approximate_inverse_evaluate(
+                p, num_samples_u, num_samples_v, min_u, max_u, min_v, max_v);
         }
 
         // When there are too few control points, this approach does not
         // effectively shrink the search region.  Roll back to sampling.
         if (num_control_points_u() <= 3 || num_control_points_v() <= 3) {
-            return Base::approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v);
+            return Base::approximate_inverse_evaluate(
+                p, num_samples_u, num_samples_v, min_u, max_u, min_v, max_v);
         }
 
-        // 1. find closest control point
+        // 0. Extract active region based on the input uv range.
+        auto active_region = subpatch(min_u, max_u, min_v, max_v);
+
+        // 1. find closest control point in active region.
         // (works for points with 0 weight: Base::m_control_grid is scaled by
         // corresponding weights when initialized, so c_i/w_i = inf as w_i-> 0
         // so small weights push control points "further" from the query // point)
-        auto closest_control_pt_index = Base::find_closest_control_point(p);
+        auto closest_control_pt_index = active_region.find_closest_control_point(p);
         int i_min = closest_control_pt_index.first;
         int j_min = closest_control_pt_index.second;
 
@@ -369,9 +376,8 @@ public:
             uv[1] = std::min(uv[1], max_v);
         };
 
-
         if (level <= 0) {
-            auto uv = get_control_point_preimage(i_min, j_min);
+            auto uv = active_region.get_control_point_preimage(i_min, j_min);
             clamp_2d(uv, min_u, max_u, min_v, max_v);
             return uv;
         } else {
@@ -379,22 +385,25 @@ public:
             // desired initial guess; find subdomain corresponding to control
             // point subdomain boundary
             // Conditionals for bound checking
-            UVPoint uv_min = get_control_point_preimage(
+            UVPoint uv_min = active_region.get_control_point_preimage(
                 i_min > 0 ? i_min - 1 : i_min, j_min > 0 ? j_min - 1 : j_min);
-            UVPoint uv_max =
-                get_control_point_preimage(i_min < num_control_points_u() - 1 ? i_min + 1 : i_min,
-                    j_min < num_control_points_v() - 1 ? j_min + 1 : j_min);
+            UVPoint uv_max = active_region.get_control_point_preimage(
+                i_min < num_control_points_u() - 1 ? i_min + 1 : i_min,
+                j_min < num_control_points_v() - 1 ? j_min + 1 : j_min);
             clamp_2d(uv_min, min_u, max_u, min_v, max_v);
             clamp_2d(uv_max, min_u, max_u, min_v, max_v);
 
-            // 3. split a subcurve to find closest ctrl points on subdomain
-            ThisType patch = subpatch(uv_min(0), uv_max(0), uv_min(1), uv_max(1));
-            // repeat recursively
-            UVPoint uv = patch.approximate_inverse_evaluate(
-                p, num_samples, uv_min(0), uv_max(0), uv_min(1), uv_max(1), level - 1);
+            // 3. Repeat recursively
+            UVPoint uv = active_region.approximate_inverse_evaluate(p,
+                num_samples_u,
+                num_samples_v,
+                uv_min(0),
+                uv_max(0),
+                uv_min(1),
+                uv_max(1),
+                level - 1);
 
             // no need to remap coordinates for splines
-
             return uv;
         }
     }

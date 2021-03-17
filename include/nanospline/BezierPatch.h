@@ -258,6 +258,8 @@ public:
         duv_patch.set_degree_u(degree_u - 1);
         duv_patch.set_degree_v(degree_v - 1);
         duv_patch.swap_control_grid(duv_grid);
+        duv_patch.set_periodic_u(Base::get_periodic_u());
+        duv_patch.set_periodic_v(Base::get_periodic_v());
         duv_patch.initialize();
         return duv_patch;
     }
@@ -492,7 +494,8 @@ public:
     }
 
     UVPoint approximate_inverse_evaluate(const Point& p,
-        const int num_samples,
+        const int num_samples_u,
+        const int num_samples_v,
         const Scalar min_u,
         const Scalar max_u,
         const Scalar min_v,
@@ -501,20 +504,23 @@ public:
     {
         // Use bisection for periodic patches.
         if (Base::get_periodic_u() || Base::get_periodic_v()) {
-            return Base::approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v);
+            return Base::approximate_inverse_evaluate(
+                p, num_samples_u, num_samples_v, min_u, max_u, min_v, max_v);
         }
 
         // Only two control points at the endpoints, so finding the closest
         // point doesn't restrict the search at all; default to the parent
         // class function based on sampling where resolution isn't an issue
         if (Base::get_degree_u() < 2 || Base::get_degree_v() < 2) {
-            return Base::approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v);
+            return Base::approximate_inverse_evaluate(
+                p, num_samples_u, num_samples_v, min_u, max_u, min_v, max_v);
         }
 
         // When there are too few control points, this approach does not
         // effectively shrink the search region.  Roll back to sampling.
         if (num_control_points_u() <= 3 || num_control_points_v() <= 3) {
-            return Base::approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v);
+            return Base::approximate_inverse_evaluate(
+                p, num_samples_u, num_samples_v, min_u, max_u, min_v, max_v);
         }
 
         // 1. find closest control point
@@ -552,7 +558,8 @@ public:
             ThisType patch = subpatch(uv_min(0), uv_max(0), uv_min(1), uv_max(1));
 
             // 4. repeat recursively
-            UVPoint uv = patch.approximate_inverse_evaluate(p, num_samples, 0, 1, 0, 1, level - 1);
+            UVPoint uv = patch.approximate_inverse_evaluate(
+                p, num_samples_u, num_samples_v, 0, 1, 0, 1, level - 1);
 
             // 5. remap solution up through affine subdomain transformations
             uv(0) = (uv_max(0) - uv_min(0)) * uv(0) + uv_min(0);
