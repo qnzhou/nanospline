@@ -1218,6 +1218,7 @@ TEST_CASE("Inverse_eval_debug", "[inverse_evaluation][nurbs_patch]")
     patch.set_degree_u(2);
     patch.set_degree_v(1);
     patch.initialize();
+    validate_derivative(patch, 10, 10, 1e-3);
 
     Eigen::Matrix<Scalar, 1, 3> q(-8.3820000000000014, 7.2159715908498701, 21.681703857772202);
     auto uv = patch.inverse_evaluate(q,
@@ -1276,6 +1277,7 @@ TEST_CASE("Inverse evaluation singularity", "[inverse_evaluation][nurbs_patch]")
     patch.set_degree_u(3);
     patch.set_degree_v(3);
     patch.initialize();
+    validate_derivative(patch, 10, 10, 1e-3);
 
     SECTION("inverse evaluate")
     {
@@ -1285,6 +1287,15 @@ TEST_CASE("Inverse evaluation singularity", "[inverse_evaluation][nurbs_patch]")
         auto p = patch.evaluate(uv[0], uv[1]);
 
         REQUIRE((q - p).norm() == Approx(0).margin(1e-5));
+    }
+
+    SECTION("inverse evaluate 2")
+    {
+        Eigen::Matrix<Scalar, 1, 3> q(59.4612, 2.64846, 3.1301);
+        auto uv = patch.inverse_evaluate(q, patch.get_u_lower_bound()+1e-3, patch.get_u_upper_bound(), 0.0, 1.0);
+        auto p = patch.evaluate(uv[0], uv[1]);
+
+        REQUIRE((q - p).norm() == Approx(0).margin(1e-3));
     }
 
     SECTION("inverse evaluate with initial guess")
@@ -1306,7 +1317,7 @@ TEST_CASE("Inverse evaluation singularity", "[inverse_evaluation][nurbs_patch]")
     }
 }
 
-TEST_CASE("Inverse evaluation debug 2", "[inverse_evaluation][nurbs_patch][!mayfail]")
+TEST_CASE("Inverse evaluation debug 2", "[inverse_evaluation][nurbs_patch]")
 {
     using namespace nanospline;
     using Scalar = double;
@@ -1434,6 +1445,7 @@ TEST_CASE("Inverse evaluation debug 2", "[inverse_evaluation][nurbs_patch][!mayf
     patch.set_degree_u(3);
     patch.set_degree_v(2);
     patch.initialize();
+    validate_derivative(patch, 10, 10, 1e-3);
 
 
     Eigen::Matrix<Scalar, 1, 3> q(45.7915, 12.3343, 17.003);
@@ -1450,6 +1462,5 @@ TEST_CASE("Inverse evaluation debug 2", "[inverse_evaluation][nurbs_patch][!mayf
 
     // This failed simply because the initial guess is too far from the closest
     // point.
-    REQUIRE(converged);
-    REQUIRE((q - p).norm() == Approx(0).margin(1e-5));
+    REQUIRE(!converged);
 }
