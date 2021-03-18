@@ -106,11 +106,11 @@ TEST_CASE("NURBSPatch", "[rational][nurbs_patch]")
         REQUIRE((patch.evaluate(uv0[0], uv0[1]) - q).norm() == Approx(0).margin(TOL));
         const auto uv1 = std::get<0>(patch.inverse_evaluate(q, u_max - d, u_max + d, v_min, v_max));
         REQUIRE((patch.evaluate(uv1[0], uv1[1]) - q).norm() == Approx(0).margin(TOL));
-        const auto uv2 =
-            std::get<0>(patch.inverse_evaluate(q, u_min - 2 * period - d, u_min - 2 * period + d, v_min, v_max));
+        const auto uv2 = std::get<0>(patch.inverse_evaluate(
+            q, u_min - 2 * period - d, u_min - 2 * period + d, v_min, v_max));
         REQUIRE((patch.evaluate(uv2[0], uv2[1]) - q).norm() == Approx(0).margin(TOL));
-        const auto uv3 =
-            std::get<0>(patch.inverse_evaluate(q, u_min - period + d, u_max - period - d, v_min, v_max));
+        const auto uv3 = std::get<0>(
+            patch.inverse_evaluate(q, u_min - period + d, u_max - period - d, v_min, v_max));
         REQUIRE((patch.evaluate(uv3[0], uv3[1]) - q).norm() > 0.1);
     }
 }
@@ -1292,7 +1292,8 @@ TEST_CASE("Inverse evaluation singularity", "[inverse_evaluation][nurbs_patch]")
     SECTION("inverse evaluate 2")
     {
         Eigen::Matrix<Scalar, 1, 3> q(59.4612, 2.64846, 3.1301);
-        auto uv = std::get<0>(patch.inverse_evaluate(q, patch.get_u_lower_bound()+1e-3, patch.get_u_upper_bound(), 0.0, 1.0));
+        auto uv = std::get<0>(patch.inverse_evaluate(
+            q, patch.get_u_lower_bound() + 1e-3, patch.get_u_upper_bound(), 0.0, 1.0));
         auto p = patch.evaluate(uv[0], uv[1]);
 
         REQUIRE((q - p).norm() == Approx(0).margin(1e-3));
@@ -1462,4 +1463,75 @@ TEST_CASE("Inverse evaluation debug 2", "[inverse_evaluation][nurbs_patch]")
     // This failed simply because the initial guess is too far from the closest
     // point.
     REQUIRE(!converged);
+}
+
+TEST_CASE("Inverse evaluation debug 3", "[inverse_evaluation][nurbs_patch]")
+{
+    using namespace nanospline;
+    using Scalar = double;
+
+    NURBSPatch<Scalar, 3, -1, -1> patch;
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 3, Eigen::RowMajor> control_grid(32, 3);
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots_u(8);
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 1> knots_v(12);
+    Eigen::Matrix<Scalar, Eigen::Dynamic, 1> weights(32);
+
+    control_grid << -38.880008731, 8.385493702, 71.226919957, -39.402300098, 8.55255348,
+        71.327128968, -40.320142808, 8.911711629000001, 71.503331809, -41.292045175,
+        9.053877490000001, 71.68954345799999, -41.714626345999996, 9.137479717, 71.77054169200001,
+        -41.724226387921306, 9.139378961308529, 71.7723817797638, -41.733826429842495,
+        9.14127820561705, 71.77422186752749, -41.743426471763804, 9.14317744992557,
+        71.77606195529131, -38.880008731, 10.291480272, 67.874078765, -39.402300098, 10.45854005,
+        67.974287776, -40.320142808, 10.817698198999999, 68.1504906159999, -41.292045175,
+        10.95986406, 68.336702265, -41.714626345999996, 11.043466287, 68.4177005,
+        -41.724226387921306, 11.0453655313085, 68.4195405877864, -41.7338264298426,
+        11.0472647756171, 68.42138067557289, -41.743426471763804, 11.0491640199256,
+        68.4232207633595, -38.880008731, 10.205310773999999, 64.01824793, -39.402300098,
+        10.372370552, 64.118456941, -40.320142808, 10.731528701, 64.2946597820001, -41.292045175,
+        10.873694562, 64.48087143100011, -41.714626345999996, 10.957296789, 64.56186966499999,
+        -41.724226387921306, 10.9591960333085, 64.5637097527637, -41.733826429842495,
+        10.9610952776171, 64.5655498405275, -41.743426471763804, 10.9629945219256,
+        64.56738992829129, -38.880008731, 8.151252515000001, 60.753859934000005, -39.402300098,
+        8.318312292, 60.854068945, -40.320142808, 8.677470442, 61.0302717860001, -41.292045175,
+        8.81963630200001, 61.216483435, -41.714626345999996, 8.903238529, 61.297481669,
+        -41.724226387921306, 8.90513777330853, 61.299321756763696, -41.733826429842495,
+        8.90703701761705, 61.301161844527506, -41.743426471763804, 8.908936261925579,
+        61.303001932291195;
+
+
+    knots_u << 0.525905430141845, 0.525905430141845, 0.525905430141845, 0.525905430141845,
+        0.668840505851333, 0.668840505851333, 0.668840505851333, 0.668840505851333;
+
+    knots_v << 0.0, 0.0, 0.0, 0.0, 0.559813202415503, 1.0, 1.0, 1.0, 1.01, 1.01, 1.01, 1.01;
+
+
+    weights << 0.937208479557941, 0.937208479557941, 0.937208479557941, 0.937208479557941,
+        0.937208479557941, 0.937208479557941, 0.937208479557941, 0.937208479557941,
+        0.848511106177263, 0.848511106177263, 0.848511106177263, 0.848511106177263,
+        0.848511106177263, 0.848511106177263, 0.848511106177263, 0.848511106177263,
+        0.848481003425045, 0.848481003425045, 0.848481003425045, 0.848481003425046,
+        0.848481003425046, 0.848481003425046, 0.848481003425046, 0.848481003425046,
+        0.937118171301287, 0.937118171301287, 0.937118171301287, 0.937118171301288,
+        0.937118171301288, 0.937118171301288, 0.937118171301288, 0.937118171301288;
+
+
+    patch.set_control_grid(control_grid);
+    patch.set_knots_u(knots_u);
+    patch.set_knots_v(knots_v);
+    patch.set_weights(weights);
+    patch.set_degree_u(3);
+    patch.set_degree_v(3);
+    patch.initialize();
+    validate_derivative(patch, 10, 10, 1e-3);
+
+
+    Eigen::Matrix<Scalar, 1, 3> q(-41.714629087878905, 9.1767576153057, 71.700813713449307);
+    Eigen::Matrix<Scalar, 1, 2> uv;
+    bool converged = false;
+    std::tie(uv, converged) = patch.inverse_evaluate(
+        q, 0.52675287100000112, 0.66798487974635101, -1.0000000000000001e-15, 1.0000009575210089);
+
+    REQUIRE(converged);
+    auto p = patch.evaluate(uv[0], uv[1]);
+    REQUIRE((q - p).norm() == Approx(0).margin(1e-5));
 }

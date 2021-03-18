@@ -359,7 +359,13 @@ public:
         }
 
         // 0. Extract active region based on the input uv range.
-        auto active_region = subpatch(min_u, max_u, min_v, max_v);
+        assert(!Base::get_periodic_u());
+        assert(!Base::get_periodic_v());
+        Scalar min_u_trimmed = std::max(min_u, get_u_lower_bound());
+        Scalar max_u_trimmed = std::min(max_u, get_u_upper_bound());
+        Scalar min_v_trimmed = std::max(min_v, get_v_lower_bound());
+        Scalar max_v_trimmed = std::min(max_v, get_v_upper_bound());
+        auto active_region = subpatch(min_u_trimmed, max_u_trimmed, min_v_trimmed, max_v_trimmed);
 
         // 1. find closest control point in active region.
         // (works for points with 0 weight: Base::m_control_grid is scaled by
@@ -369,16 +375,16 @@ public:
         int i_min = closest_control_pt_index.first;
         int j_min = closest_control_pt_index.second;
 
-        auto clamp_2d = [](auto& uv, Scalar min_u, Scalar max_u, Scalar min_v, Scalar max_v) {
-            uv[0] = std::max(uv[0], min_u);
-            uv[0] = std::min(uv[0], max_u);
-            uv[1] = std::max(uv[1], min_v);
-            uv[1] = std::min(uv[1], max_v);
+        auto clamp_2d = [&](auto& uv) {
+            uv[0] = std::max(uv[0], min_u_trimmed);
+            uv[0] = std::min(uv[0], max_u_trimmed);
+            uv[1] = std::max(uv[1], min_v_trimmed);
+            uv[1] = std::min(uv[1], max_v_trimmed);
         };
 
         if (level <= 0) {
             auto uv = active_region.get_control_point_preimage(i_min, j_min);
-            clamp_2d(uv, min_u, max_u, min_v, max_v);
+            clamp_2d(uv);
             return uv;
         } else {
             // 2. Control points c_{i+/-1,j+/-1} bound the domain containing our
@@ -390,8 +396,8 @@ public:
             UVPoint uv_max = active_region.get_control_point_preimage(
                 i_min < num_control_points_u() - 1 ? i_min + 1 : i_min,
                 j_min < num_control_points_v() - 1 ? j_min + 1 : j_min);
-            clamp_2d(uv_min, min_u, max_u, min_v, max_v);
-            clamp_2d(uv_max, min_u, max_u, min_v, max_v);
+            clamp_2d(uv_min);
+            clamp_2d(uv_max);
 
             // 3. Repeat recursively
             UVPoint uv = active_region.approximate_inverse_evaluate(p,

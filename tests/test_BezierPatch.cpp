@@ -115,6 +115,9 @@ TEST_CASE("BezierPatch", "[nonrational][bezier_patch]")
         }
         patch.set_control_grid(control_grid);
         patch.initialize();
+        validate_derivative(patch, 10, 10);
+        validate_inverse_evaluation(patch, 10, 10);
+        validate_inverse_evaluation_3d(patch, 10, 10);
 
         constexpr Scalar d = 0.1;
         const auto u_min = patch.get_u_lower_bound();
@@ -123,18 +126,36 @@ TEST_CASE("BezierPatch", "[nonrational][bezier_patch]")
         const auto v_max = patch.get_v_upper_bound();
 
         const auto corner_00 = patch.evaluate(u_min - d, v_min - d);
-        const auto corner_01 = patch.evaluate(u_max + d, v_min - d);
+        const auto corner_10 = patch.evaluate(u_max + d, v_min - d);
         const auto corner_11 = patch.evaluate(u_max + d, v_max + d);
-        const auto corner_10 = patch.evaluate(u_min - d, v_max + d);
+        const auto corner_01 = patch.evaluate(u_min - d, v_max + d);
 
         REQUIRE(corner_00[0] < 0);
         REQUIRE(corner_00[1] < 0);
-        REQUIRE(corner_10[0] > 3);
-        REQUIRE(corner_10[1] < 0);
+        REQUIRE(corner_01[0] > 3);
+        REQUIRE(corner_01[1] < 0);
         REQUIRE(corner_11[0] > 3);
         REQUIRE(corner_11[1] > 3);
-        REQUIRE(corner_01[0] < 0);
-        REQUIRE(corner_01[1] > 3);
+        REQUIRE(corner_10[0] < 0);
+        REQUIRE(corner_10[1] > 3);
+
+        auto uv_00 = std::get<0>(
+            patch.inverse_evaluate(corner_00, u_min - d, u_max + d, v_min - d, v_max + d));
+        auto uv_01 = std::get<0>(
+            patch.inverse_evaluate(corner_01, u_min - d, u_max + d, v_min - d, v_max + d));
+        auto uv_10 = std::get<0>(
+            patch.inverse_evaluate(corner_10, u_min - d, u_max + d, v_min - d, v_max + d));
+        auto uv_11 = std::get<0>(
+            patch.inverse_evaluate(corner_11, u_min - d, u_max + d, v_min - d, v_max + d));
+
+        REQUIRE(uv_00[0] == Approx(0));
+        REQUIRE(uv_00[1] == Approx(0));
+        REQUIRE(uv_01[0] == Approx(0));
+        REQUIRE(uv_01[1] == Approx(1));
+        REQUIRE(uv_10[0] == Approx(1));
+        REQUIRE(uv_10[1] == Approx(0));
+        REQUIRE(uv_11[1] == Approx(1));
+        REQUIRE(uv_11[1] == Approx(1));
     }
 
     SECTION("Periodic patch")

@@ -523,22 +523,32 @@ public:
                 p, num_samples_u, num_samples_v, min_u, max_u, min_v, max_v);
         }
 
+        // 0. Extract active region based on the input uv range.
+        assert(!Base::get_periodic_u());
+        assert(!Base::get_periodic_v());
+        Scalar min_u_trimmed = std::max(min_u, get_u_lower_bound());
+        Scalar max_u_trimmed = std::min(max_u, get_u_upper_bound());
+        Scalar min_v_trimmed = std::max(min_v, get_v_lower_bound());
+        Scalar max_v_trimmed = std::min(max_v, get_v_upper_bound());
+        auto active_region = subpatch(min_u_trimmed, max_u_trimmed, min_v_trimmed, max_v_trimmed);
+
         // 1. find closest control point
-        auto closest_control_pt_index = Base::find_closest_control_point(p);
+        auto closest_control_pt_index = active_region.find_closest_control_point(p);
         int i_min = closest_control_pt_index.first;
         int j_min = closest_control_pt_index.second;
 
-        auto clamp_2d = [](auto& uv, Scalar min_u, Scalar max_u, Scalar min_v, Scalar max_v) {
-            uv[0] = std::max(uv[0], min_u);
-            uv[0] = std::min(uv[0], max_u);
-            uv[1] = std::max(uv[1], min_v);
-            uv[1] = std::min(uv[1], max_v);
+        auto clamp_2d = [&](auto& uv) {
+            uv[0] = std::max<Scalar>(uv[0], 0);
+            uv[0] = std::min<Scalar>(uv[0], 1);
+            uv[1] = std::max<Scalar>(uv[1], 0);
+            uv[1] = std::min<Scalar>(uv[1], 1);
         };
 
-
         if (level <= 0) {
-            auto uv = get_control_point_preimage(i_min, j_min);
-            clamp_2d(uv, min_u, max_u, min_v, max_v);
+            auto uv = active_region.get_control_point_preimage(i_min, j_min);
+            clamp_2d(uv);
+            uv(0) = (max_u_trimmed - min_u_trimmed) * uv(0) + min_u_trimmed;
+            uv(1) = (max_v_trimmed - min_v_trimmed) * uv(1) + min_v_trimmed;
             return uv;
 
         } else {
@@ -546,24 +556,27 @@ public:
             // desired initial guess; find subdomain corresponding to control
             // point subdomain boundary
             // Conditionals for bound checking
-            UVPoint uv_min = get_control_point_preimage(
+            UVPoint uv_min = active_region.get_control_point_preimage(
                 i_min > 0 ? i_min - 1 : i_min, j_min > 0 ? j_min - 1 : j_min);
-            UVPoint uv_max =
-                get_control_point_preimage(i_min < num_control_points_u() - 1 ? i_min + 1 : i_min,
-                    j_min < num_control_points_v() - 1 ? j_min + 1 : j_min);
-            clamp_2d(uv_min, min_u, max_u, min_v, max_v);
-            clamp_2d(uv_max, min_u, max_u, min_v, max_v);
+            UVPoint uv_max = active_region.get_control_point_preimage(
+                i_min < num_control_points_u() - 1 ? i_min + 1 : i_min,
+                j_min < num_control_points_v() - 1 ? j_min + 1 : j_min);
+            clamp_2d(uv_min);
+            clamp_2d(uv_max);
 
-            // 3. split a subcurve to find closest ctrl points on subdomain
-            ThisType patch = subpatch(uv_min(0), uv_max(0), uv_min(1), uv_max(1));
+            // 3. repeat recursively
+            UVPoint uv = active_region.approximate_inverse_evaluate(p,
+                num_samples_u,
+                num_samples_v,
+                uv_min[0],
+                uv_max[0],
+                uv_min[1],
+                uv_max[1],
+                level - 1);
 
-            // 4. repeat recursively
-            UVPoint uv = patch.approximate_inverse_evaluate(
-                p, num_samples_u, num_samples_v, 0, 1, 0, 1, level - 1);
-
-            // 5. remap solution up through affine subdomain transformations
-            uv(0) = (uv_max(0) - uv_min(0)) * uv(0) + uv_min(0);
-            uv(1) = (uv_max(1) - uv_min(1)) * uv(1) + uv_min(1);
+            // 4. remap solution up through affine subdomain transformations
+            uv(0) = (max_u_trimmed - min_u_trimmed) * uv(0) + min_u_trimmed;
+            uv(1) = (max_v_trimmed - min_v_trimmed) * uv(1) + min_v_trimmed;
 
             return uv;
         }
