@@ -17,6 +17,7 @@ public:
     using Point = typename Base::Point;
     using UVPoint = typename Base::UVPoint;
     using ProfileType = CurveBase<_Scalar, _dim>;
+    using Base::inverse_evaluate;
 
 public:
     RevolutionPatch()

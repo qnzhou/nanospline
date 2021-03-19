@@ -19,6 +19,7 @@ public:
     using Point = typename Base::Point;
     using UVPoint = typename Base::UVPoint;
     using Frame = Eigen::Matrix<Scalar, 3, _dim>;
+    using Base::inverse_evaluate;
 
 public:
     Cylinder()
