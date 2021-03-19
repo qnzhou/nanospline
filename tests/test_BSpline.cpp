@@ -315,6 +315,13 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
         }
 
         SECTION("Update") { offset_and_validate(curve); }
+
+        SECTION("Out of bound inverse evaluation")
+        {
+            auto p = curve.evaluate(2);
+            auto t = curve.approximate_inverse_evaluate(p, 2.0, 3.0);
+            REQUIRE(t == Approx(2.0));
+        }
     }
 
     SECTION("Approximate closest point")

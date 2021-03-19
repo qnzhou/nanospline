@@ -165,8 +165,8 @@ protected:
         } else {
             return approximate_inverse_evaluate(p,
                 num_samples,
-                std::max(min_t - delta_t, lower),
-                std::min(min_t + delta_t, upper),
+                std::min(std::max(min_t - delta_t, lower), upper),
+                std::min(std::max(min_t + delta_t, lower), upper),
                 level - 1);
         }
     }
