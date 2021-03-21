@@ -324,6 +324,12 @@ protected:
 
             const Point Su = this->evaluate_derivative_u(u, v);
             const Point Sv = this->evaluate_derivative_v(u, v);
+
+            if (std::abs(Su.dot(r)) < tol && std::abs(Sv.dot(r)) < tol) {
+                // Optimality condition met.  Converged.
+                break;
+            }
+
             const Point Suu = this->evaluate_2nd_derivative_uu(u, v);
             const Point Svv = this->evaluate_2nd_derivative_vv(u, v);
             const Point Suv = this->evaluate_2nd_derivative_uv(u, v);
