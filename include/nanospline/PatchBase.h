@@ -124,19 +124,73 @@ public:
     virtual Point evaluate_2nd_derivative_vv(Scalar u, Scalar v) const = 0;
     virtual Point evaluate_2nd_derivative_uv(Scalar u, Scalar v) const = 0;
 
-    virtual UVPoint inverse_evaluate(const Point& p,
+    /**
+     * Inverse evaluate. i.e. finding the closest point on patch to a given
+     * query point.
+     *
+     * @param[in] p       The query point.
+     * @param[in] min_u   The lower bound on u.
+     * @param[in] max_u   The upper bound on u.
+     * @param[in] min_v   The lower bound on v.
+     * @param[in] max_v   The upper bound on v.
+     *
+     * @returns  A tuple that contains:
+     *           * uv         The uv corresponding to the closest point to p.
+     *           * converged  Whether Newton-Raphson has converged.
+     *
+     * @note This algorithm may not work well if the search region
+     * [min_u, max_u] x [min_v, max_v] contains singular points.
+     */
+    virtual std::tuple<UVPoint, bool> inverse_evaluate(const Point& p,
         const Scalar min_u,
         const Scalar max_u,
         const Scalar min_v,
         const Scalar max_v) const
     {
-        constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 100;
-        const int num_samples = std::max(num_control_points_u(), num_control_points_v()) + 1;
-        UVPoint uv = approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v, 10);
-        uv = newton_raphson(p, uv, 20, TOL, min_u, max_u, min_v, max_v);
+        const int num_samples_u = num_control_points_u() + 1;
+        const int num_samples_v = num_control_points_v() + 1;
+        UVPoint uv = approximate_inverse_evaluate(
+            p, num_samples_u, num_samples_v, min_u, max_u, min_v, max_v, 10);
+        return inverse_evaluate(p, uv[0], uv[1], min_u, max_u, min_v, max_v);
+    }
+
+    /**
+     * Inverse evaluate with initial guess.
+     *
+     * @param[in] p       The query point.
+     * @param[in] u       Initial guess for u.
+     * @param[in] v       Initial guess for v.
+     * @param[in] min_u   The lower bound on u.
+     * @param[in] max_u   The upper bound on u.
+     * @param[in] min_v   The lower bound on v.
+     * @param[in] max_v   The upper bound on v.
+     * @param[in] num_iterations  The max number of allowed iterations.
+     * @param[in] TOL     Convergence tolerence.
+     *
+     * @returns  A tuple that contains:
+     *           * uv         The uv corresponding to the closest point to p.
+     *           * converged  Whether Newton-Raphson has converged.
+     *
+     * @note This algorithm may not work well if the search region
+     * [min_u, max_u] x [min_v, max_v] contains singular points.
+     */
+    virtual std::tuple<UVPoint, bool> inverse_evaluate(const Point& p,
+        const Scalar u,
+        const Scalar v,
+        const Scalar min_u,
+        const Scalar max_u,
+        const Scalar min_v,
+        const Scalar max_v,
+        const int num_iterations = 20,
+        const Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 100) const
+    {
+        UVPoint uv{u, v};
+        uv[0] = std::max(min_u, std::min(max_u, uv[0]));
+        uv[1] = std::max(min_v, std::min(max_v, uv[1]));
+        bool converged = newton_raphson(p, uv, num_iterations, TOL, min_u, max_u, min_v, max_v);
         assert(uv[0] >= min_u && uv[0] <= max_u);
         assert(uv[1] >= min_v && uv[1] <= max_v);
-        return uv;
+        return {uv, converged};
     }
 
 public:
@@ -167,7 +221,8 @@ public:
 
 protected:
     virtual UVPoint approximate_inverse_evaluate(const Point& p,
-        const int num_samples,
+        const int num_samples_u,
+        const int num_samples_v,
         const Scalar min_u,
         const Scalar max_u,
         const Scalar min_v,
@@ -177,11 +232,12 @@ protected:
         UVPoint uv(min_u, min_v), uv_2(min_u, min_v);
         Scalar min_dist = std::numeric_limits<Scalar>::max();
         Scalar min_dist_2 = std::numeric_limits<Scalar>::max();
-        for (int i = 0; i <= num_samples; i++) {
-            const Scalar u = (i == num_samples) ? max_u : i * (max_u - min_u) / num_samples + min_u;
-            for (int j = 0; j <= num_samples; j++) {
+        for (int i = 0; i <= num_samples_u; i++) {
+            const Scalar u =
+                (i == num_samples_u) ? max_u : (i * (max_u - min_u) / num_samples_u + min_u);
+            for (int j = 0; j <= num_samples_v; j++) {
                 const Scalar v =
-                    (j == num_samples) ? max_v : j * (max_v - min_v) / num_samples + min_v;
+                    (j == num_samples_v) ? max_v : (j * (max_v - min_v) / num_samples_v + min_v);
                 const Point q = this->evaluate(u, v);
                 const auto dist = (p - q).squaredNorm();
                 if (dist < min_dist) {
@@ -197,10 +253,11 @@ protected:
         }
 
         auto check_sub_range = [&](Scalar u, Scalar v) {
-            const auto delta_u = (max_u - min_u) / num_samples;
-            const auto delta_v = (max_v - min_v) / num_samples;
+            const auto delta_u = (max_u - min_u) / num_samples_u;
+            const auto delta_v = (max_v - min_v) / num_samples_v;
             return PatchBase::approximate_inverse_evaluate(p,
-                num_samples,
+                num_samples_u,
+                num_samples_v,
                 std::max(u - delta_u, min_u),
                 std::min(u + delta_u, max_u),
                 std::max(v - delta_v, min_v),
@@ -236,8 +293,8 @@ protected:
         }
     }
 
-    UVPoint newton_raphson(const Point& p,
-        const UVPoint uv,
+    bool newton_raphson(const Point& p,
+        UVPoint& uv,
         const int num_iterations,
         const Scalar tol,
         const Scalar min_u,
@@ -259,13 +316,20 @@ protected:
             if (dist > prev_dist) {
                 // Ops, Newton Raphson diverged...
                 // Use the best result so far.
-                return prev_uv;
+                uv = prev_uv;
+                return false;
             }
             prev_dist = dist;
             prev_uv = {u, v};
 
             const Point Su = this->evaluate_derivative_u(u, v);
             const Point Sv = this->evaluate_derivative_v(u, v);
+
+            if (std::abs(Su.dot(r)) < tol && std::abs(Sv.dot(r)) < tol) {
+                // Optimality condition met.  Converged.
+                break;
+            }
+
             const Point Suu = this->evaluate_2nd_derivative_uu(u, v);
             const Point Svv = this->evaluate_2nd_derivative_vv(u, v);
             const Point Suv = this->evaluate_2nd_derivative_uv(u, v);
@@ -273,6 +337,10 @@ protected:
             Eigen::Matrix<Scalar, 2, 2> J;
             J << Su.squaredNorm() + r.dot(Suu), Su.dot(Sv) + r.dot(Suv), Sv.dot(Su) + r.dot(Suv),
                 Sv.squaredNorm() + r.dot(Svv);
+            if (J.determinant() <= 0) {
+                uv = prev_uv;
+                return false;
+            }
             Eigen::Matrix<Scalar, 2, 1> kappa;
             kappa << -r.dot(Su), -r.dot(Sv);
 
@@ -286,7 +354,8 @@ protected:
             if (v < min_v) v = min_v;
             if (v > max_v) v = max_v;
         }
-        return {u, v};
+        uv = {u, v};
+        return true;
     }
 
     std::pair<int, int> find_closest_control_point(Point p) const

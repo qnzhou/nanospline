@@ -214,7 +214,7 @@ public:
         const int num_ctrl_pts_u = num_control_points_u();
         typename IsoCurveU::ControlPoints control_points_u(num_ctrl_pts_u, _dim);
 
-        std::vector<IsoCurveV> iso_curves_v = get_all_iso_curves_v();
+        const std::vector<IsoCurveV>& iso_curves_v = get_all_iso_curves_v();
 
         for (int i = 0; i < num_ctrl_pts_u; i++) {
             const auto& iso_curve = iso_curves_v[static_cast<size_t>(i)];
@@ -232,7 +232,7 @@ public:
     {
         const int num_ctrl_pts_v = num_control_points_v();
         typename IsoCurveV::ControlPoints control_points_v(num_ctrl_pts_v, _dim);
-        std::vector<IsoCurveU> iso_curves_u = get_all_iso_curves_u();
+        const std::vector<IsoCurveU>& iso_curves_u = get_all_iso_curves_u();
 
         for (int j = 0; j < num_ctrl_pts_v; j++) {
             const auto& iso_curve = iso_curves_u[static_cast<size_t>(j)];
@@ -273,6 +273,8 @@ public:
         du_patch.swap_control_grid(du_grid);
         du_patch.set_knots_u(m_knots_u.segment(1, num_u_knots - 2).eval());
         du_patch.set_knots_v(m_knots_v);
+        du_patch.set_periodic_u(Base::get_periodic_u());
+        du_patch.set_periodic_v(Base::get_periodic_v());
         du_patch.initialize();
         return du_patch;
     }
@@ -304,6 +306,8 @@ public:
         dv_patch.swap_control_grid(dv_grid);
         dv_patch.set_knots_u(m_knots_u);
         dv_patch.set_knots_v(m_knots_v.segment(1, num_v_knots - 2).eval());
+        dv_patch.set_periodic_u(Base::get_periodic_u());
+        dv_patch.set_periodic_v(Base::get_periodic_v());
         dv_patch.initialize();
         return dv_patch;
     }
@@ -328,16 +332,14 @@ public:
     }
 
 private:
-    const std::vector<IsoCurveU>& get_all_iso_curves_u() const
-    {
-        return m_iso_curves_u;
-    }
+    const std::vector<IsoCurveU>& get_all_iso_curves_u() const { return m_iso_curves_u; }
 
     // Construct the implicit isocurves determined by each rows of control points
     // i.e. fixed values of v. This copies these rows into
     // individual matrices of control points and returns the resulting
     // curves
-    void compute_all_iso_curves_u() {
+    void compute_all_iso_curves_u()
+    {
         const int num_control_pts_u = num_control_points_u();
         const int num_control_pts_v = num_control_points_v();
 
@@ -360,16 +362,14 @@ private:
         }
     }
 
-    const std::vector<IsoCurveV>& get_all_iso_curves_v() const
-    {
-        return m_iso_curves_v;
-    }
+    const std::vector<IsoCurveV>& get_all_iso_curves_v() const { return m_iso_curves_v; }
 
     // Construct the implicit isocurves determined by each column of control points
     // i.e. fixed values of u. This copies these columns into
     // individual matrices of control points and returns the resulting
     // curves
-    void compute_all_iso_curves_v() {
+    void compute_all_iso_curves_v()
+    {
         const int num_control_pts_u = num_control_points_u();
         const int num_control_pts_v = num_control_points_v();
 
@@ -406,12 +406,12 @@ public:
         const size_t num_split_patches = 2; // splitting one patch into two
 
         // split each isocurve
-        std::vector<IsoCurveU> iso_curves_u = get_all_iso_curves_u();
+        const std::vector<IsoCurveU>& iso_curves_u = get_all_iso_curves_u();
         std::vector<std::vector<IsoCurveU>> split_iso_curves;
         split_iso_curves.reserve(static_cast<size_t>(num_control_points_v()));
 
         for (int vj = 0; vj < num_control_points_v(); vj++) {
-            IsoCurveU& iso_curve = iso_curves_u[static_cast<size_t>(vj)];
+            const IsoCurveU& iso_curve = iso_curves_u[static_cast<size_t>(vj)];
             std::vector<IsoCurveU> iso_curve_parts = nanospline::split(iso_curve, u);
             split_iso_curves.push_back(std::move(iso_curve_parts));
         }
@@ -473,7 +473,7 @@ public:
 
         const size_t num_split_patches = 2; // splitting one patch into two
         // split each isocurve
-        std::vector<IsoCurveV> iso_curves_v = get_all_iso_curves_v();
+        const std::vector<IsoCurveV>& iso_curves_v = get_all_iso_curves_v();
         std::vector<std::vector<IsoCurveV>> split_iso_curves;
         split_iso_curves.reserve(static_cast<size_t>(num_control_points_u()));
 
@@ -619,7 +619,8 @@ public:
     }
 
     UVPoint approximate_inverse_evaluate(const Point& p,
-        const int num_samples,
+        const int num_samples_u,
+        const int num_samples_v,
         const Scalar min_u,
         const Scalar max_u,
         const Scalar min_v,
@@ -628,7 +629,8 @@ public:
     {
         // Use bisection for periodic patches.
         if (Base::get_periodic_u() || Base::get_periodic_v()) {
-            return Base::approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v);
+            return Base::approximate_inverse_evaluate(
+                p, num_samples_u, num_samples_v, min_u, max_u, min_v, max_v);
         }
 
         // Only two control points at the endpoints, so finding the closest
@@ -636,31 +638,40 @@ public:
         // class function based on sampling where resolution isn't an issue
         if (Base::get_degree_u() < 2 || Base::get_degree_v() < 2) {
             return Base::approximate_inverse_evaluate(
-                p, num_samples, min_u, max_u, min_v, max_v, level);
+                p, num_samples_u, num_samples_v, min_u, max_u, min_v, max_v, level);
         }
 
         // When there are too few control points, this approach does not
         // effectively shrink the search region.  Roll back to sampling.
         if (num_control_points_u() <= 3 || num_control_points_v() <= 3) {
-            return Base::approximate_inverse_evaluate(p, num_samples, min_u, max_u, min_v, max_v);
+            return Base::approximate_inverse_evaluate(
+                p, num_samples_u, num_samples_v, min_u, max_u, min_v, max_v);
         }
 
+        // 0. Extract active region based on the input uv range.
+        assert(!Base::get_periodic_u());
+        assert(!Base::get_periodic_v());
+        Scalar min_u_trimmed = std::max(min_u, get_u_lower_bound());
+        Scalar max_u_trimmed = std::min(max_u, get_u_upper_bound());
+        Scalar min_v_trimmed = std::max(min_v, get_v_lower_bound());
+        Scalar max_v_trimmed = std::min(max_v, get_v_upper_bound());
+        auto active_region = subpatch(min_u_trimmed, max_u_trimmed, min_v_trimmed, max_v_trimmed);
+
         // 1. find closest control point
-        auto closest_control_pt_index = Base::find_closest_control_point(p);
+        auto closest_control_pt_index = active_region.find_closest_control_point(p);
         int i_min = closest_control_pt_index.first;
         int j_min = closest_control_pt_index.second;
 
-        auto clamp_2d = [](auto& uv, Scalar min_u, Scalar max_u, Scalar min_v, Scalar max_v) {
-            uv[0] = std::max(uv[0], min_u);
-            uv[0] = std::min(uv[0], max_u);
-            uv[1] = std::max(uv[1], min_v);
-            uv[1] = std::min(uv[1], max_v);
+        auto clamp_2d = [&](auto& uv) {
+            uv[0] = std::max(uv[0], min_u_trimmed);
+            uv[0] = std::min(uv[0], max_u_trimmed);
+            uv[1] = std::max(uv[1], min_v_trimmed);
+            uv[1] = std::min(uv[1], max_v_trimmed);
         };
 
-
         if (level <= 0) {
-            auto uv = get_control_point_preimage(i_min, j_min);
-            clamp_2d(uv, min_u, max_u, min_v, max_v);
+            auto uv = active_region.get_control_point_preimage(i_min, j_min);
+            clamp_2d(uv);
             return uv;
 
         } else {
@@ -668,20 +679,23 @@ public:
             // desired initial guess; find subdomain corresponding to control
             // point subdomain boundary
             // Conditionals for bound checking
-            UVPoint uv_min = get_control_point_preimage(
+            UVPoint uv_min = active_region.get_control_point_preimage(
                 i_min > 0 ? i_min - 1 : i_min, j_min > 0 ? j_min - 1 : j_min);
-            UVPoint uv_max =
-                get_control_point_preimage(i_min < num_control_points_u() - 1 ? i_min + 1 : i_min,
-                    j_min < num_control_points_v() - 1 ? j_min + 1 : j_min);
-            clamp_2d(uv_min, min_u, max_u, min_v, max_v);
-            clamp_2d(uv_max, min_u, max_u, min_v, max_v);
+            UVPoint uv_max = active_region.get_control_point_preimage(
+                i_min < num_control_points_u() - 1 ? i_min + 1 : i_min,
+                j_min < num_control_points_v() - 1 ? j_min + 1 : j_min);
+            clamp_2d(uv_min);
+            clamp_2d(uv_max);
 
-            // 3. split a subcurve to find closest ctrl points on subdomain
-            ThisType patch = subpatch(uv_min(0), uv_max(0), uv_min(1), uv_max(1));
-
-            // 4. repeat recursively
-            UVPoint uv = patch.approximate_inverse_evaluate(
-                p, num_samples, uv_min(0), uv_max(0), uv_min(1), uv_max(1), level - 1);
+            // 3. repeat recursively
+            UVPoint uv = active_region.approximate_inverse_evaluate(p,
+                num_samples_u,
+                num_samples_v,
+                uv_min(0),
+                uv_max(0),
+                uv_min(1),
+                uv_max(1),
+                level - 1);
 
             // no need to remap coordinates for splines
             return uv;

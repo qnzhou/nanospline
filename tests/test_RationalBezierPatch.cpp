@@ -146,13 +146,13 @@ TEST_CASE("RationalBezierPatch", "[rational][rational_bezier_patch]") {
             (patch.evaluate(0.3, 0.5) - patch.evaluate(0.3, 1.5)).norm() == Approx(0).margin(1e-6));
 
         Eigen::Matrix<Scalar, 1, 3> q(-1, -1, 0);
-        auto uv0 = patch.inverse_evaluate(q, 0, 1, 0, 1);
+        auto uv0 = std::get<0>(patch.inverse_evaluate(q, 0, 1, 0, 1));
         REQUIRE(patch.evaluate(uv0[0], uv0[1]).norm() == Approx(0));
-        auto uv1 = patch.inverse_evaluate(q, 0, 1, 1.9, 2.1);
+        auto uv1 = std::get<0>(patch.inverse_evaluate(q, 0, 1, 1.9, 2.1));
         REQUIRE(patch.evaluate(uv1[0], uv1[1]).norm() == Approx(0).margin(1e-2));
-        auto uv2 = patch.inverse_evaluate(q, 0, 1, -1.1, -0.5);
+        auto uv2 = std::get<0>(patch.inverse_evaluate(q, 0, 1, -1.1, -0.5));
         REQUIRE(patch.evaluate(uv2[0], uv2[1]).norm() == Approx(0).margin(1e-2));
-        auto uv3 = patch.inverse_evaluate(q, 0, 1, -1.7, -1.5);
+        auto uv3 = std::get<0>(patch.inverse_evaluate(q, 0, 1, -1.7, -1.5));
         REQUIRE(patch.evaluate(uv3[0], uv3[1]).norm() > 0.1);
     }
 }

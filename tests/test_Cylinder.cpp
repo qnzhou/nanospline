@@ -66,11 +66,11 @@ TEST_CASE("Cylinder", "[cylinder][primitive]")
         {
             Eigen::Matrix<Scalar, 1, 3> q(
                 4.8985871965894059e-16, 24.011050944326399, 29.835497046498102);
-            auto uv = patch.inverse_evaluate(q,
+            auto uv = std::get<0>(patch.inverse_evaluate(q,
                 -6.1575216010359952,
                 0.12566370614359279,
                 -7.0110509443263993,
-                -0.92157858182020647);
+                -0.92157858182020647));
             auto p = patch.evaluate(uv[0], uv[1]);
             REQUIRE((p - q).norm() == Approx(0).margin(1e-3));
         }
@@ -79,11 +79,11 @@ TEST_CASE("Cylinder", "[cylinder][primitive]")
         {
             Eigen::Matrix<Scalar, 1, 3> q(
                 -0.25066646712860841, 24.011050944326399, 29.851267643869146);
-            auto uv = patch.inverse_evaluate(q,
+            auto uv = std::get<0>(patch.inverse_evaluate(q,
                 -6.1575216010359952,
                 0.12566370614359279,
                 -7.0110509443263993,
-                -0.92157858182020647);
+                -0.92157858182020647));
             auto p = patch.evaluate(uv[0], uv[1]);
 
             REQUIRE((p - q).norm() == Approx(0).margin(1e-3));

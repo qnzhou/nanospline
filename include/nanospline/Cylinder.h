@@ -19,6 +19,7 @@ public:
     using Point = typename Base::Point;
     using UVPoint = typename Base::UVPoint;
     using Frame = Eigen::Matrix<Scalar, 3, _dim>;
+    using Base::inverse_evaluate;
 
 public:
     Cylinder()
@@ -66,7 +67,7 @@ public:
 
     Point evaluate_2nd_derivative_uv(Scalar u, Scalar v) const override { return Point::Zero(); }
 
-    UVPoint inverse_evaluate(const Point& p,
+    std::tuple<UVPoint, bool> inverse_evaluate(const Point& p,
         const Scalar min_u,
         const Scalar max_u,
         const Scalar min_v,
@@ -100,7 +101,7 @@ public:
             }
         }
 
-        return uv;
+        return {uv, true};
     }
 
     void initialize() override

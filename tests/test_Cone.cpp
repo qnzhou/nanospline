@@ -68,11 +68,11 @@ TEST_CASE("Cone", "[Cone][primitive]")
         {
             // Test points on the other side of the cone.
             auto p = patch.evaluate(M_PI, -1);
-            auto uv = patch.inverse_evaluate(p,
+            auto uv = std::get<0>(patch.inverse_evaluate(p,
                 patch.get_u_lower_bound(),
                 patch.get_u_upper_bound(),
                 patch.get_v_lower_bound(),
-                patch.get_v_upper_bound());
+                patch.get_v_upper_bound()));
             auto q = patch.evaluate(uv[0], uv[1]);
             REQUIRE(q == patch.get_location());
         }
@@ -103,31 +103,31 @@ TEST_CASE("Cone", "[Cone][primitive]")
 
         SECTION("Query at singularity") {
             Eigen::Matrix<Scalar, 1, 3> q1(l[0], l[1], l[2]);
-            auto uv = patch.inverse_evaluate(q1,
+            auto uv = std::get<0>(patch.inverse_evaluate(q1,
                 patch.get_u_lower_bound(),
                 patch.get_u_upper_bound(),
                 patch.get_v_lower_bound(),
-                patch.get_v_upper_bound());
+                patch.get_v_upper_bound()));
             REQUIRE(uv[1] == Approx(0));
         }
 
         SECTION("Query outside of the cone") {
             Eigen::Matrix<Scalar, 1, 3> q1(l[0], l[1], l[2] - 1);
-            auto uv = patch.inverse_evaluate(q1,
+            auto uv = std::get<0>(patch.inverse_evaluate(q1,
                 patch.get_u_lower_bound(),
                 patch.get_u_upper_bound(),
                 patch.get_v_lower_bound(),
-                patch.get_v_upper_bound());
+                patch.get_v_upper_bound()));
             REQUIRE(uv[1] == Approx(0));
         }
 
         SECTION("Query inside of the cone") {
             Eigen::Matrix<Scalar, 1, 3> q1(l[0], l[1], l[2] + 1);
-            auto uv = patch.inverse_evaluate(q1,
+            auto uv = std::get<0>(patch.inverse_evaluate(q1,
                 patch.get_u_lower_bound(),
                 patch.get_u_upper_bound(),
                 patch.get_v_lower_bound(),
-                patch.get_v_upper_bound());
+                patch.get_v_upper_bound()));
             REQUIRE(uv[1] > 0);
         }
     }

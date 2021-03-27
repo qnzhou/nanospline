@@ -17,13 +17,14 @@ public:
     using Point = typename Base::Point;
     using UVPoint = typename Base::UVPoint;
     using ProfileType = CurveBase<_Scalar, _dim>;
+    using Base::inverse_evaluate;
 
 public:
     ExtrusionPatch()
     {
         m_location.setZero();
         m_direction.setZero();
-        m_direction[_dim-1] = 1;
+        m_direction[_dim - 1] = 1;
         Base::set_degree_u(2);
         Base::set_degree_v(2);
     }
@@ -98,21 +99,31 @@ public:
         return Point::Zero();
     }
 
-    UVPoint inverse_evaluate(const Point& p,
+    std::tuple<UVPoint, bool> inverse_evaluate(const Point& p,
         const Scalar min_u,
         const Scalar max_u,
         const Scalar min_v,
         const Scalar max_v) const override
     {
         assert_valid_profile();
-        UVPoint uv;
-        uv[0] = m_profile->approximate_inverse_evaluate(p-m_location, min_u, max_u);
-        uv[1] = (p - m_profile->evaluate(uv[0])).dot(m_direction);
+        constexpr Scalar tol = static_cast<Scalar>(1e-6);
+        UVPoint uv(min_u, min_v);
+        Scalar prev_v = min_v;
+        int count = 0;
+        do {
+            // Iteration is required due to nuemrical error when profile is too
+            // far away from the query point.
+            prev_v = uv[1];
+            uv[0] = m_profile->approximate_inverse_evaluate(
+                p - m_location - prev_v * m_direction, min_u, max_u);
+            uv[1] = (p - m_profile->evaluate(uv[0])).dot(m_direction);
+            count++;
+        } while (std::abs(uv[1] - prev_v) > tol && count < 20);
         uv[1] = std::min(max_v, std::max(min_v, uv[1]));
 
         assert(uv[0] >= min_u && uv[0] <= max_u);
         assert(uv[1] >= min_v && uv[1] <= max_v);
-        return uv;
+        return {uv, true};
     }
 
     void initialize() override
@@ -127,7 +138,7 @@ public:
         if (m_profile->get_periodic()) {
             const auto p0 = m_profile->evaluate(m_u_lower);
             const auto p1 = m_profile->evaluate(m_u_upper);
-            Base::set_periodic_u((p1-p0).squaredNorm() < TOL);
+            Base::set_periodic_u((p1 - p0).squaredNorm() < TOL);
         } else {
             Base::set_periodic_u(false);
         }

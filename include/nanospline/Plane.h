@@ -17,6 +17,7 @@ public:
     using Point = typename Base::Point;
     using UVPoint = typename Base::UVPoint;
     using Frame = Eigen::Matrix<Scalar, 2, _dim>;
+    using Base::inverse_evaluate;
 
 public:
     Plane()
@@ -54,7 +55,7 @@ public:
 
     Point evaluate_2nd_derivative_uv(Scalar u, Scalar v) const override { return Point::Zero(); }
 
-    UVPoint inverse_evaluate(const Point& p,
+    std::tuple<UVPoint, bool> inverse_evaluate(const Point& p,
         const Scalar min_u,
         const Scalar max_u,
         const Scalar min_v,
@@ -68,7 +69,7 @@ public:
         uv[0] = std::max(min_u, std::min(uv[0], max_u));
         uv[1] = std::max(min_v, std::min(uv[1], max_v));
 
-        return uv;
+        return {uv, true};
     }
 
     void initialize() override

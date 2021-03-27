@@ -31,7 +31,7 @@ public:
         const Scalar upper = 1.0,
         const int level = 3) const override
     {
-        assert(lower < upper);
+        assert(lower <= upper);
         validate_curve();
         const int num_samples = 2 * (get_degree() + 1);
         const int num_knots = get_num_knots();
@@ -60,6 +60,8 @@ public:
                     curr_span = get_degree();
                     period_count++;
                 }
+            } else if (curr_span + 1 >= num_knots){
+                break;
             }
             curr_upper = std::min(curr_upper, m_knots[curr_span + 1] + period_count * period);
 
@@ -87,8 +89,8 @@ public:
             return this->newton_raphson(p, min_t, 10, TOL, lower, upper);
         } else {
             return approximate_inverse_evaluate(p,
-                std::max(lower, min_t - min_delta),
-                std::min(upper, min_t + min_delta),
+                std::min(upper, std::max(lower, min_t - min_delta)),
+                std::min(upper, std::max(lower, min_t + min_delta)),
                 level - 1);
         }
     }

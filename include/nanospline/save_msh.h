@@ -157,6 +157,7 @@ void add_patch_sampled(MshSpec& spec,
     node_block.entity_tag = tag;
     node_block.parametric = 1;
     node_block.num_nodes_in_block = N;
+    node_block.data.reserve(N * 3);
 
     spec.elements.entity_blocks.emplace_back();
     spec.elements.num_entity_blocks += 1;
@@ -169,6 +170,7 @@ void add_patch_sampled(MshSpec& spec,
     element_block.entity_tag = tag;
     element_block.element_type = 3;
     element_block.num_elements_in_block = M;
+    element_block.data.reserve(M * 5);
 
     const Scalar u_min = patch.get_u_lower_bound();
     const Scalar u_max = patch.get_u_upper_bound();
@@ -218,6 +220,7 @@ void add_patch_sampled(MshSpec& spec,
     }
     auto& data = spec.element_data.back();
     data.header.int_tags[2] += static_cast<int>(M);
+    data.entries.reserve(static_cast<size_t>(data.header.int_tags[2]));
     for (size_t i = 0; i < M; i++) {
         data.entries.emplace_back();
         auto& entry = data.entries.back();

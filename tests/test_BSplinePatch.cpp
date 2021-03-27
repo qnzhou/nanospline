@@ -179,7 +179,7 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]")
         validate_iso_curves(patch, 10);
         validate_derivative(patch, 10, 10);
         validate_derivative_patches(patch, 10, 10);
-        validate_inverse_evaluation(patch, 10, 10);
+        validate_inverse_evaluation(patch, 10, 10, 1e-6);
 
         // Out of bound extrapolation.
         const auto p0 = patch.evaluate(1.5707963267948966, -16.000000000000011);
@@ -266,15 +266,15 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]")
                     .norm() == Approx(0).margin(1e-6));
 
         auto q = patch.evaluate(u_min, v_mid);
-        const auto uv0 = patch.inverse_evaluate(q, u_min, u_max, v_min, v_max);
+        const auto uv0 = std::get<0>(patch.inverse_evaluate(q, u_min, u_max, v_min, v_max));
         REQUIRE((patch.evaluate(uv0[0], uv0[1]) - q).norm() == Approx(0));
-        const auto uv1 = patch.inverse_evaluate(q, u_max - d, u_max + d, v_min, v_max);
+        const auto uv1 = std::get<0>(patch.inverse_evaluate(q, u_max - d, u_max + d, v_min, v_max));
         REQUIRE((patch.evaluate(uv1[0], uv1[1]) - q).norm() == Approx(0));
         const auto uv2 =
-            patch.inverse_evaluate(q, u_min - 2 * period - d, u_min - 2 * period + d, v_min, v_max);
+            std::get<0>(patch.inverse_evaluate(q, u_min - 2 * period - d, u_min - 2 * period + d, v_min, v_max));
         REQUIRE((patch.evaluate(uv2[0], uv2[1]) - q).norm() == Approx(0));
         const auto uv3 =
-            patch.inverse_evaluate(q, u_min - period + d, u_max - period - d, v_min, v_max);
+            std::get<0>(patch.inverse_evaluate(q, u_min - period + d, u_max - period - d, v_min, v_max));
         REQUIRE((patch.evaluate(uv3[0], uv3[1]) - q).norm() > 0.1);
     }
 }

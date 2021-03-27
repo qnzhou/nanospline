@@ -17,6 +17,7 @@ public:
     using Point = typename Base::Point;
     using UVPoint = typename Base::UVPoint;
     using ProfileType = CurveBase<_Scalar, _dim>;
+    using Base::inverse_evaluate;
 
 public:
     RevolutionPatch()
@@ -120,7 +121,7 @@ public:
         return duv;
     }
 
-    UVPoint inverse_evaluate(const Point& p,
+    std::tuple<UVPoint, bool> inverse_evaluate(const Point& p,
         const Scalar min_u,
         const Scalar max_u,
         const Scalar min_v,
@@ -187,10 +188,10 @@ public:
             q = q2;
         } while (delta > TOL);
 
-        uv = Base::newton_raphson(p, uv, 20, TOL, min_u, max_u, min_v, max_v);
+        auto converged = Base::newton_raphson(p, uv, 20, TOL, min_u, max_u, min_v, max_v);
         assert(uv[0] >= min_u && uv[0] <= max_u);
         assert(uv[1] >= min_v && uv[1] <= max_v);
-        return uv;
+        return {uv, converged};
     }
 
     void initialize() override
