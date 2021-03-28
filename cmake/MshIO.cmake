@@ -1,6 +1,6 @@
 include_guard()
 
-if (NOT MshIO::MshIO)
+if (NOT mshio::mshio)
     FetchContent_Declare(
         MshIO
         GIT_REPOSITORY https://github.com/qnzhou/MshIO.git

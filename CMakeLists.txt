@@ -30,7 +30,7 @@ file(GLOB SRC_FILES "${PROJECT_SOURCE_DIR}/src/*.cpp")
 
 
 add_library(nanospline INTERFACE)
-target_link_libraries(nanospline INTERFACE Eigen3::Eigen MshIO::MshIO)
+target_link_libraries(nanospline INTERFACE Eigen3::Eigen mshio::mshio)
 target_include_directories(nanospline INTERFACE
     ${PROJECT_SOURCE_DIR}/include)
 
