@@ -12,7 +12,7 @@
 #include <nanospline/RationalBezierPatch.h>
 #include <nanospline/enums.h>
 
-#include <MshIO/mshio.h>
+#include <mshio/mshio.h>
 
 #include <Eigen/Core>
 

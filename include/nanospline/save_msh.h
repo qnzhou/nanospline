@@ -4,7 +4,7 @@
 #include <nanospline/PatchBase.h>
 #include <nanospline/enums.h>
 
-#include <MshIO/mshio.h>
+#include <mshio/mshio.h>
 
 #include <Eigen/Core>
 #include <fstream>
