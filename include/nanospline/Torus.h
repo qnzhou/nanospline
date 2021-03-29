@@ -107,10 +107,14 @@ public:
         if (uv[0] < min_u) {
             int n = static_cast<int>(std::ceil((min_u - uv[0]) / (2 * M_PI)));
             uv[0] += n * 2 * M_PI;
+        } else {
+            uv[0] = min_u + std::fmod(uv[0] - min_u, 2 * M_PI);
         }
         if (uv[1] < min_v) {
             int n = static_cast<int>(std::ceil((min_v - uv[1]) / (2 * M_PI)));
             uv[1] += n * 2 * M_PI;
+        } else {
+            uv[1] = min_v + std::fmod(uv[1] - min_v, 2 * M_PI);
         }
 
         if (uv[0] > max_u) {
