@@ -158,22 +158,7 @@ public:
             Scalar y = (p - m_location).dot(d2);
             Scalar u = std::atan2(y, x);
 
-            if (u < min_u) {
-                auto n = std::ceil((min_u - u) / (2 * M_PI));
-                u += n * 2 * M_PI;
-            } else {
-                u = min_u + std::fmod(u - min_u, 2 * M_PI);
-            }
-
-            if (u > max_u) {
-                const Scalar du_min = 2 * M_PI - (u - min_u);
-                const Scalar du_max = u - max_u;
-                if (du_min < du_max) {
-                    u = min_u;
-                } else {
-                    u = max_u;
-                }
-            }
+            u = Base::clip_periodic_parameter(u, min_u, max_u, 2 * M_PI);
 
             // Compute v assuming u is fixed.
             Eigen::AngleAxis<Scalar> R(-u, m_axis);
