@@ -59,7 +59,8 @@ public:
 
     Point evaluate_derivative_v(Scalar u, Scalar v) const override { return m_frame.row(2); }
 
-    Point evaluate_2nd_derivative_uu(Scalar u, Scalar v) const override {
+    Point evaluate_2nd_derivative_uu(Scalar u, Scalar v) const override
+    {
         return -m_frame.row(0) * std::cos(u) * m_radius - m_frame.row(1) * std::sin(u) * m_radius;
     }
 
@@ -81,25 +82,7 @@ public:
         uv[1] = z;
 
         uv[1] = std::max(min_v, std::min(uv[1], max_v));
-        if (uv[0] < min_u){
-            int n = static_cast<int>(std::ceil((min_u - uv[0]) / (2 * M_PI)));
-            uv[0] += n * 2 * M_PI;
-        } else {
-            uv[0] = min_u + std::fmod(uv[0] - min_u, 2 * M_PI);
-        }
-
-        if (uv[0] > max_u) {
-            // Handle the case where u is out of its valid domain (i.e. cylinder
-            // patch is not periodic in u).  Check the 2 arc boundaries.
-            assert(!Base::get_periodic_u());
-            const Scalar du_min = 2 * M_PI - (uv[0] - min_u);
-            const Scalar du_max = uv[0] - max_u;
-            if (du_min < du_max) {
-                uv[0] = min_u;
-            } else {
-                uv[0] = max_u;
-            }
-        }
+        uv[0] = Base::clip_periodic_parameter(uv[0], min_u, max_u, 2 * M_PI);
 
         return {uv, true};
     }

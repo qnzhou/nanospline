@@ -104,37 +104,8 @@ public:
         const Scalar w = std::hypot(x, y) - m_major_radius;
         uv[1] = std::atan2(z, w);
 
-        if (uv[0] < min_u) {
-            int n = static_cast<int>(std::ceil((min_u - uv[0]) / (2 * M_PI)));
-            uv[0] += n * 2 * M_PI;
-        } else {
-            uv[0] = min_u + std::fmod(uv[0] - min_u, 2 * M_PI);
-        }
-        if (uv[1] < min_v) {
-            int n = static_cast<int>(std::ceil((min_v - uv[1]) / (2 * M_PI)));
-            uv[1] += n * 2 * M_PI;
-        } else {
-            uv[1] = min_v + std::fmod(uv[1] - min_v, 2 * M_PI);
-        }
-
-        if (uv[0] > max_u) {
-            const Scalar du_min = 2 * M_PI - (uv[0] - min_u);
-            const Scalar du_max = uv[0] - max_u;
-            if (du_min < du_max) {
-                uv[0] = min_u;
-            } else {
-                uv[0] = max_u;
-            }
-        }
-        if (uv[1] > max_v) {
-            const Scalar dv_min = 2 * M_PI - (uv[1] - min_v);
-            const Scalar dv_max = uv[1] - max_v;
-            if (dv_min < dv_max) {
-                uv[1] = min_v;
-            } else {
-                uv[1] = max_v;
-            }
-        }
+        uv[0] = Base::clip_periodic_parameter(uv[0], min_u, max_u, 2 * M_PI);
+        uv[1] = Base::clip_periodic_parameter(uv[1], min_v, max_v, 2 * M_PI);
 
         return {uv, true};
     }

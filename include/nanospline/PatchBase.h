@@ -405,6 +405,29 @@ protected:
         return v;
     }
 
+    /**
+     * Clip parameter t into the range [t_min, t_max] assuming t is periodic
+     * with `period` as period.
+     */
+    Scalar clip_periodic_parameter(Scalar t, Scalar t_min, Scalar t_max, Scalar period) const
+    {
+        if (t < t_min) {
+            int n = static_cast<int>(std::ceil((t_min - t) / period));
+            t += n * period;
+        } else {
+            t = t_min + std::fmod(t - t_min, period);
+        }
+        assert(t >= t_min);
+
+        if (t > t_max) {
+            const Scalar dist_to_min = period - (t - t_min);
+            const Scalar dist_to_max = t - t_max;
+            t = (dist_to_min < dist_to_max) ? t_min : t_max;
+        }
+        assert(t <= t_max);
+        return t;
+    }
+
 protected:
     int m_degree_u = -1;
     int m_degree_v = -1;
