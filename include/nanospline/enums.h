@@ -23,7 +23,8 @@ enum class PatchEnum {
     SPHERE = 8,
     TORUS = 9,
     REVOLUTION = 10,
-    EXTRUSION = 11
+    EXTRUSION = 11,
+    OFFSET = 12
 };
 
 enum class SampleMethod {
