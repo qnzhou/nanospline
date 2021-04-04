@@ -25,6 +25,7 @@
 #include <nanospline/Torus.h>
 #include <nanospline/RevolutionPatch.h>
 #include <nanospline/ExtrusionPatch.h>
+#include <nanospline/OffsetPatch.h>
 
 // IO
 #include <nanospline/load_msh.h>
