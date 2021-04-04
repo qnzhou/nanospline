@@ -55,10 +55,10 @@ public:
     Point evaluate(Scalar u, Scalar v) const override
     {
         assert_valid_base_surface();
-        const auto p = m_base_surface->evaluate(u, v);
-        const auto du = m_base_surface->evaluate_derivative_u(u, v);
-        const auto dv = m_base_surface->evaluate_derivative_v(u, v);
-        const auto n = du.cross(dv).normalized();
+        const Point p = m_base_surface->evaluate(u, v);
+        const Point du = m_base_surface->evaluate_derivative_u(u, v);
+        const Point dv = m_base_surface->evaluate_derivative_v(u, v);
+        const Point n = du.cross(dv).normalized();
         if (m_offset != 0 && !n.array().isFinite().all()) {
             std::cerr << "Warning: evaluating offset surface at singular point: " << u << ", " << v
                       << std::endl;
@@ -71,13 +71,13 @@ public:
     Point evaluate_derivative_u(Scalar u, Scalar v) const override
     {
         assert_valid_base_surface();
-        const auto du = m_base_surface->evaluate_derivative_u(u, v);
-        const auto dv = m_base_surface->evaluate_derivative_v(u, v);
-        const auto duu = m_base_surface->evaluate_2nd_derivative_uu(u, v);
-        const auto duv = m_base_surface->evaluate_2nd_derivative_uv(u, v);
-        const auto n = du.cross(dv);
-        const auto r = duu.cross(dv) + du.cross(duv);
-        const auto n_sq = n.squaredNorm();
+        const Point du = m_base_surface->evaluate_derivative_u(u, v);
+        const Point dv = m_base_surface->evaluate_derivative_v(u, v);
+        const Point duu = m_base_surface->evaluate_2nd_derivative_uu(u, v);
+        const Point duv = m_base_surface->evaluate_2nd_derivative_uv(u, v);
+        const Point n = du.cross(dv);
+        const Point r = duu.cross(dv) + du.cross(duv);
+        const Scalar n_sq = n.squaredNorm();
 
         constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon();
         if (n_sq < TOL) {
@@ -91,13 +91,13 @@ public:
     Point evaluate_derivative_v(Scalar u, Scalar v) const override
     {
         assert_valid_base_surface();
-        const auto du = m_base_surface->evaluate_derivative_u(u, v);
-        const auto dv = m_base_surface->evaluate_derivative_v(u, v);
-        const auto duv = m_base_surface->evaluate_2nd_derivative_uv(u, v);
-        const auto dvv = m_base_surface->evaluate_2nd_derivative_vv(u, v);
-        const auto n = du.cross(dv);
-        const auto r = duv.cross(dv) + du.cross(dvv);
-        const auto n_sq = n.squaredNorm();
+        const Point du = m_base_surface->evaluate_derivative_u(u, v);
+        const Point dv = m_base_surface->evaluate_derivative_v(u, v);
+        const Point duv = m_base_surface->evaluate_2nd_derivative_uv(u, v);
+        const Point dvv = m_base_surface->evaluate_2nd_derivative_vv(u, v);
+        const Point n = du.cross(dv);
+        const Point r = duv.cross(dv) + du.cross(dvv);
+        const Scalar n_sq = n.squaredNorm();
 
         constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon();
         if (n_sq < TOL) {
@@ -116,8 +116,8 @@ public:
     {
         assert_valid_base_surface();
         const Scalar delta_u = (m_u_upper - m_u_lower) * 1e-6;
-        const auto du_before = evaluate_derivative_u(u - delta_u, v);
-        const auto du_after = evaluate_derivative_u(u + delta_u, v);
+        const Point du_before = evaluate_derivative_u(u - delta_u, v);
+        const Point du_after = evaluate_derivative_u(u + delta_u, v);
 
         return (du_after - du_before) / (delta_u * 2);
     }
@@ -126,8 +126,8 @@ public:
     {
         assert_valid_base_surface();
         const Scalar delta_v = (m_v_upper - m_v_lower) * 1e-6;
-        const auto dv_before = evaluate_derivative_v(u, v - delta_v);
-        const auto dv_after = evaluate_derivative_v(u, v + delta_v);
+        const Point dv_before = evaluate_derivative_v(u, v - delta_v);
+        const Point dv_after = evaluate_derivative_v(u, v + delta_v);
 
         return (dv_after - dv_before) / (delta_v * 2);
     }
@@ -136,8 +136,8 @@ public:
     {
         assert_valid_base_surface();
         const Scalar delta_v = (m_v_upper - m_v_lower) * 1e-6;
-        const auto du_before = evaluate_derivative_u(u, v - delta_v);
-        const auto du_after = evaluate_derivative_u(u, v + delta_v);
+        const Point du_before = evaluate_derivative_u(u, v - delta_v);
+        const Point du_after = evaluate_derivative_u(u, v + delta_v);
 
         return (du_after - du_before) / (delta_v * 2);
     }
