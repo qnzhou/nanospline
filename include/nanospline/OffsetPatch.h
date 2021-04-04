@@ -46,7 +46,10 @@ public:
             m_base_surface = nullptr;
         }
     }
-    void set_base_surface(std::unique_ptr<Base>&& base_surface) { m_base_surface = base_surface; }
+    void set_base_surface(std::unique_ptr<Base>&& base_surface)
+    {
+        m_base_surface = std::move(base_surface);
+    }
 
     Scalar get_offset() const { return m_offset; }
     void set_offset(Scalar offset) { m_offset = offset; }
@@ -240,11 +243,13 @@ public:
     }
 
 protected:
-    int num_recommended_samples_u() const override {
+    int num_recommended_samples_u() const override
+    {
         return m_base_surface->num_recommended_samples_u();
     }
 
-    int num_recommended_samples_v() const override {
+    int num_recommended_samples_v() const override
+    {
         return m_base_surface->num_recommended_samples_v();
     }
 
