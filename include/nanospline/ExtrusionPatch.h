@@ -197,6 +197,14 @@ public:
         throw not_implemented_error("ExtrusionPatch does not need control points.");
     }
 
+    int num_recommended_samples_u() const override {
+        return m_profile->get_num_control_points();
+    }
+
+    int num_recommended_samples_v() const override {
+        return 3;
+    }
+
 private:
     void assert_valid_profile() const
     {

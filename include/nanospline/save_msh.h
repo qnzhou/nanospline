@@ -315,8 +315,8 @@ void save_msh(const std::string& filename,
     for (auto& patch : patches) {
         internal::add_patch(spec, *patch, tag);
         if (save_sampled) {
-            size_t num_u_samples = static_cast<size_t>(std::max(64, patch->num_control_points_u() * 5));
-            size_t num_v_samples = static_cast<size_t>(std::max(64, patch->num_control_points_v() * 5));
+            size_t num_u_samples = static_cast<size_t>(patch->num_recommended_samples_u()) * 2;
+            size_t num_v_samples = static_cast<size_t>(patch->num_recommended_samples_v()) * 2;
             internal::add_patch_sampled(spec, *patch, num_u_samples, num_v_samples, tag);
         }
         tag++;

@@ -216,7 +216,7 @@ TEST_CASE("OffsetPatch", "[offset_patch][primitive]")
             };
             add_line(q, p);
 
-            save_msh<Scalar>("debug.msh", curves, {&patch});
+            // save_msh<Scalar>("debug.msh", curves, {&patch});
             REQUIRE(std::get<1>(r));
         }
 

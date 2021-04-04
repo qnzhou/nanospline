@@ -178,6 +178,14 @@ public:
         throw not_implemented_error("Sphere does not need control points.");
     }
 
+    int num_recommended_samples_u() const override {
+        return std::max(8, static_cast<int>(std::ceil((m_u_upper - m_u_lower) / 10)));
+    }
+
+    int num_recommended_samples_v() const override {
+        return std::max(8, static_cast<int>(std::ceil((m_v_upper - m_v_lower) / 10)));
+    }
+
 private:
     Point m_location;
     Frame m_frame;

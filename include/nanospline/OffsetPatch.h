@@ -148,27 +148,18 @@ public:
     {
         assert_valid_base_surface();
 
-        auto base_inverse_evaluate = [&]() {
-            // TODO: 8 here is very ad-hoc.
-            const int num_samples_u = std::max(8, m_base_surface->num_control_points_u() + 1);
-            const int num_samples_v = std::max(8, m_base_surface->num_control_points_v() + 1);
-            UVPoint uv = Base::approximate_inverse_evaluate(
-                    p, num_samples_u, num_samples_v, min_u, max_u, min_v, max_v, 10);
-            return Base::inverse_evaluate(p, uv[0], uv[1], min_u, max_u, min_v, max_v);
-        };
-
         UVPoint uv;
         bool converged = false;
         std::tie(uv, converged) = m_base_surface->inverse_evaluate(p, min_u, max_u, min_v, max_v);
         if (!converged) {
-            return base_inverse_evaluate();
+            return Base::inverse_evaluate(p, uv[0], uv[1], min_u, max_u, min_v, max_v);
         } else {
             std::tie(uv, converged) =
                 Base::inverse_evaluate(p, uv[0], uv[1], min_u, max_u, min_v, max_v);
             if (converged) {
                 return {uv, converged};
             } else {
-                return base_inverse_evaluate();
+                return Base::inverse_evaluate(p, uv[0], uv[1], min_u, max_u, min_v, max_v);
             }
         }
     }
@@ -244,6 +235,15 @@ public:
     UVPoint get_control_point_preimage(int i, int j) const override
     {
         throw not_implemented_error("OffsetPatch does not need control points.");
+    }
+
+protected:
+    int num_recommended_samples_u() const override {
+        return m_base_surface->num_recommended_samples_u();
+    }
+
+    int num_recommended_samples_v() const override {
+        return m_base_surface->num_recommended_samples_v();
     }
 
 private:
