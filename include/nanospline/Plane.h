@@ -136,6 +136,14 @@ public:
         throw not_implemented_error("Plane does not need control points.");
     }
 
+    int num_recommended_samples_u() const override {
+        return 3;
+    }
+
+    int num_recommended_samples_v() const override {
+        return 3;
+    }
+
 private:
     Point m_location;
     Frame m_frame;

@@ -253,6 +253,14 @@ public:
         throw not_implemented_error("RevolutionPatch does not need control points.");
     }
 
+    int num_recommended_samples_u() const override {
+        return std::max(8, static_cast<int>(std::ceil((m_u_upper - m_u_lower) / 10)));
+    }
+
+    int num_recommended_samples_v() const override {
+        return m_profile->get_num_control_points();
+    }
+
 private:
     void assert_valid_profile() const
     {

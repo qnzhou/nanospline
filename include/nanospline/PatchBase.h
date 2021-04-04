@@ -147,8 +147,8 @@ public:
         const Scalar min_v,
         const Scalar max_v) const
     {
-        const int num_samples_u = num_control_points_u() + 1;
-        const int num_samples_v = num_control_points_v() + 1;
+        const int num_samples_u = num_recommended_samples_u();
+        const int num_samples_v = num_recommended_samples_v();
         UVPoint uv = approximate_inverse_evaluate(
             p, num_samples_u, num_samples_v, min_u, max_u, min_v, max_v, 10);
         return inverse_evaluate(p, uv[0], uv[1], min_u, max_u, min_v, max_v);
@@ -218,6 +218,18 @@ public:
     virtual int get_num_knots_v() const = 0;
     virtual Scalar get_knot_v(int i) const = 0;
     virtual void set_knot_v(int i, Scalar val) = 0;
+
+    /**
+     * Number of recommended samples in the u direction in case one need to
+     * uniformly sample the patch.
+     */
+    virtual int num_recommended_samples_u() const { return num_control_points_u() + 1; }
+
+    /**
+     * Number of recommended samples in the v direction in case one need to
+     * uniformly sample the patch.
+     */
+    virtual int num_recommended_samples_v() const { return num_control_points_v() + 1; }
 
 protected:
     virtual UVPoint approximate_inverse_evaluate(const Point& p,

@@ -145,7 +145,8 @@ template <typename PatchType>
 void validate_derivative(const PatchType& patch,
     int u_samples,
     int v_samples,
-    const typename PatchType::Scalar tol = 1e-6)
+    const typename PatchType::Scalar tol = 1e-6,
+    bool test_2nd_derivatives = true)
 {
     const auto dim = patch.get_dim();
     const auto u_min = patch.get_u_lower_bound();
@@ -180,31 +181,33 @@ void validate_derivative(const PatchType& patch,
                 REQUIRE(dv[k] * (v_next - v_prev) == Approx(p_v_next[k] - p_v_prev[k]).margin(tol));
             }
 
-            const auto duu = patch.evaluate_2nd_derivative_uu(u, v);
-            const auto dvv = patch.evaluate_2nd_derivative_vv(u, v);
+            if (test_2nd_derivatives) {
+                const auto duu = patch.evaluate_2nd_derivative_uu(u, v);
+                const auto dvv = patch.evaluate_2nd_derivative_vv(u, v);
 
-            const auto du_prev = patch.evaluate_derivative_u(u_prev, v);
-            const auto du_next = patch.evaluate_derivative_u(u_next, v);
-            const auto dv_prev = patch.evaluate_derivative_v(u, v_prev);
-            const auto dv_next = patch.evaluate_derivative_v(u, v_next);
+                const auto du_prev = patch.evaluate_derivative_u(u_prev, v);
+                const auto du_next = patch.evaluate_derivative_u(u_next, v);
+                const auto dv_prev = patch.evaluate_derivative_v(u, v_prev);
+                const auto dv_next = patch.evaluate_derivative_v(u, v_next);
 
-            for (int k = 0; k < dim; k++) {
-                REQUIRE(duu[k] * (u_next - u_prev) == Approx(du_next[k] - du_prev[k]).margin(tol));
-                REQUIRE(dvv[k] * (v_next - v_prev) == Approx(dv_next[k] - dv_prev[k]).margin(tol));
-            }
+                for (int k = 0; k < dim; k++) {
+                    REQUIRE(duu[k] * (u_next - u_prev) == Approx(du_next[k] - du_prev[k]).margin(tol));
+                    REQUIRE(dvv[k] * (v_next - v_prev) == Approx(dv_next[k] - dv_prev[k]).margin(tol));
+                }
 
-            const auto duv = patch.evaluate_2nd_derivative_uv(u, v);
+                const auto duv = patch.evaluate_2nd_derivative_uv(u, v);
 
-            const auto du_v_prev = patch.evaluate_derivative_u(u, v_prev);
-            const auto du_v_next = patch.evaluate_derivative_u(u, v_next);
-            const auto dv_u_prev = patch.evaluate_derivative_v(u_prev, v);
-            const auto dv_u_next = patch.evaluate_derivative_v(u_next, v);
+                const auto du_v_prev = patch.evaluate_derivative_u(u, v_prev);
+                const auto du_v_next = patch.evaluate_derivative_u(u, v_next);
+                const auto dv_u_prev = patch.evaluate_derivative_v(u_prev, v);
+                const auto dv_u_next = patch.evaluate_derivative_v(u_next, v);
 
-            for (int k = 0; k < dim; k++) {
-                REQUIRE(
-                    duv[k] * (v_next - v_prev) == Approx(du_v_next[k] - du_v_prev[k]).margin(tol));
-                REQUIRE(
-                    duv[k] * (u_next - u_prev) == Approx(dv_u_next[k] - dv_u_prev[k]).margin(tol));
+                for (int k = 0; k < dim; k++) {
+                    REQUIRE(
+                        duv[k] * (v_next - v_prev) == Approx(du_v_next[k] - du_v_prev[k]).margin(tol));
+                    REQUIRE(
+                        duv[k] * (u_next - u_prev) == Approx(dv_u_next[k] - dv_u_prev[k]).margin(tol));
+                }
             }
         }
     }
