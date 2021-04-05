@@ -176,6 +176,14 @@ public:
         throw not_implemented_error("Cone does not need control points.");
     }
 
+    int num_recommended_samples_u() const override {
+        return std::max(8, static_cast<int>(std::ceil((m_u_upper - m_u_lower) / M_PI * 18)));
+    }
+
+    int num_recommended_samples_v() const override {
+        return 3;
+    }
+
 private:
     Point m_location;
     Frame m_frame;

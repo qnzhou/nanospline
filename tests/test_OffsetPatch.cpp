@@ -2,9 +2,11 @@
 #include <iostream>
 
 #include <nanospline/BezierPatch.h>
+#include <nanospline/ExtrusionPatch.h>
 #include <nanospline/NURBSPatch.h>
 #include <nanospline/OffsetPatch.h>
 #include <nanospline/Sphere.h>
+#include <nanospline/save_msh.h>
 
 #include "validation_utils.h"
 
@@ -223,5 +225,71 @@ TEST_CASE("OffsetPatch", "[offset_patch][primitive]")
         validate_derivative(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10, 1e-6);
         validate_inverse_evaluation_3d(patch, 10, 10);
+    }
+
+    SECTION("Offset of extrusion surface")
+    {
+        BSpline<Scalar, 3, -1> profile;
+        Eigen::Matrix<Scalar, 28, 1> knots;
+        knots << -0.10489141618271003, -0.05405924750318103, -0.025456813487286012, 0.0,
+            0.0375481141240186, 0.0666845795026016, 0.0997829359556654, 0.142464706455997,
+            0.190020943771546, 0.250711965387713, 0.310875481536047, 0.348603431195931,
+            0.386481782520207, 0.451933801370934, 0.503224385627088, 0.555301187066778,
+            0.609452043777825, 0.651424801382873, 0.725204411110517, 0.764100042802598,
+            0.829406432040783, 0.89510858381729, 0.945940752496819, 0.974543186512714, 1.0,
+            1.0375481141240186, 1.0666845795026016, 1.0997829359556655;
+        Eigen::Matrix<Scalar, 24, 3, Eigen::RowMajor> control_points;
+        control_points << 19.095322004027402, 99.2011660082504, 9.525, 15.0926619913867,
+            102.39011800058, 9.525, 4.261303749029341, 101.748993488823, 9.525, 0.393772393858003,
+            96.5306627670948, 9.525, -2.1946856500525302, 88.8547201226091, 9.525,
+            -1.8327204076113102, 75.65800042155051, 9.525, 0.271794991922271, 59.681760003771195,
+            9.525, 1.90551640469, 35.7539769017967, 9.525, -0.015665202331169498, 6.22749569909829,
+            9.525, -13.6282004276417, 7.303006871261711, 9.525, -25.610987766001898,
+            5.406881081774509, 9.525, -32.77216966018489, -26.0686286518647, 9.525,
+            -28.165374938610597, -47.0319298337403, 9.525, -7.12278186065918, -47.5584244173224,
+            9.525, 16.5727888599802, -49.1588304697461, 9.525, 18.1453016926664, -34.087129206286,
+            9.525, 18.6287511361675, 4.92236190007445, 9.525, 17.6934655202226, 14.057150373731199,
+            9.525, 17.6627244587325, 46.0420259223973, 9.525, 18.2703861024189, 73.78743336785381,
+            9.525, 21.150239382999402, 92.8415715828754, 9.525, 19.095322004027402,
+            99.2011660082504, 9.525, 15.0926619913867, 102.39011800058, 9.525, 4.261303749029341,
+            101.748993488823, 9.525;
+        profile.set_control_points(control_points);
+        profile.set_knots(knots);
+        profile.set_periodic(true);
+        profile.initialize();
+
+        ExtrusionPatch<Scalar, 3> base_surface;
+        base_surface.set_profile(&profile);
+        base_surface.set_direction({0, 0, -1});
+        base_surface.initialize();
+
+        OffsetPatch<Scalar, 3> patch;
+        patch.set_base_surface(&base_surface);
+        patch.set_offset(2.54);
+        patch.set_u_lower_bound(0.834041723955241);
+        patch.set_u_upper_bound(1.149892683622552);
+        patch.set_v_lower_bound(-1.2e-14);
+        patch.set_v_upper_bound(6.985000000000003);
+        patch.initialize();
+
+        validate_derivative(patch, 10, 10);
+        validate_inverse_evaluation(patch, 10, 10, 1e-6);
+        validate_inverse_evaluation_3d(patch, 10, 10);
+
+        SECTION("Debug inverse evaluate") {
+            Eigen::Matrix<Scalar, 1, 3> q(1.10488, 74.0611, 4.93889);
+            auto r = patch.inverse_evaluate(q,
+                    patch.get_u_lower_bound(),
+                    patch.get_u_upper_bound(),
+                    patch.get_v_lower_bound(),
+                    patch.get_v_upper_bound());
+            const auto& uv = std::get<0>(r);
+            bool converged = std::get<1>(r);
+
+            auto p = patch.evaluate(uv[0], uv[1]);
+
+            REQUIRE((p-q).norm() == Approx(0).margin(1e-4));
+            REQUIRE(converged);
+        }
     }
 }
