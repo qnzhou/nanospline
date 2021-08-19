@@ -27,6 +27,7 @@ The following functionalities are covered:
 * [Turning angle](#Turning-angle)
 * [Singularity](#Singularity)
 * [Conversion](#Conversion)
+* [Intersection](#Intersection)
 
 ### Data structure
 
@@ -343,7 +344,7 @@ points.
 ### Turning angle
 
 Turning angle is the total curvature of a given curve.  It represents how much a
-curve is bending.  In nanospline, turning angle computation is supported for 2D
+curve is bending.  In Nanospline, turning angle computation is supported for 2D
 curves:
 
 ```c++
@@ -435,6 +436,78 @@ try {
 } catch (const std::exception& e) {
     ...
 }
+```
+
+### Intersection
+
+Nanospline supports 3 forms of curve-patch intersection computation:
+
+#### Generic curve-patch intersection
+
+This is the most general form:
+
+```c++
+#include <nanospline/intersect.h>
+
+Scalar t, u, v;
+bool convergdd;
+
+std::tie(t, u, v, converged) = nanospline::intersect(
+    curve,           ///< Input curve.
+    patch,           ///< Input patch.
+    t0,              ///< Initial guess of the intersection on curve.
+    u0, v0,          ///< Initial guess of the intersection on patch.
+    num_iterations,  ///< Max num iterations.
+    tolerance);      ///< Convergence tolerance.
+```
+
+The `converged` flag will be false if the intersection computation fails.
+Typical causes are either the input curve does not intersect the input patch or
+the initial guesses are too off that cause Newton iterations to diverge.
+
+#### Curve-plane intersection
+
+If the patch is actually a plane, Nanospline offers a faster intersection
+computation:
+
+```c++
+#include <nanospline/intersect.h>
+
+std::array<Scalar, 4> plane; // Coefficients of the plane equation.
+                             // i.e. [a,b,c,d] -> ax + by + cz + d = 0.
+Scalar t;
+bool converged;
+
+std::tie(t, converged) = nanospline::intersect(
+    curve,          ///< Input curve.
+    plane,          ///< Plane eqquation coefficients.
+    t0,             ///< Initial guess of the intersection on curve.
+    num_iterations, ///< Max num iterations.
+    tolerance);     ///< Convergence tolerance.
+```
+
+#### Embedded curve and plane intersection
+
+Lastly, it is sometimes necessary to compute the intersection of a curve
+embedded in a patch that is the image of a straight line in parametric space
+and a plane:
+
+```c++
+#include <nanospline/intersect.h>
+
+std::array<Scalar, 4> plane; // Coefficients of the plane equation.
+                             // i.e. [a,b,c,d] -> ax + by + cz + d = 0.
+Scalar u, v;
+bool converged;
+
+std::tie(u, v, converged) = nanospline::intersect(
+    patch,          ///< The patch that contains the curve.
+    pu, pv,         ///< The uv coordinate of the starting point.
+    qu, qv,         ///< The uv coordinate of the end point.
+    plane,          ///< Plane eqquation coefficients.
+    u0, v0,         ///< Initial guess of the intersection on curve.
+    num_iterations, ///< Max num iterations.
+    tolerance);     ///< Convergence tolerance.
 ```
 
 [The NURBS Book]: https://www.springer.com/gp/book/9783642973857
