@@ -100,7 +100,7 @@ auto intersect(const PatchBase<Scalar, 3>& patch,
 
     Scalar prev_t = 1 - std::hypot(u0 - pu, v0 - pv) / std::hypot(pu - qu, pv - qv);
     Scalar t = prev_t;
-    Scalar u, v;
+    Scalar u = u0, v = v0;
     Scalar prev_err = std::numeric_limits<Scalar>::max();
     Point d0, d1, du, dv;
 
