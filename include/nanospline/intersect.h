@@ -84,7 +84,7 @@ auto intersect(const PatchBase<Scalar, 3>& patch,
 {
     using Point = typename PatchBase<Scalar, 3>::Point;
 
-    auto interpolate = [&](Scalar t) -> std::array<Scalar, 2> {
+    auto interpolate = [&](Scalar t) -> std::tuple<Scalar, Scalar> {
         return {pu * (1 - t) + qu * t, pv * (1 - t) + qv * t};
     };
 
