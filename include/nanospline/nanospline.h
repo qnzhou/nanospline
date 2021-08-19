@@ -13,19 +13,19 @@
 #include <nanospline/RationalBezierPatch.h>
 
 // Curve primitive types.
-#include <nanospline/Line.h>
 #include <nanospline/Circle.h>
 #include <nanospline/Ellipse.h>
+#include <nanospline/Line.h>
 
 // Patch primitive types.
-#include <nanospline/Plane.h>
-#include <nanospline/Cylinder.h>
 #include <nanospline/Cone.h>
-#include <nanospline/Sphere.h>
-#include <nanospline/Torus.h>
-#include <nanospline/RevolutionPatch.h>
+#include <nanospline/Cylinder.h>
 #include <nanospline/ExtrusionPatch.h>
 #include <nanospline/OffsetPatch.h>
+#include <nanospline/Plane.h>
+#include <nanospline/RevolutionPatch.h>
+#include <nanospline/Sphere.h>
+#include <nanospline/Torus.h>
 
 // IO
 #include <nanospline/load_msh.h>
@@ -37,5 +37,6 @@
 #include <nanospline/arc_length.h>
 #include <nanospline/conversion.h>
 #include <nanospline/hodograph.h>
+#include <nanospline/intersect.h>
 #include <nanospline/sample.h>
 #include <nanospline/split.h>
