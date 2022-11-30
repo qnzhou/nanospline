@@ -11,7 +11,7 @@ int export_obj(std::ofstream& fout, const CurveType& curve, const int N, const i
 {
     using Scalar = typename CurveType::Scalar;
     for (int i = 0; i < N; i++) {
-        const Scalar t = (Scalar)t / (Scalar)N;
+        const Scalar t = (Scalar)i / (Scalar)N;
         const auto p = curve.evaluate(t);
         fout << "v ";
         for (int j = 0; j < curve.get_dim(); j++) {
