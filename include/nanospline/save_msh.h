@@ -119,7 +119,7 @@ void add_curve(MshSpec& spec, const CurveType& curve, int tag = 1)
 
     for (size_t i = 0; i < static_cast<size_t>(num_control_points); i++) {
         const auto p = curve.get_control_point(static_cast<int>(i)).template cast<double>();
-        for (size_t j = 0; j < dim; j++) {
+        for (size_t j = 0; j < (size_t)dim; j++) {
             curve_spec.data.push_back(p[static_cast<Eigen::Index>(j)]);
         }
         if (dim == 2) curve_spec.data.push_back(0);
