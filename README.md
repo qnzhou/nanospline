@@ -511,3 +511,16 @@ std::tie(u, v, converged) = nanospline::intersect(
 ```
 
 [The NURBS Book]: https://www.springer.com/gp/book/9783642973857
+
+## Cite us
+
+If you use nanospline in your research, please cite us as:
+
+```bibtex
+@misc{nanospline,
+  title = {{nanospline}: A nano spline library in modern C++},
+  author = {Qingnan Zhou and others},
+  note = {https://github.com/qnzhou/nanospline},
+  year = {2022}
+}
+```
