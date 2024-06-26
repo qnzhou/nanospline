@@ -422,7 +422,7 @@ To convert a NURBS curve into a number of rational Bézier curves:
 auto rationa_beziers = nanospline::convert_to_RationalBezier(nurbs);
 ```
 
-It is sometimes possible to convert a rational Bézier curve into a plane Bézier
+It is sometimes possible to convert a rational Bézier curve into a Bézier
 curve, and convert a NURBS curves into a BSpline curve.
 Such conversion is allowed when the all weights are the same.  Otherwise, an
 exception will be raised.
@@ -511,3 +511,16 @@ std::tie(u, v, converged) = nanospline::intersect(
 ```
 
 [The NURBS Book]: https://www.springer.com/gp/book/9783642973857
+
+## Cite us
+
+If you use nanospline in your research, please cite us as:
+
+```bibtex
+@misc{nanospline,
+  title = {{nanospline}: A nano spline library in modern C++},
+  author = {Qingnan Zhou and others},
+  note = {https://github.com/qnzhou/nanospline},
+  year = {2022}
+}
+```
