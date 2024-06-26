@@ -422,7 +422,7 @@ To convert a NURBS curve into a number of rational Bézier curves:
 auto rationa_beziers = nanospline::convert_to_RationalBezier(nurbs);
 ```
 
-It is sometimes possible to convert a rational Bézier curve into a plane Bézier
+It is sometimes possible to convert a rational Bézier curve into a Bézier
 curve, and convert a NURBS curves into a BSpline curve.
 Such conversion is allowed when the all weights are the same.  Otherwise, an
 exception will be raised.
