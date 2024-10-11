@@ -115,19 +115,19 @@ public:
 public:
     Point evaluate(BarycentricPoint b) const
     {
-        constexpr auto factorials = internal::factorial<_degree>();
+        if (m_ordinates.rows() != m_num_control_points || m_ordinates.cols() == 0) {
+            throw std::runtime_error("Cannot evaluate because ordinates are not set.");
+        }
+
         MultiIndices multi_indices;
         internal::generate_multi_indices(_simplex_dim, _degree, multi_indices);
 
-        Point result = Point::Zero(_ordinate_dim);
+        Point result(m_ordinates.cols());
+        result.setZero();
         for (size_t i = 0; i < m_num_control_points; i++) {
             std::span<uint8_t, _simplex_dim + 1> multi_index(
                 multi_indices.data() + i * (_simplex_dim + 1), _simplex_dim + 1);
-            Scalar coeff = factorials[_degree];
-            for (size_t j = 0; j < _simplex_dim; j++) {
-                coeff /= factorials[multi_index[j]];
-                coeff *= std::pow(b[static_cast<Eigen::Index>(j)], multi_index[j]);
-            }
+            Scalar coeff = evaluate_bernstein(multi_index, b);
             result += coeff * m_ordinates.row(static_cast<Eigen::Index>(i));
         }
         return result;
@@ -135,7 +135,50 @@ public:
 
     Point evaluate_directional_derivative(BarycentricPoint b, BarycentricPoint dir) const
     {
-        return Point::Zero(_ordinate_dim);
+        if (m_ordinates.rows() != m_num_control_points || m_ordinates.cols() == 0) {
+            throw std::runtime_error("Cannot evaluate because ordinates are not set.");
+        }
+
+        MultiIndices multi_indices;
+        internal::generate_multi_indices(_simplex_dim, _degree, multi_indices);
+
+        Point result(m_ordinates.cols());
+        result.setZero();
+        for (size_t i = 0; i < m_num_control_points; i++) {
+            std::span<uint8_t, _simplex_dim + 1> multi_index(
+                multi_indices.data() + i * (_simplex_dim + 1), _simplex_dim + 1);
+            Scalar coeff = 0;
+            for (uint8_t j = 0; j < _simplex_dim + 1; j++) {
+                coeff += evaluate_bernstein_derivative(multi_index, b, j) *
+                         dir[static_cast<Eigen::Index>(j)];
+            }
+            result += coeff * m_ordinates.row(static_cast<Eigen::Index>(i));
+        }
+        return result;
+    }
+
+private:
+    Scalar evaluate_bernstein(
+        std::span<uint8_t, _simplex_dim + 1> multi_index, BarycentricPoint b) const
+    {
+        constexpr auto factorials = internal::factorial<_degree>();
+        Scalar coeff = factorials[_degree];
+        for (size_t j = 0; j <= _simplex_dim; j++) {
+            coeff /= factorials[multi_index[j]];
+            coeff *= std::pow(b[static_cast<Eigen::Index>(j)], multi_index[j]);
+        }
+        return coeff;
+    }
+
+    Scalar evaluate_bernstein_derivative(
+        std::span<uint8_t, _simplex_dim + 1> multi_index, BarycentricPoint b, uint8_t axis) const
+    {
+        if (multi_index[axis] == 0) return 0;
+
+        multi_index[axis]--;
+        Scalar coeff = evaluate_bernstein(multi_index, b);
+        multi_index[axis]++;
+        return coeff;
     }
 
 protected:

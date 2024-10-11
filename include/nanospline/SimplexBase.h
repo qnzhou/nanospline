@@ -20,7 +20,7 @@ class SimplexBase
 public:
     static_assert(_simplex_dim >= 0, "Negative dimension is not allowed");
     using Scalar = _Scalar;
-    using BarycentricPoint = Eigen::Matrix<Scalar, 1, _simplex_dim>;
+    using BarycentricPoint = Eigen::Matrix<Scalar, 1, _simplex_dim + 1>;
     using Point = Eigen::Matrix<Scalar, 1, _ordinate_dim>;
 
 public:
