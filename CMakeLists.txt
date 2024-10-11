@@ -8,8 +8,7 @@
 #
 # ============================================================================
 
-cmake_minimum_required(VERSION 3.11)
-set(CMAKE_CXX_STANDARD 14)
+cmake_minimum_required(VERSION 3.25)
 
 project(nanospline)
 
@@ -33,6 +32,7 @@ add_library(nanospline INTERFACE)
 target_link_libraries(nanospline INTERFACE Eigen3::Eigen mshio::mshio)
 target_include_directories(nanospline INTERFACE
     ${PROJECT_SOURCE_DIR}/include)
+target_compile_features(nanospline INTERFACE cxx_std_20)
 
 if (NANOSPLINE_SYMPY)
     target_compile_definitions(nanospline INTERFACE -DNANOSPLINE_SYMPY)
