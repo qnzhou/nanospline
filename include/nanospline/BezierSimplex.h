@@ -3,6 +3,8 @@
 #include <nanospline/Exceptions.h>
 #include <nanospline/SimplexBase.h>
 
+#include <Eigen/LU>
+
 #include <array>
 #include <cassert>
 #include <exception>
@@ -26,6 +28,9 @@ constexpr size_t choose(uint8_t n, uint8_t r)
     return accum;
 }
 
+/**
+ * Compile-time computation of factorial.
+ */
 template <int N>
 constexpr std::array<int, N + 1> factorial()
 {
@@ -37,27 +42,34 @@ constexpr std::array<int, N + 1> factorial()
     return result;
 }
 
+/**
+ * Populate the multi-indices array.
+ *
+ * @param[in]  simplex_dim The dimension of the simplex.
+ * @param[in]  degree      The degree of the Bezier simplex.
+ * @param[out] indices     The multi-indices array to populate.
+ */
 template <typename Derived>
 void generate_multi_indices(
-    uint8_t simplex_dim, uint8_t degree, Eigen::MatrixBase<Derived>& ctrl_net)
+    uint8_t simplex_dim, uint8_t degree, Eigen::MatrixBase<Derived>& indices)
 {
     using Scalar = typename Derived::Scalar;
-    assert(static_cast<size_t>(ctrl_net.rows()) == choose(simplex_dim + degree, degree));
+    assert(static_cast<size_t>(indices.rows()) == choose(simplex_dim + degree, degree));
 
     // Base case.
     if (simplex_dim == 0) {
-        ctrl_net.setConstant(degree);
+        indices.setConstant(degree);
         return;
     }
 
     size_t count = 0;
     for (uint8_t d = 0; d <= degree; d++) {
         size_t m = choose(simplex_dim + d - 1, d);
-        ctrl_net.block(static_cast<Eigen::Index>(count), 0, static_cast<Eigen::Index>(m), 1)
+        indices.block(static_cast<Eigen::Index>(count), 0, static_cast<Eigen::Index>(m), 1)
             .setConstant(degree - d);
         // Note: we cannot use Eigen::Block type for layer in recursive call.
         Eigen::Ref<Eigen::Matrix<Scalar, -1, -1, Eigen::RowMajor>> layer =
-            ctrl_net.block(static_cast<Eigen::Index>(count),
+            indices.block(static_cast<Eigen::Index>(count),
                 1,
                 static_cast<Eigen::Index>(m),
                 static_cast<Eigen::Index>(simplex_dim));
@@ -109,7 +121,80 @@ public:
 
     const Ordinates& get_ordinates() const { return m_ordinates; }
     Ordinates& get_ordinates() { return m_ordinates; }
-    void set_ordinates(const Ordinates& ordinates) { m_ordinates = ordinates; }
+    void set_ordinates(Ordinates ordinates) { m_ordinates = std::move(ordinates); }
+
+public:
+    /**
+     * Fit the Bezier simplex to the given samples.
+     *
+     * @param samples The samples to fit.
+     *
+     * @note The samples shouldbe 1-1 correspondence with the control points.
+     *       The fitted Bezier simplex will interpolate the samples. I.e.
+     *       f(ctrl[i]) ~= samples[i].
+     */
+    void fit(const Ordinates& samples)
+    {
+        auto M = compute_coeff_matrix();
+        m_ordinates = M.inverse() * samples;
+        assert(m_ordinates.allFinite());
+    }
+
+    /**
+     * Elevate the degree of the Bezier simplex.
+     *
+     * @return The same Bezier simplex with the degree elevated by 1.
+     *
+     * @note See section 1.4 in [1] for mathematical details.
+     *
+     * [1] Farin, Gerald. "Triangular bernstein-bézier patches." Computer Aided Geometric Design 3.2
+     * (1986): 83-127.
+     */
+    BezierSimplex<Scalar, _simplex_dim, _degree + 1, _ordinate_dim> elevate_degree() const
+    {
+        using ElevatedType = BezierSimplex<Scalar, _simplex_dim, _degree + 1, _ordinate_dim>;
+        ElevatedType elevated;
+
+        size_t num_elevated_control_points = elevated.get_num_control_points();
+        size_t num_control_points = get_num_control_points();
+
+        typename ElevatedType::Ordinates elevated_ordinates(
+            num_elevated_control_points, m_ordinates.cols());
+        elevated_ordinates.setZero();
+
+        typename ElevatedType::MultiIndices elevated_multi_indices;
+        internal::generate_multi_indices(_simplex_dim, _degree + 1, elevated_multi_indices);
+
+        MultiIndices multi_indices;
+        internal::generate_multi_indices(_simplex_dim, _degree, multi_indices);
+
+        for (size_t i = 0; i < num_elevated_control_points; i++) {
+            std::span<uint8_t, _simplex_dim + 1> elevated_multi_index(
+                elevated_multi_indices.data() + i * (_simplex_dim + 1), _simplex_dim + 1);
+
+            for (size_t j = 0; j < num_control_points; j++) {
+                std::span<uint8_t, _simplex_dim + 1> multi_index(
+                    multi_indices.data() + j * (_simplex_dim + 1), _simplex_dim + 1);
+                for (size_t k = 0; k < _simplex_dim + 1; k++) {
+                    multi_index[k] += 1;
+                    if (std::equal(multi_index.begin(),
+                            multi_index.end(),
+                            elevated_multi_index.begin(),
+                            elevated_multi_index.end())) {
+                        elevated_ordinates.row(static_cast<Eigen::Index>(i)) +=
+                            m_ordinates.row(static_cast<Eigen::Index>(j)) * elevated_multi_index[k];
+                    }
+                    multi_index[k] -= 1;
+                }
+            }
+
+            elevated_ordinates.row(static_cast<Eigen::Index>(i)) /=
+                static_cast<Scalar>(_degree + 1);
+        }
+        elevated.set_ordinates(std::move(elevated_ordinates));
+
+        return elevated;
+    }
 
 
 public:
@@ -155,6 +240,26 @@ public:
             result += coeff * m_ordinates.row(static_cast<Eigen::Index>(i));
         }
         return result;
+    }
+
+    Eigen::Matrix<Scalar, m_num_control_points, m_num_control_points> compute_coeff_matrix() const
+    {
+        MultiIndices multi_indices;
+        internal::generate_multi_indices(_simplex_dim, _degree, multi_indices);
+
+        Eigen::Matrix<Scalar, m_num_control_points, m_num_control_points> M;
+        for (size_t i = 0; i < m_num_control_points; i++) {
+            BarycentricPoint b =
+                multi_indices.row(static_cast<Eigen::Index>(i)).template cast<Scalar>() /
+                static_cast<Scalar>(_degree);
+            for (size_t j = 0; j < m_num_control_points; j++) {
+                std::span<uint8_t, _simplex_dim + 1> multi_index(
+                    multi_indices.data() + j * (_simplex_dim + 1), _simplex_dim + 1);
+                Scalar coeff = evaluate_bernstein(multi_index, b);
+                M(static_cast<Eigen::Index>(i), static_cast<Eigen::Index>(j)) = coeff;
+            }
+        }
+        return M;
     }
 
 private:
