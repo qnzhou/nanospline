@@ -80,6 +80,27 @@ void generate_multi_indices(
 
 } // namespace internal
 
+/**
+ * Bezier simplex class with arbitrary degree and arbitrary dimension support.
+ *
+ * @tparam _Scalar       The scalar type.
+ * @tparam _simplex_dim  The dimension of the simplex.
+ * @tparam _degree       The degree of the Bezier simplex.
+ * @tparam _ordinate_dim The dimension of the ordinate space. -1 means dynamic dimension.
+ *
+ * @note The Bezier simplex is defined by the control points and the ordinates.
+ *
+ *       The control points are barycentric coordinates computed from multi-indexes based on the
+ *       degree and dimension of the simplex. The control points always lie on a simplicial grid.
+ *
+ *       The ordinates are the values associated with the control points. The value of the Bezier
+ *       simple is computed by interpolating the ordinates.
+ *
+ *       This class is heavily based on the paper by Farin [1].
+ *
+ *       [1] Farin, Gerald. "Triangular bernstein-bézier patches." Computer Aided Geometric Design
+ *       3.2 (1986): 83-127.
+ */
 template <typename _Scalar, uint8_t _simplex_dim, uint8_t _degree = 3, int8_t _ordinate_dim = -1>
 class BezierSimplex : public SimplexBase<_Scalar, _simplex_dim, _ordinate_dim>
 {
@@ -105,9 +126,26 @@ public:
 public:
     BezierSimplex() = default;
 
+    /**
+     * Get the degree of the Bezier simplex.
+     *
+     * @return The degree of the Bezier simplex.
+     */
     constexpr uint8_t get_degree() const { return _degree; }
+
+    /**
+     * Get the number of control points of the Bezier simplex.
+     *
+     * @return The number of control points.
+     */
     constexpr size_t get_num_control_points() const { return m_num_control_points; }
 
+    /**
+     * Get the control points of the Bezier simplex.
+     *
+     * @return The control points of the Bezier simplex in lexicographical order of the barycentric
+     *         coordinates.
+     */
     ControlPoints get_control_points() const
     {
         if constexpr (_degree == 0) {
@@ -119,8 +157,27 @@ public:
         }
     }
 
+    /**
+     * Get the ordinates of the Bezier simplex.
+     *
+     * @return The ordinates of the Bezier simplex.
+     */
     const Ordinates& get_ordinates() const { return m_ordinates; }
+
+    /**
+     * Get the ordinates of the Bezier simplex.
+     *
+     * @return The ordinates of the Bezier simplex.
+     */
     Ordinates& get_ordinates() { return m_ordinates; }
+
+    /**
+     * Set the ordinates of the Bezier simplex.
+     *
+     * @param ordinates The ordinates to set.
+     *
+     * @note The number of rows should be equal to the number of control points.
+     */
     void set_ordinates(Ordinates ordinates) { m_ordinates = std::move(ordinates); }
 
 public:
@@ -198,6 +255,13 @@ public:
 
 
 public:
+    /**
+     * Evaluate the Bezier simplex at the given barycentric coordinates.
+     *
+     * @param b The barycentric coordinates.
+     *
+     * @return The value evaluated at the given barycentric coordinates.
+     */
     Point evaluate(BarycentricPoint b) const
     {
         if (m_ordinates.rows() != m_num_control_points || m_ordinates.cols() == 0) {
@@ -218,6 +282,16 @@ public:
         return result;
     }
 
+    /**
+     * Evaluate the directional derivative of the Bezier simplex at the given barycentric
+     * coordinates.
+     *
+     * @param b   The barycentric coordinates.
+     * @param dir The direction to evaluate the derivative.
+     *
+     * @return The directional derivative evaluated at the given barycentric coordinates along the
+     *         specified direction.
+     */
     Point evaluate_directional_derivative(BarycentricPoint b, BarycentricPoint dir) const
     {
         if (m_ordinates.rows() != m_num_control_points || m_ordinates.cols() == 0) {
@@ -242,6 +316,19 @@ public:
         return result;
     }
 
+
+private:
+    /**
+     * Compute the coefficient matrix of the Bezier simplex.
+     *
+     * Let M be the coefficient matrix of the Bezier simplex, and let b be the ordinates associated
+     * with the control points. Then, the value of the Bezier simplex evaluated at the control
+     * points are given by M * b.
+     *
+     * @note This matrix is constant for a given degree and simplex dimension.
+     *
+     * @return The coefficient matrix of the Bezier simplex.
+     */
     Eigen::Matrix<Scalar, m_num_control_points, m_num_control_points> compute_coeff_matrix() const
     {
         MultiIndices multi_indices;
@@ -262,7 +349,14 @@ public:
         return M;
     }
 
-private:
+    /**
+     * Evaluate Bernstein polynomial at the given barycentric coordinates.
+     *
+     * @param multi_index The multi-index of the Bernstein polynomial.
+     * @param b           The barycentric coordinates.
+     *
+     * @return The value of the Bernstein polynomial evaluated at the given barycentric coordinates.
+     */
     Scalar evaluate_bernstein(
         std::span<uint8_t, _simplex_dim + 1> multi_index, BarycentricPoint b) const
     {
@@ -275,6 +369,15 @@ private:
         return coeff;
     }
 
+    /**
+     * Evaluate the derivative of the Bernstein polynomial at the given barycentric coordinates.
+     *
+     * @param multi_index The multi-index of the Bernstein polynomial.
+     * @param b           The barycentric coordinates.
+     *
+     * @return The value of the derivative of the Bernstein polynomial evaluated at the given
+     *         barycentric coordinates.
+     */
     Scalar evaluate_bernstein_derivative(
         std::span<uint8_t, _simplex_dim + 1> multi_index, BarycentricPoint b, uint8_t axis) const
     {
