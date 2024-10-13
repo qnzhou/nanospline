@@ -113,10 +113,34 @@ TEST_CASE("BezierSimplex", "[nonrational][bezier_simplex]")
             }
         }
 
+        SECTION("fit quadratic")
+        {
+            Eigen::Matrix<Scalar, 10, 3> samples;
+            // clang-format off
+            samples << 0, 0, 0,
+                       1, 1, 1,
+                       1, 1, 0,
+                       1, 1, 0,
+                       2, 4, 4,
+                       2, 4, 1,
+                       2, 4, 1,
+                       2, 4, 0,
+                       2, 4, 0,
+                       2, 4, 0;
+            // clang-format on
+            bezier_tet.fit(samples);
+
+            auto ctrl_pts = bezier_tet.get_control_points();
+            for (Eigen::Index i = 0; i < 10; i++) {
+                auto p = bezier_tet.evaluate(ctrl_pts.row(i));
+                REQUIRE(p.isApprox(samples.row(i)));
+            }
+        }
+
         SECTION("degree elevation")
         {
             Eigen::Matrix<Scalar, 10, 1> ordinates;
-            ordinates << 0, 1, 1, 1, 4, 4, 4, 4, 4, 4;
+            ordinates << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10;
             bezier_tet.set_ordinates(ordinates);
 
             auto elevated = bezier_tet.elevate_degree();
