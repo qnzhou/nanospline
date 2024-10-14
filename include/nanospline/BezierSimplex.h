@@ -64,7 +64,7 @@ void generate_multi_indices(
 
     size_t count = 0;
     for (uint8_t d = 0; d <= degree; d++) {
-        size_t m = choose(simplex_dim + d - 1, d);
+        size_t m = choose(simplex_dim + d - static_cast<uint8_t>(1), d);
         indices.block(static_cast<Eigen::Index>(count), 0, static_cast<Eigen::Index>(m), 1)
             .setConstant(degree - d);
         // Note: we cannot use Eigen::Block type for layer in recursive call.
