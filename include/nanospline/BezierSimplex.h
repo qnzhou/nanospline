@@ -94,7 +94,7 @@ void generate_multi_indices(
  *       degree and dimension of the simplex. The control points always lie on a simplicial grid.
  *
  *       The ordinates are the values associated with the control points. The value of the Bezier
- *       simple is computed by interpolating the ordinates.
+ *       simples is computed by interpolating the ordinates.
  *
  *       This class is heavily based on the paper by Farin [1].
  *
@@ -186,7 +186,7 @@ public:
      *
      * @param samples The samples to fit.
      *
-     * @note The samples shouldbe 1-1 correspondence with the control points.
+     * @note The samples should be 1-1 correspondence with the control points.
      *       The fitted Bezier simplex will interpolate the samples. I.e.
      *       f(ctrl[i]) ~= samples[i].
      */
