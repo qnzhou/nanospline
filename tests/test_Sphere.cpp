@@ -1,5 +1,5 @@
-#include <catch2/catch.hpp>
-#include <iostream>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <nanospline/Sphere.h>
 
@@ -55,7 +55,7 @@ TEST_CASE("Sphere", "[sphere][primitive]")
         auto& uv = std::get<0>(r);
         bool converged = std::get<1>(r);
         REQUIRE(converged);
-        REQUIRE(uv[0] == Approx(0).margin(1e-6));
-        REQUIRE(uv[1] == Approx(0).margin(1e-6));
+        REQUIRE_THAT(uv[0], Catch::Matchers::WithinAbs(0, 1e-6));
+        REQUIRE_THAT(uv[1], Catch::Matchers::WithinAbs(0, 1e-6));
     }
 }

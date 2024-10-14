@@ -1,6 +1,6 @@
-
-#include <catch2/catch.hpp>
-#include <iostream>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <catch2/benchmark/catch_benchmark.hpp>
 
 #include <nanospline/RationalBezierPatch.h>
 #include <nanospline/forward_declaration.h>
@@ -33,15 +33,15 @@ TEST_CASE("RationalBezierPatch", "[rational][rational_bezier_patch]") {
         const auto corner_01 = patch.evaluate(0.0, 1.0);
         const auto corner_11 = patch.evaluate(1.0, 1.0);
         const auto corner_10 = patch.evaluate(1.0, 0.0);
-        REQUIRE((corner_00 - control_grid.row(0)).norm() == Approx(0.0));
-        REQUIRE((corner_01 - control_grid.row(1)).norm() == Approx(0.0));
-        REQUIRE((corner_10 - control_grid.row(2)).norm() == Approx(0.0));
-        REQUIRE((corner_11 - control_grid.row(3)).norm() == Approx(0.0));
+        REQUIRE_THAT((corner_00 - control_grid.row(0)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT((corner_01 - control_grid.row(1)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT((corner_10 - control_grid.row(2)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT((corner_11 - control_grid.row(3)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
 
         const auto p_mid = patch.evaluate(0.5, 0.5);
-        REQUIRE(p_mid[0] == Approx(0.5));
-        REQUIRE(p_mid[1] == Approx(0.5));
-        REQUIRE(p_mid[2] == Approx(0.5));
+        REQUIRE_THAT(p_mid[0], Catch::Matchers::WithinAbs(0.5, 1e-6));
+        REQUIRE_THAT(p_mid[1], Catch::Matchers::WithinAbs(0.5, 1e-6));
+        REQUIRE_THAT(p_mid[2], Catch::Matchers::WithinAbs(0.5, 1e-6));
 
         validate_derivative(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
@@ -81,10 +81,10 @@ TEST_CASE("RationalBezierPatch", "[rational][rational_bezier_patch]") {
         const auto corner_01 = patch.evaluate(0.0, 1.0);
         const auto corner_11 = patch.evaluate(1.0, 1.0);
         const auto corner_10 = patch.evaluate(1.0, 0.0);
-        REQUIRE((corner_00 - control_grid.row(0)).norm() == Approx(0.0));
-        REQUIRE((corner_01 - control_grid.row(3)).norm() == Approx(0.0));
-        REQUIRE((corner_10 - control_grid.row(12)).norm() == Approx(0.0));
-        REQUIRE((corner_11 - control_grid.row(15)).norm() == Approx(0.0));
+        REQUIRE_THAT((corner_00 - control_grid.row(0)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT((corner_01 - control_grid.row(3)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT((corner_10 - control_grid.row(12)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT((corner_11 - control_grid.row(15)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
 
         validate_derivative(patch, 10, 10);
         validate_iso_curves(patch, 10);
@@ -140,18 +140,16 @@ TEST_CASE("RationalBezierPatch", "[rational][rational_bezier_patch]") {
         patch.set_periodic_v(true);
         patch.initialize();
 
-        REQUIRE(
-            (patch.evaluate(0.1, 0.1) - patch.evaluate(0.1, 1.1)).norm() == Approx(0).margin(1e-6));
-        REQUIRE(
-            (patch.evaluate(0.3, 0.5) - patch.evaluate(0.3, 1.5)).norm() == Approx(0).margin(1e-6));
+        REQUIRE_THAT((patch.evaluate(0.1, 0.1) - patch.evaluate(0.1, 1.1)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT((patch.evaluate(0.3, 0.5) - patch.evaluate(0.3, 1.5)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
 
         Eigen::Matrix<Scalar, 1, 3> q(-1, -1, 0);
         auto uv0 = std::get<0>(patch.inverse_evaluate(q, 0, 1, 0, 1));
-        REQUIRE(patch.evaluate(uv0[0], uv0[1]).norm() == Approx(0));
+        REQUIRE_THAT(patch.evaluate(uv0[0], uv0[1]).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
         auto uv1 = std::get<0>(patch.inverse_evaluate(q, 0, 1, 1.9, 2.1));
-        REQUIRE(patch.evaluate(uv1[0], uv1[1]).norm() == Approx(0).margin(1e-2));
+        REQUIRE_THAT(patch.evaluate(uv1[0], uv1[1]).norm(), Catch::Matchers::WithinAbs(0.0, 1e-2));
         auto uv2 = std::get<0>(patch.inverse_evaluate(q, 0, 1, -1.1, -0.5));
-        REQUIRE(patch.evaluate(uv2[0], uv2[1]).norm() == Approx(0).margin(1e-2));
+        REQUIRE_THAT(patch.evaluate(uv2[0], uv2[1]).norm(), Catch::Matchers::WithinAbs(0.0, 1e-2));
         auto uv3 = std::get<0>(patch.inverse_evaluate(q, 0, 1, -1.7, -1.5));
         REQUIRE(patch.evaluate(uv3[0], uv3[1]).norm() > 0.1);
     }

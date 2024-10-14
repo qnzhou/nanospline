@@ -1,4 +1,5 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <nanospline/Ellipse.h>
 
@@ -25,7 +26,7 @@ TEST_CASE("Ellipse", "[primitive][ellipse]")
             auto v2 = curve.evaluate_derivative(t).normalized();
 
             if (t > curve.get_domain_lower_bound() && t < curve.get_domain_upper_bound()) {
-                REQUIRE(v1.dot(v2) == Approx(0).margin(1e-6));
+                REQUIRE_THAT(v1.dot(v2), Catch::Matchers::WithinAbs(0, 1e-6));
             }
         }
     };

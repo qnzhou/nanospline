@@ -1,4 +1,5 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <nanospline/forward_declaration.h>
 #include <nanospline/nanospline.h>
@@ -39,7 +40,7 @@ TEST_CASE("Curve-plane intersect", "[intersect]")
         REQUIRE(converged);
         auto p = line.evaluate(t);
 
-        REQUIRE(p.sum() == Approx(1).margin(1e-3));
+        REQUIRE_THAT(p.sum(), Catch::Matchers::WithinAbs(1, 1e-3));
     }
 
     SECTION("Parallel")
@@ -72,10 +73,10 @@ TEST_CASE("Curve-plane intersect", "[intersect]")
         std::tie(t3, converged) = intersect(circle, plane, 1.5, 10, 1e-3);
         REQUIRE(converged);
 
-        REQUIRE(t0 == Approx(0).margin(1e-3));
-        REQUIRE(t1 == Approx(M_PI / 2).margin(1e-3));
-        REQUIRE(t2 == Approx(0).margin(1e-3));
-        REQUIRE(t3 == Approx(M_PI / 2).margin(1e-3));
+        REQUIRE_THAT(t0, Catch::Matchers::WithinAbs(0, 1e-3));
+        REQUIRE_THAT(t1, Catch::Matchers::WithinAbs(M_PI / 2, 1e-3));
+        REQUIRE_THAT(t2, Catch::Matchers::WithinAbs(0, 1e-3));
+        REQUIRE_THAT(t3, Catch::Matchers::WithinAbs(M_PI / 2, 1e-3));
 
         SECTION("No intersections")
         {
@@ -118,7 +119,7 @@ TEST_CASE("Curve-plane intersect", "[intersect]")
         {
             std::tie(t, converged) = intersect(circle, plane, 0., 10, 1e-3);
             REQUIRE(converged);
-            REQUIRE(t == Approx(0).margin(1e-3));
+            REQUIRE_THAT(t, Catch::Matchers::WithinAbs(0, 1e-3));
         }
         SECTION("Initial guess is near the solution")
         {
@@ -126,7 +127,7 @@ TEST_CASE("Curve-plane intersect", "[intersect]")
             // an accurate solution.
             std::tie(t, converged) = intersect(circle, plane, 0.1, 10, 1e-6);
             REQUIRE(converged);
-            REQUIRE(t == Approx(0).margin(1e-3));
+            REQUIRE_THAT(t, Catch::Matchers::WithinAbs(0, 1e-3));
         }
         SECTION("Initial guess is far from the solution")
         {
@@ -134,7 +135,7 @@ TEST_CASE("Curve-plane intersect", "[intersect]")
             // work.
             std::tie(t, converged) = intersect(circle, plane, M_PI / 2, 100, 1e-12);
             REQUIRE(converged);
-            REQUIRE(t == Approx(0).margin(1e-3));
+            REQUIRE_THAT(t, Catch::Matchers::WithinAbs(0, 1e-3));
         }
     }
 
@@ -165,19 +166,19 @@ TEST_CASE("Curve-plane intersect", "[intersect]")
 
             std::tie(t, converged) = intersect(curve, plane, 0., 10, 1e-3);
             REQUIRE(converged);
-            REQUIRE(t == Approx(0.5).margin(1e-3));
+            REQUIRE_THAT(t, Catch::Matchers::WithinAbs(0.5, 1e-3));
 
             std::tie(t, converged) = intersect(curve, plane, 1., 10, 1e-3);
             REQUIRE(converged);
-            REQUIRE(t == Approx(0.5).margin(1e-3));
+            REQUIRE_THAT(t, Catch::Matchers::WithinAbs(0.5, 1e-3));
 
             std::tie(t, converged) = intersect(curve, plane, 0.2, 10, 1e-3);
             REQUIRE(converged);
-            REQUIRE(t == Approx(0.5).margin(1e-3));
+            REQUIRE_THAT(t, Catch::Matchers::WithinAbs(0.5, 1e-3));
 
             std::tie(t, converged) = intersect(curve, plane, 0.9, 10, 1e-3);
             REQUIRE(converged);
-            REQUIRE(t == Approx(0.5).margin(1e-3));
+            REQUIRE_THAT(t, Catch::Matchers::WithinAbs(0.5, 1e-3));
         }
 
         SECTION("Multiple intersections")
@@ -185,8 +186,8 @@ TEST_CASE("Curve-plane intersect", "[intersect]")
             std::array<Scalar, 4> plane{-2, 1, 0, 0.5};
             auto validate = [&](Scalar t) {
                 auto p = curve.evaluate(t);
-                REQUIRE(p[0] * plane[0] + p[1] * plane[1] + p[2] * plane[2] + plane[3] ==
-                        Approx(0).margin(1e-3));
+                REQUIRE_THAT(p[0] * plane[0] + p[1] * plane[1] + p[2] * plane[2] + plane[3],
+                             Catch::Matchers::WithinAbs(0, 1e-3));
             };
 
             Scalar t1, t2, t3, t4, t5, t6;
@@ -195,7 +196,7 @@ TEST_CASE("Curve-plane intersect", "[intersect]")
             REQUIRE(converged);
             std::tie(t2, converged) = intersect(curve, plane, 0.1, 10, 1e-6);
             REQUIRE(converged);
-            REQUIRE(t1 == Approx(t2).margin(1e-3));
+            REQUIRE_THAT(t1, Catch::Matchers::WithinAbs(t2, 1e-3));
             validate(t1);
             validate(t2);
 
@@ -203,8 +204,8 @@ TEST_CASE("Curve-plane intersect", "[intersect]")
             REQUIRE(converged);
             std::tie(t4, converged) = intersect(curve, plane, 0.6, 10, 1e-6);
             REQUIRE(converged);
-            REQUIRE(t3 == Approx(t4).margin(1e-3));
-            REQUIRE(t3 == Approx(0.5).margin(1e-3));
+            REQUIRE_THAT(t3, Catch::Matchers::WithinAbs(t4, 1e-3));
+            REQUIRE_THAT(t3, Catch::Matchers::WithinAbs(0.5, 1e-3));
             validate(t3);
             validate(t4);
 
@@ -212,7 +213,7 @@ TEST_CASE("Curve-plane intersect", "[intersect]")
             REQUIRE(converged);
             std::tie(t6, converged) = intersect(curve, plane, 1.0, 10, 1e-6);
             REQUIRE(converged);
-            REQUIRE(t5 == Approx(t6).margin(1e-3));
+            REQUIRE_THAT(t5, Catch::Matchers::WithinAbs(t6, 1e-3));
             validate(t5);
             validate(t6);
         }
@@ -235,18 +236,18 @@ TEST_CASE("Curve-in-patch-plane intersect", "[intersect]")
         bool converged;
         std::tie(u, v, converged) = intersect(patch, 0., 0., 1., 1., plane, 0., 0., 10, 1e-3);
         REQUIRE(converged);
-        REQUIRE(u == Approx(0.5).margin(1e-3));
-        REQUIRE(v == Approx(0.5).margin(1e-3));
+        REQUIRE_THAT(u, Catch::Matchers::WithinAbs(0.5, 1e-3));
+        REQUIRE_THAT(v, Catch::Matchers::WithinAbs(0.5, 1e-3));
 
         std::tie(u, v, converged) = intersect(patch, 0., 0., 1., 0., plane, 0., 0., 10, 1e-3);
         REQUIRE(converged);
-        REQUIRE(u == Approx(1).margin(1e-3));
-        REQUIRE(v == Approx(0).margin(1e-3));
+        REQUIRE_THAT(u, Catch::Matchers::WithinAbs(1, 1e-3));
+        REQUIRE_THAT(v, Catch::Matchers::WithinAbs(0, 1e-3));
 
         std::tie(u, v, converged) = intersect(patch, 0., 0.1, 1., 0.1, plane, 0., 0., 10, 1e-3);
         REQUIRE(converged);
-        REQUIRE(u == Approx(0.9).margin(1e-3));
-        REQUIRE(v == Approx(0.1).margin(1e-3));
+        REQUIRE_THAT(u, Catch::Matchers::WithinAbs(0.9, 1e-3));
+        REQUIRE_THAT(v, Catch::Matchers::WithinAbs(0.1, 1e-3));
     }
 
     SECTION("curve on cylinder")
@@ -261,8 +262,8 @@ TEST_CASE("Curve-in-patch-plane intersect", "[intersect]")
 
         auto validate = [&](auto u, auto v) {
             auto p = patch.evaluate(u, v);
-            REQUIRE(p[0] * plane[0] + p[1] * plane[1] + p[2] * plane[2] + plane[3] ==
-                    Approx(0).margin(1e-3));
+            REQUIRE_THAT(p[0] * plane[0] + p[1] * plane[1] + p[2] * plane[2] + plane[3],
+                         Catch::Matchers::WithinAbs(0, 1e-3));
         };
 
         Scalar u, v;
@@ -272,8 +273,8 @@ TEST_CASE("Curve-in-patch-plane intersect", "[intersect]")
         {
             std::tie(u, v, converged) = intersect(patch, 0., 0., 0., 1., plane, 0., 0., 10, 1e-3);
             REQUIRE(converged);
-            REQUIRE(u == Approx(0).margin(1e-3));
-            REQUIRE(v == Approx(0).margin(1e-3));
+            REQUIRE_THAT(u, Catch::Matchers::WithinAbs(0, 1e-3));
+            REQUIRE_THAT(v, Catch::Matchers::WithinAbs(0, 1e-3));
             validate(u, v);
         }
 
@@ -351,7 +352,7 @@ TEST_CASE("Generic curve-in-patch-plane intersect", "[intersect]")
         [](const auto& curve, const auto& patch, Scalar t, Scalar u, Scalar v, Scalar tol) {
             auto p0 = curve.evaluate(t);
             auto p1 = patch.evaluate(u, v);
-            REQUIRE((p0 - p1).norm() == Approx(0).margin(tol));
+            REQUIRE_THAT((p0 - p1).norm(), Catch::Matchers::WithinAbs(0, tol));
         };
 
     SECTION("Line plane")

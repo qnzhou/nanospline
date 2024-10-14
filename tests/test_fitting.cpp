@@ -1,5 +1,5 @@
-#include <catch2/catch.hpp>
-#include <iostream>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <ostream>
 #include <vector>
 
@@ -270,8 +270,8 @@ TEST_CASE("simple test for deformations to test for seg faults", "[deform]")
             curve.set_control_points(control_pts);
             curve.deform(parameter_values, deformations);
             auto new_control_points = curve.get_control_points();
-            REQUIRE((new_control_points - control_pts).maxCoeff() == Approx(magnitude));
-            REQUIRE((new_control_points - control_pts).minCoeff() == Approx(magnitude));
+            REQUIRE_THAT((new_control_points - control_pts).maxCoeff(), Catch::Matchers::WithinAbs(magnitude, 1e-6));
+            REQUIRE_THAT((new_control_points - control_pts).minCoeff(), Catch::Matchers::WithinAbs(magnitude, 1e-6));
         }
         SECTION("BSpline")
         {
@@ -285,8 +285,8 @@ TEST_CASE("simple test for deformations to test for seg faults", "[deform]")
             curve.set_knots(knots);
             curve.deform(parameter_values, deformations);
             auto new_control_points = curve.get_control_points();
-            REQUIRE((new_control_points - control_pts).maxCoeff() == Approx(magnitude));
-            REQUIRE((new_control_points - control_pts).minCoeff() == Approx(magnitude));
+            REQUIRE_THAT((new_control_points - control_pts).maxCoeff(), Catch::Matchers::WithinAbs(magnitude, 1e-6));
+            REQUIRE_THAT((new_control_points - control_pts).minCoeff(), Catch::Matchers::WithinAbs(magnitude, 1e-6));
         }
     }
     SECTION("Patches")

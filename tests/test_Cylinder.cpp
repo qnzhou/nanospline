@@ -1,4 +1,5 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <nanospline/Cylinder.h>
 
@@ -72,7 +73,7 @@ TEST_CASE("Cylinder", "[cylinder][primitive]")
                 -7.0110509443263993,
                 -0.92157858182020647));
             auto p = patch.evaluate(uv[0], uv[1]);
-            REQUIRE((p - q).norm() == Approx(0).margin(1e-3));
+            REQUIRE_THAT((p - q).norm(), Catch::Matchers::WithinAbs(0, 1e-3));
         }
 
         SECTION("Query 2")
@@ -86,7 +87,7 @@ TEST_CASE("Cylinder", "[cylinder][primitive]")
                 -0.92157858182020647));
             auto p = patch.evaluate(uv[0], uv[1]);
 
-            REQUIRE((p - q).norm() == Approx(0).margin(1e-3));
+            REQUIRE_THAT((p - q).norm(), Catch::Matchers::WithinAbs(0, 1e-3));
         }
     }
 }

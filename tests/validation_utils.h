@@ -4,7 +4,8 @@
 #include <nanospline/hodograph.h>
 #include <nanospline/save_msh.h>
 #include <Eigen/Core>
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <limits>
 
 namespace nanospline {
@@ -21,8 +22,10 @@ void assert_same(const CurveType1& curve1,
 {
     using Scalar = typename CurveType1::Scalar;
 
-    REQUIRE(curve1.get_domain_lower_bound() == Approx(curve2.get_domain_lower_bound()));
-    REQUIRE(curve1.get_domain_upper_bound() == Approx(curve2.get_domain_upper_bound()));
+    REQUIRE_THAT(curve1.get_domain_lower_bound(),
+        Catch::Matchers::WithinAbs(curve2.get_domain_lower_bound(), 1e-6));
+    REQUIRE_THAT(curve1.get_domain_upper_bound(),
+        Catch::Matchers::WithinAbs(curve2.get_domain_upper_bound(), 1e-6));
 
     const Scalar t_min = std::max(curve1.get_domain_lower_bound(), curve2.get_domain_lower_bound());
     const Scalar t_max = std::min(curve1.get_domain_upper_bound(), curve2.get_domain_upper_bound());
@@ -32,7 +35,7 @@ void assert_same(const CurveType1& curve1,
     for (int i = 0; i < num_samples + 2; i++) {
         const auto p1 = curve1.evaluate(samples[i]);
         const auto p2 = curve2.evaluate(samples[i]);
-        REQUIRE((p1 - p2).norm() == Approx(0.0).margin(tol));
+        REQUIRE_THAT((p1 - p2).norm(), Catch::Matchers::WithinAbs(0.0, tol));
     }
 }
 
@@ -59,7 +62,7 @@ void assert_same(const CurveType1& curve1,
     for (int i = 0; i < num_samples + 2; i++) {
         const auto p1 = curve1.evaluate(samples_1[i]);
         const auto p2 = curve2.evaluate(samples_2[i]);
-        REQUIRE((p1 - p2).norm() == Approx(0.0).margin(tol));
+        REQUIRE_THAT((p1 - p2).norm(), Catch::Matchers::WithinAbs(0.0, tol));
     }
 }
 
@@ -92,7 +95,7 @@ void assert_same(const PatchType1& patch1,
         for (int j = 0; j < num_samples + 2; j++) {
             const auto p1 = patch1.evaluate(samples_u1[i], samples_v1[j]);
             const auto p2 = patch2.evaluate(samples_u2[i], samples_v2[j]);
-            REQUIRE((p1 - p2).norm() == Approx(0.0).margin(tol));
+            REQUIRE_THAT((p1 - p2).norm(), Catch::Matchers::WithinAbs(0.0, tol));
         }
     }
 }
@@ -120,14 +123,14 @@ void validate_derivatives(
         if (i == 0) {
             auto p0 = curve.evaluate(t_min);
             auto p1 = curve.evaluate(t_min + delta);
-            REQUIRE(d[0] * delta == Approx(p1[0] - p0[0]).margin(tol));
-            REQUIRE(d[1] * delta == Approx(p1[1] - p0[1]).margin(tol));
+            REQUIRE_THAT(d[0] * delta, Catch::Matchers::WithinAbs(p1[0] - p0[0], tol));
+            REQUIRE_THAT(d[1] * delta, Catch::Matchers::WithinAbs(p1[1] - p0[1], tol));
         } else if (i == num_samples + 1) {
             t = t_max;
             auto p0 = curve.evaluate(t - delta);
             auto p1 = curve.evaluate(t);
-            REQUIRE(d[0] * delta == Approx(p1[0] - p0[0]).margin(tol));
-            REQUIRE(d[1] * delta == Approx(p1[1] - p0[1]).margin(tol));
+            REQUIRE_THAT(d[0] * delta, Catch::Matchers::WithinAbs(p1[0] - p0[0], tol));
+            REQUIRE_THAT(d[1] * delta, Catch::Matchers::WithinAbs(p1[1] - p0[1], tol));
         } else {
             // Center difference.
             const auto t0 = std::max(t_min, t - delta / 2);
@@ -135,8 +138,8 @@ void validate_derivatives(
             const auto diff = t1 - t0;
             auto p0 = curve.evaluate(t0);
             auto p1 = curve.evaluate(t1);
-            REQUIRE(d[0] * diff == Approx(p1[0] - p0[0]).margin(tol));
-            REQUIRE(d[1] * diff == Approx(p1[1] - p0[1]).margin(tol));
+            REQUIRE_THAT(d[0] * diff, Catch::Matchers::WithinAbs(p1[0] - p0[0], tol));
+            REQUIRE_THAT(d[1] * diff, Catch::Matchers::WithinAbs(p1[1] - p0[1], tol));
         }
     }
 }
@@ -177,8 +180,10 @@ void validate_derivative(const PatchType& patch,
             const auto p_v_next = patch.evaluate(u, v_next);
 
             for (int k = 0; k < dim; k++) {
-                REQUIRE(du[k] * (u_next - u_prev) == Approx(p_u_next[k] - p_u_prev[k]).margin(tol));
-                REQUIRE(dv[k] * (v_next - v_prev) == Approx(p_v_next[k] - p_v_prev[k]).margin(tol));
+                REQUIRE_THAT(du[k] * (u_next - u_prev),
+                    Catch::Matchers::WithinAbs(p_u_next[k] - p_u_prev[k], tol));
+                REQUIRE_THAT(dv[k] * (v_next - v_prev),
+                    Catch::Matchers::WithinAbs(p_v_next[k] - p_v_prev[k], tol));
             }
 
             if (test_2nd_derivatives) {
@@ -191,8 +196,10 @@ void validate_derivative(const PatchType& patch,
                 const auto dv_next = patch.evaluate_derivative_v(u, v_next);
 
                 for (int k = 0; k < dim; k++) {
-                    REQUIRE(duu[k] * (u_next - u_prev) == Approx(du_next[k] - du_prev[k]).margin(tol));
-                    REQUIRE(dvv[k] * (v_next - v_prev) == Approx(dv_next[k] - dv_prev[k]).margin(tol));
+                    REQUIRE_THAT(duu[k] * (u_next - u_prev),
+                        Catch::Matchers::WithinAbs(du_next[k] - du_prev[k], tol));
+                    REQUIRE_THAT(dvv[k] * (v_next - v_prev),
+                        Catch::Matchers::WithinAbs(dv_next[k] - dv_prev[k], tol));
                 }
 
                 const auto duv = patch.evaluate_2nd_derivative_uv(u, v);
@@ -203,10 +210,10 @@ void validate_derivative(const PatchType& patch,
                 const auto dv_u_next = patch.evaluate_derivative_v(u_next, v);
 
                 for (int k = 0; k < dim; k++) {
-                    REQUIRE(
-                        duv[k] * (v_next - v_prev) == Approx(du_v_next[k] - du_v_prev[k]).margin(tol));
-                    REQUIRE(
-                        duv[k] * (u_next - u_prev) == Approx(dv_u_next[k] - dv_u_prev[k]).margin(tol));
+                    REQUIRE_THAT(duv[k] * (v_next - v_prev),
+                        Catch::Matchers::WithinAbs(du_v_next[k] - du_v_prev[k], tol));
+                    REQUIRE_THAT(duv[k] * (u_next - u_prev),
+                        Catch::Matchers::WithinAbs(dv_u_next[k] - dv_u_prev[k], tol));
                 }
             }
         }
@@ -247,11 +254,11 @@ void validate_derivative_patches(const PatchType& patch,
             auto duv_1 = dvu_patch.evaluate(u, v);
             auto duv_2 = duv_patch_explicit.evaluate(u, v);
 
-            REQUIRE((du - du_p).norm() == Approx(0.0).margin(tol));
-            REQUIRE((dv - dv_p).norm() == Approx(0.0).margin(tol));
+            REQUIRE_THAT((du - du_p).norm(), Catch::Matchers::WithinAbs(0.0, tol));
+            REQUIRE_THAT((dv - dv_p).norm(), Catch::Matchers::WithinAbs(0.0, tol));
 
-            REQUIRE((duv_0 - duv_2).norm() == Approx(0.0).margin(tol));
-            REQUIRE((duv_1 - duv_2).norm() == Approx(0.0).margin(tol));
+            REQUIRE_THAT((duv_0 - duv_2).norm(), Catch::Matchers::WithinAbs(0.0, tol));
+            REQUIRE_THAT((duv_1 - duv_2).norm(), Catch::Matchers::WithinAbs(0.0, tol));
         }
     }
 }
@@ -279,14 +286,14 @@ void validate_2nd_derivatives(
         if (i == 0) {
             auto p0 = curve.evaluate_derivative(t_min);
             auto p1 = curve.evaluate_derivative(t_min + delta);
-            REQUIRE(d[0] * delta == Approx(p1[0] - p0[0]).margin(tol));
-            REQUIRE(d[1] * delta == Approx(p1[1] - p0[1]).margin(tol));
+            REQUIRE_THAT(d[0] * delta, Catch::Matchers::WithinAbs(p1[0] - p0[0], tol));
+            REQUIRE_THAT(d[1] * delta, Catch::Matchers::WithinAbs(p1[1] - p0[1], tol));
         } else if (i == num_samples + 1) {
             t = t_max;
             auto p0 = curve.evaluate_derivative(t - delta);
             auto p1 = curve.evaluate_derivative(t);
-            REQUIRE(d[0] * delta == Approx(p1[0] - p0[0]).margin(tol));
-            REQUIRE(d[1] * delta == Approx(p1[1] - p0[1]).margin(tol));
+            REQUIRE_THAT(d[0] * delta, Catch::Matchers::WithinAbs(p1[0] - p0[0], tol));
+            REQUIRE_THAT(d[1] * delta, Catch::Matchers::WithinAbs(p1[1] - p0[1], tol));
         } else {
             // Center difference.
             const auto t0 = std::max(t_min, t - delta / 2);
@@ -294,8 +301,8 @@ void validate_2nd_derivatives(
             const auto diff = t1 - t0;
             auto p0 = curve.evaluate_derivative(t0);
             auto p1 = curve.evaluate_derivative(t1);
-            REQUIRE(d[0] * diff == Approx(p1[0] - p0[0]).margin(tol));
-            REQUIRE(d[1] * diff == Approx(p1[1] - p0[1]).margin(tol));
+            REQUIRE_THAT(d[0] * diff, Catch::Matchers::WithinAbs(p1[0] - p0[0], tol));
+            REQUIRE_THAT(d[1] * diff, Catch::Matchers::WithinAbs(p1[1] - p0[1], tol));
         }
     }
 }
@@ -319,7 +326,7 @@ void validate_2nd_derivatives(
         auto t = samples[i];
         auto d = curve.evaluate_2nd_derivative(t);
         auto c = hodograph2.evaluate(t);
-        REQUIRE((d - c).norm() == Approx(0.0).margin(tol));
+        REQUIRE_THAT((d - c).norm(), Catch::Matchers::WithinAbs(0.0, tol));
     }
 }
 
@@ -342,7 +349,7 @@ void validate_2nd_derivatives(
         auto t = samples[i];
         auto d = curve.evaluate_2nd_derivative(t);
         auto c = hodograph2.evaluate(t);
-        REQUIRE((d - c).norm() == Approx(0.0).margin(tol));
+        REQUIRE_THAT((d - c).norm(), Catch::Matchers::WithinAbs(0.0, tol));
     }
 }
 
@@ -363,7 +370,7 @@ void validate_hodograph(const CurveType& curve,
         auto t = samples[i];
         auto d = curve.evaluate_derivative(t);
         auto d2 = hodograph.evaluate(t);
-        REQUIRE((d - d2).norm() == Approx(0.0).margin(tol));
+        REQUIRE_THAT((d - d2).norm(), Catch::Matchers::WithinAbs(0.0, tol));
     }
 }
 
@@ -384,8 +391,8 @@ void validate_iso_curves(const PatchType& patch, int num_samples = 10)
             auto p = patch.evaluate(u, v);
             auto p1 = u_curve.evaluate(u);
             auto p2 = v_curve.evaluate(v);
-            REQUIRE((p - p1).norm() == Approx(0.0).margin(1e-6));
-            REQUIRE((p - p2).norm() == Approx(0.0).margin(1e-6));
+            REQUIRE_THAT((p - p1).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
+            REQUIRE_THAT((p - p2).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
         }
     }
 }
@@ -400,7 +407,7 @@ void validate_approximate_inverse_evaluation(const CurveType& curve, int num_sam
         const auto q = curve.evaluate(t);
         const auto t2 = curve.approximate_inverse_evaluate(q, t_min, t_max);
         const auto p = curve.evaluate(t2);
-        REQUIRE((p - q).norm() == Approx(0.0).margin(1e-12));
+        REQUIRE_THAT((p - q).norm(), Catch::Matchers::WithinAbs(0.0, 1e-12));
     }
 }
 
@@ -426,7 +433,7 @@ void validate_inverse_evaluation(const PatchType& patch,
             bool converged;
             std::tie(uv, converged) = patch.inverse_evaluate(q, u_min, u_max, v_min, v_max);
             const auto p = patch.evaluate(uv[0], uv[1]);
-            REQUIRE((p - q).norm() == Approx(0.0).margin(TOL));
+            REQUIRE_THAT((p - q).norm(), Catch::Matchers::WithinAbs(0.0, TOL));
         }
     }
 }
@@ -484,20 +491,20 @@ void validate_inverse_evaluation_3d(const PatchType& patch,
                 save_msh<typename PatchType::Scalar>("validate.msh", {&line, &line2}, {&patch});
                 // assert(false);
             }
-            CHECK((p - q).norm() == Approx(0.05).margin(1e-13));
+            CHECK_THAT((p - q).norm(), Catch::Matchers::WithinAbs(0.05, 1e-12));
             if (patch.get_periodic_u()) {
                 const auto u_period = patch.get_u_upper_bound() - patch.get_u_lower_bound();
                 const auto rounded_u = std::round((uv[0] - u) / u_period) * u_period + u;
-                CHECK(std::fmod(rounded_u - uv[0], u_period) == Approx(0).margin(1e-8));
+                CHECK_THAT(std::fmod(rounded_u - uv[0], u_period), Catch::Matchers::WithinAbs(0, 1e-8));
             } else {
-                CHECK(std::abs(uv[0] - u) == Approx(0).margin(1e-8));
+                CHECK_THAT(std::abs(uv[0] - u), Catch::Matchers::WithinAbs(0, 1e-8));
             }
             if (patch.get_periodic_v()) {
                 const auto v_period = patch.get_v_upper_bound() - patch.get_v_lower_bound();
                 const auto rounded_v = std::round((uv[1] - v) / v_period) * v_period + v;
-                CHECK(std::fmod(rounded_v - uv[1], v_period) == Approx(0).margin(1e-8));
+                CHECK_THAT(std::fmod(rounded_v - uv[1], v_period), Catch::Matchers::WithinAbs(0, 1e-8));
             } else {
-                CHECK(std::abs(uv[1] - v) == Approx(0).margin(1e-8));
+                CHECK_THAT(std::abs(uv[1] - v), Catch::Matchers::WithinAbs(0, 1e-8));
             }
         }
     }
@@ -543,7 +550,7 @@ void offset_and_validate(const CurveBase<Scalar, dim>& curve1, int num_samples =
     for (int i = 0; i < num_samples + 2; i++) {
         const auto p1 = curve1.evaluate(samples[i]);
         const auto p2 = curve2.evaluate(samples[i] + t_offset);
-        REQUIRE((p1 - p2).norm() == Approx(offset.norm()).margin(tol));
+        REQUIRE_THAT((p1 - p2).norm(), Catch::Matchers::WithinAbs(offset.norm(), tol));
     }
 }
 
@@ -603,7 +610,7 @@ void offset_and_validate(const PatchBase<Scalar, dim>& patch1, int num_samples =
         for (int j = 0; j < num_samples + 2; j++) {
             const auto p1 = patch1.evaluate(u_samples[i], v_samples[j]);
             const auto p2 = patch2.evaluate(u_samples[i] + u_offset, v_samples[j] + v_offset);
-            REQUIRE((p1 - p2).norm() == Approx(offset.norm()).margin(tol));
+            REQUIRE_THAT((p1 - p2).norm(), Catch::Matchers::WithinAbs(offset.norm(), tol));
         }
     }
 }

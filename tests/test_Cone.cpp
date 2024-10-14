@@ -1,4 +1,5 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <iostream>
 
 #include <nanospline/Cone.h>
@@ -96,10 +97,10 @@ TEST_CASE("Cone", "[Cone][primitive]")
         validate_inverse_evaluation_3d(patch, 10, 10);
 
         // Ensure `l` is the singularity
-        REQUIRE((patch.evaluate(0, 0) - l).norm() == Approx(0));
-        REQUIRE(patch.evaluate_derivative_u(0, 0).norm() == Approx(0));
-        REQUIRE((patch.evaluate(1, 0) - l).norm() == Approx(0));
-        REQUIRE((patch.evaluate(M_PI, 0) - l).norm() == Approx(0));
+        REQUIRE_THAT((patch.evaluate(0, 0) - l).norm(), Catch::Matchers::WithinAbs(0, 1e-6));
+        REQUIRE_THAT(patch.evaluate_derivative_u(0, 0).norm(), Catch::Matchers::WithinAbs(0, 1e-6));
+        REQUIRE_THAT((patch.evaluate(1, 0) -l).norm(), Catch::Matchers::WithinAbs(0, 1e-6));
+        REQUIRE_THAT((patch.evaluate(M_PI, 0) - l).norm(), Catch::Matchers::WithinAbs(0, 1e-6));
 
         SECTION("Query at singularity") {
             Eigen::Matrix<Scalar, 1, 3> q1(l[0], l[1], l[2]);
@@ -108,7 +109,7 @@ TEST_CASE("Cone", "[Cone][primitive]")
                 patch.get_u_upper_bound(),
                 patch.get_v_lower_bound(),
                 patch.get_v_upper_bound()));
-            REQUIRE(uv[1] == Approx(0));
+            REQUIRE_THAT(uv[1], Catch::Matchers::WithinAbs(0, 1e-6));
         }
 
         SECTION("Query outside of the cone") {
@@ -118,7 +119,7 @@ TEST_CASE("Cone", "[Cone][primitive]")
                 patch.get_u_upper_bound(),
                 patch.get_v_lower_bound(),
                 patch.get_v_upper_bound()));
-            REQUIRE(uv[1] == Approx(0));
+            REQUIRE_THAT(uv[1], Catch::Matchers::WithinAbs(0, 1e-6));
         }
 
         SECTION("Query inside of the cone") {

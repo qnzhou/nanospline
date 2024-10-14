@@ -1,11 +1,12 @@
-#include <catch2/catch.hpp>
+#include "validation_utils.h"
 
 #include <nanospline/BSpline.h>
 #include <nanospline/Bezier.h>
 #include <nanospline/forward_declaration.h>
 #include <nanospline/save_msh.h>
 
-#include "validation_utils.h"
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 TEST_CASE("BSpline", "[nonrational][bspline]")
 {
@@ -26,16 +27,16 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
         REQUIRE(curve.get_degree() == 0);
 
         auto p0 = curve.evaluate(0.1);
-        REQUIRE(p0[0] == Approx(0.0));
-        REQUIRE(p0[1] == Approx(0.0));
+        REQUIRE_THAT(p0[0], Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT(p0[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
 
         auto p1 = curve.evaluate(0.6);
-        REQUIRE(p1[0] == Approx(1.0));
-        REQUIRE(p1[1] == Approx(0.0));
+        REQUIRE_THAT(p1[0], Catch::Matchers::WithinAbs(1.0, 1e-6));
+        REQUIRE_THAT(p1[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
 
         auto p2 = curve.evaluate(1.0);
-        REQUIRE(p2[0] == Approx(2.0));
-        REQUIRE(p2[1] == Approx(0.0));
+        REQUIRE_THAT(p2[0], Catch::Matchers::WithinAbs(2.0, 1e-6));
+        REQUIRE_THAT(p2[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
 
         SECTION("Derivative")
         {
@@ -43,19 +44,25 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
             validate_2nd_derivatives(curve, 10);
         }
 
-        SECTION("Degree elevation") { REQUIRE_THROWS(curve.elevate_degree()); }
+        SECTION("Degree elevation")
+        {
+            REQUIRE_THROWS(curve.elevate_degree());
+        }
 
         SECTION("Out of bound evaluation should extrapolate")
         {
             auto p3 = curve.evaluate(-0.1);
-            REQUIRE(p3[0] == Approx(0.0));
-            REQUIRE(p3[1] == Approx(0.0));
+            REQUIRE_THAT(p3[0], Catch::Matchers::WithinAbs(0.0, 1e-6));
+            REQUIRE_THAT(p3[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
             auto p4 = curve.evaluate(1.1);
-            REQUIRE(p4[0] == Approx(2.0));
-            REQUIRE(p4[1] == Approx(0.0));
+            REQUIRE_THAT(p4[0], Catch::Matchers::WithinAbs(2.0, 1e-6));
+            REQUIRE_THAT(p4[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
         }
 
-        SECTION("Update") { offset_and_validate(curve); }
+        SECTION("Update")
+        {
+            offset_and_validate(curve);
+        }
     }
 
     SECTION("Generic degree 1")
@@ -70,16 +77,16 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
         curve.set_knots(knots);
 
         auto p0 = curve.evaluate(0.1);
-        REQUIRE(p0[0] == Approx(0.5));
-        REQUIRE(p0[1] == Approx(0.0));
+        REQUIRE_THAT(p0[0], Catch::Matchers::WithinAbs(0.5, 1e-6));
+        REQUIRE_THAT(p0[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
 
         auto p1 = curve.evaluate(0.5);
-        REQUIRE(p1[0] == Approx(1.5));
-        REQUIRE(p1[1] == Approx(0.0));
+        REQUIRE_THAT(p1[0], Catch::Matchers::WithinAbs(1.5, 1e-6));
+        REQUIRE_THAT(p1[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
 
         auto p2 = curve.evaluate(0.9);
-        REQUIRE(p2[0] == Approx(2.5));
-        REQUIRE(p2[1] == Approx(0.0));
+        REQUIRE_THAT(p2[0], Catch::Matchers::WithinAbs(2.5, 1e-6));
+        REQUIRE_THAT(p2[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
 
         SECTION("Derivative")
         {
@@ -104,7 +111,7 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
         {
 #if NANOSPLINE_SYMPY
             auto total_turning_angle = curve.get_turning_angle(0, 1);
-            REQUIRE(total_turning_angle == Approx(0));
+            REQUIRE_THAT(total_turning_angle, Catch::Matchers::WithinAbs(0, 1e-6));
             const auto split_pts = curve.reduce_turning_angle(0, 1);
             REQUIRE(split_pts.size() == 0);
 #endif
@@ -126,14 +133,17 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
         SECTION("Out of bound evaluation should extrapolate")
         {
             auto p3 = curve.evaluate(-0.2);
-            REQUIRE(p3[0] == Approx(-1.0));
-            REQUIRE(p3[1] == Approx(0.0));
+            REQUIRE_THAT(p3[0], Catch::Matchers::WithinAbs(-1.0, 1e-6));
+            REQUIRE_THAT(p3[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
             auto p4 = curve.evaluate(1.2);
-            REQUIRE(p4[0] == Approx(4.0));
-            REQUIRE(p4[1] == Approx(0.0));
+            REQUIRE_THAT(p4[0], Catch::Matchers::WithinAbs(4.0, 1e-6));
+            REQUIRE_THAT(p4[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
         }
 
-        SECTION("Update") { offset_and_validate(curve); }
+        SECTION("Update")
+        {
+            offset_and_validate(curve);
+        }
     }
 
     SECTION("Generic degree 2")
@@ -148,22 +158,22 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
         curve.set_knots(knots);
 
         auto p0 = curve.evaluate(0.0);
-        REQUIRE(p0[0] == Approx(0.0));
-        REQUIRE(p0[1] == Approx(0.0));
+        REQUIRE_THAT(p0[0], Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT(p0[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
 
         auto p1 = curve.evaluate(0.5);
-        REQUIRE(p1[0] == Approx(1.5));
-        REQUIRE(p1[1] == Approx(0.0));
+        REQUIRE_THAT(p1[0], Catch::Matchers::WithinAbs(1.5, 1e-6));
+        REQUIRE_THAT(p1[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
 
         auto p2 = curve.evaluate(1.0);
-        REQUIRE(p2[0] == Approx(3.0));
-        REQUIRE(p2[1] == Approx(0.0));
+        REQUIRE_THAT(p2[0], Catch::Matchers::WithinAbs(3.0, 1e-6));
+        REQUIRE_THAT(p2[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
 
         auto p3 = curve.evaluate(0.1);
         auto p4 = curve.evaluate(0.9);
-        REQUIRE(p3[0] == Approx(3.0 - p4[0]));
-        REQUIRE(p3[1] == Approx(0.0));
-        REQUIRE(p4[1] == Approx(0.0));
+        REQUIRE_THAT(p3[0], Catch::Matchers::WithinAbs(3.0 - p4[0], 1e-6));
+        REQUIRE_THAT(p3[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT(p4[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
 
         SECTION("Derivative")
         {
@@ -186,7 +196,7 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
         {
 #if NANOSPLINE_SYMPY
             auto total_turning_angle = curve.get_turning_angle(0, 1);
-            REQUIRE(total_turning_angle == Approx(0));
+            REQUIRE_THAT(total_turning_angle, Catch::Matchers::WithinAbs(0.0, 1e-6));
             const auto split_pts = curve.reduce_turning_angle(0, 1);
             REQUIRE(split_pts.size() == 0);
 #endif
@@ -217,13 +227,16 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
         {
             auto p3 = curve.evaluate(-1.0);
             REQUIRE(p3[0] < 0.0);
-            REQUIRE(p3[1] == Approx(0.0));
+            REQUIRE_THAT(p3[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
             auto p4 = curve.evaluate(2.0);
             REQUIRE(p4[0] > 3.0);
-            REQUIRE(p4[1] == Approx(0.0));
+            REQUIRE_THAT(p4[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
         }
 
-        SECTION("Update") { offset_and_validate(curve); }
+        SECTION("Update")
+        {
+            offset_and_validate(curve);
+        }
     }
 
     SECTION("Generic degree 3")
@@ -277,7 +290,7 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
         {
 #if NANOSPLINE_SYMPY
             auto total_turning_angle = curve.get_turning_angle(0, 1);
-            REQUIRE(total_turning_angle == Approx(0));
+            REQUIRE_THAT(total_turning_angle, Catch::Matchers::WithinAbs(0.0, 1e-6));
             const auto split_pts = curve.reduce_turning_angle(0, 1);
             REQUIRE(split_pts.size() == 0);
 #endif
@@ -308,19 +321,22 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
         {
             auto p3 = curve.evaluate(-1.0);
             REQUIRE(p3[0] < 0.0);
-            REQUIRE(p3[1] == Approx(0.0));
+            REQUIRE_THAT(p3[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
             auto p4 = curve.evaluate(2.0);
             REQUIRE(p4[0] > 3.0);
-            REQUIRE(p4[1] == Approx(0.0));
+            REQUIRE_THAT(p4[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
         }
 
-        SECTION("Update") { offset_and_validate(curve); }
+        SECTION("Update")
+        {
+            offset_and_validate(curve);
+        }
 
         SECTION("Out of bound inverse evaluation")
         {
             auto p = curve.evaluate(2);
             auto t = curve.approximate_inverse_evaluate(p, 2.0, 3.0);
-            REQUIRE(t == Approx(2.0));
+            REQUIRE_THAT(t, Catch::Matchers::WithinAbs(2.0, 1e-6));
         }
     }
 
@@ -460,7 +476,7 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
         // Check curve is indeed closed.
         const auto min_p = curve.evaluate(min_t);
         const auto max_p = curve.evaluate(max_t);
-        REQUIRE((max_p - min_p).norm() == Approx(0.0).margin(1e-6));
+        REQUIRE_THAT((max_p - min_p).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
 
         SECTION("Derivative")
         {
@@ -486,7 +502,10 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
             validate_approximate_inverse_evaluation(curve, 10);
         }
 
-        SECTION("Update") { offset_and_validate(curve); }
+        SECTION("Update")
+        {
+            offset_and_validate(curve);
+        }
     }
 
     SECTION("Comparison")
@@ -568,7 +587,7 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
                 const auto min_t = curve.get_domain_lower_bound();
                 const auto max_t = curve.get_domain_upper_bound();
                 auto total_turning_angle = curve.get_turning_angle(min_t, max_t);
-                REQUIRE(std::abs(total_turning_angle) == Approx(2 * M_PI));
+                REQUIRE_THAT(std::abs(total_turning_angle), Catch::Matchers::WithinAbs(2 * M_PI, 1e-6));
 #endif
             }
 
@@ -610,13 +629,13 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
             curve.set_knots(knots);
 
             auto k = curve.evaluate_curvature(1.0).norm();
-            REQUIRE(k == Approx(0).margin(1e-6));
+            REQUIRE_THAT(k, Catch::Matchers::WithinAbs(0, 1e-6));
 
             SECTION("Simple")
             {
                 auto inflections = curve.compute_inflections(0, 2);
                 REQUIRE(inflections.size() == 1);
-                REQUIRE(inflections[0] == Approx(1.0));
+                REQUIRE_THAT(inflections[0], Catch::Matchers::WithinAbs(1.0, 1e-6));
             }
 
             SECTION("Inflection at knot value")
@@ -625,25 +644,25 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
                 curve.insert_knot(1.0);
                 auto inflections = curve.compute_inflections(0, 2);
                 REQUIRE(inflections.size() == 1);
-                REQUIRE(inflections[0] == Approx(1.0));
+                REQUIRE_THAT(inflections[0], Catch::Matchers::WithinAbs(1.0, 1e-6));
             }
 
             SECTION("Narrower range")
             {
                 auto inflections = curve.compute_inflections(0.9, 1.1);
                 REQUIRE(inflections.size() == 1);
-                REQUIRE(inflections[0] == Approx(1.0));
+                REQUIRE_THAT(inflections[0], Catch::Matchers::WithinAbs(1.0, 1e-6));
             }
 
             SECTION("Inflection at boundary of the range")
             {
                 auto inflections = curve.compute_inflections(0.0, 1.0);
                 REQUIRE(inflections.size() == 1);
-                REQUIRE(inflections[0] == Approx(1.0));
+                REQUIRE_THAT(inflections[0], Catch::Matchers::WithinAbs(1.0, 1e-6));
 
                 inflections = curve.compute_inflections(1.0, 2.0);
                 REQUIRE(inflections.size() == 1);
-                REQUIRE(inflections[0] == Approx(1.0));
+                REQUIRE_THAT(inflections[0], Catch::Matchers::WithinAbs(1.0, 1e-6));
             }
 
             SECTION("Singularity")
@@ -658,7 +677,10 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
                 assert_same(curve, curve2, 10);
             }
 
-            SECTION("Update") { offset_and_validate(curve); }
+            SECTION("Update")
+            {
+                offset_and_validate(curve);
+            }
         }
 
         SECTION("Closed curve")
@@ -678,13 +700,16 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
             auto inflections = curve.compute_inflections(knots.minCoeff(), knots.maxCoeff());
             for (auto t : inflections) {
                 auto k = curve.evaluate_curvature(t).norm();
-                REQUIRE(k == Approx(0).margin(1e-6));
+                REQUIRE_THAT(k, Catch::Matchers::WithinAbs(0.0, 1e-6));
             }
 
             auto singular_pts = curve.compute_singularities(0, 2.0);
             REQUIRE(singular_pts.size() == 0);
 
-            SECTION("Update") { offset_and_validate(curve); }
+            SECTION("Update")
+            {
+                offset_and_validate(curve);
+            }
         }
 #endif
     }
@@ -716,8 +741,8 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
 
         auto dd0 = curve.evaluate_2nd_derivative(curve.get_domain_lower_bound() - 0.1);
         auto dd1 = curve.evaluate_2nd_derivative(curve.get_domain_upper_bound() + 0.1);
-        REQUIRE(dd0[0] == Approx(dd1[0]));
-        REQUIRE(dd0[1] == Approx(-dd1[1]));
+        REQUIRE_THAT(dd0[0], Catch::Matchers::WithinAbs(dd1[0], 1e-6));
+        REQUIRE_THAT(dd0[1], Catch::Matchers::WithinAbs(-dd1[1], 1e-6));
     }
 
     SECTION("Periodic curve")
@@ -749,15 +774,15 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
         Eigen::Matrix<Scalar, 1, 2> q = p + s * n;
 
         Scalar t0 = curve.approximate_inverse_evaluate(q, t_min, t_max, 10);
-        REQUIRE((curve.evaluate(t0) - p).norm() == Approx(s).margin(2e-2));
+        REQUIRE_THAT((curve.evaluate(t0) - p).norm(), Catch::Matchers::WithinAbs(s, 2e-2));
         Scalar t1 = curve.approximate_inverse_evaluate(q, t_min + period, t_max + period, 10);
-        REQUIRE((curve.evaluate(t1) - p).norm() == Approx(s).margin(2e-2));
+        REQUIRE_THAT((curve.evaluate(t1) - p).norm(), Catch::Matchers::WithinAbs(s, 2e-2));
         Scalar t2 =
             curve.approximate_inverse_evaluate(q, t_min + period / 2, t_max + period / 2, 10);
-        REQUIRE((curve.evaluate(t2) - p).norm() == Approx(s).margin(2e-2));
+        REQUIRE_THAT((curve.evaluate(t2) - p).norm(), Catch::Matchers::WithinAbs(s, 2e-2));
         Scalar t3 =
             curve.approximate_inverse_evaluate(q, t_min - period / 5, t_min + period / 5, 10);
-        REQUIRE((curve.evaluate(t3) - p).norm() == Approx(s).margin(2e-2));
+        REQUIRE_THAT((curve.evaluate(t3) - p).norm(), Catch::Matchers::WithinAbs(s, 2e-2));
 
         auto curve2 = curve.elevate_degree();
         REQUIRE(curve2.get_periodic() == curve.get_periodic());
@@ -832,13 +857,15 @@ TEST_CASE("BSpline", "[nonrational][bspline]")
         validate_derivatives(curve, 10);
         validate_2nd_derivatives(curve, 10);
 
-        SECTION("Check 1") {
+        SECTION("Check 1")
+        {
             auto p = curve.evaluate(-0.63948370308782154);
             REQUIRE(p.array().isFinite().all());
             REQUIRE(std::abs(p.maxCoeff()) <= std::abs(ctrl_pts.maxCoeff()));
         }
 
-        SECTION("Check 2") {
+        SECTION("Check 2")
+        {
             auto p = curve.evaluate(-0.59948370308782151);
             REQUIRE(p.array().isFinite().all());
             REQUIRE(std::abs(p.maxCoeff()) <= std::abs(ctrl_pts.maxCoeff()));

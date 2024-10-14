@@ -1,18 +1,17 @@
-include_guard()
-
-if (NOT mshio::mshio)
-    FetchContent_Declare(
-        MshIO
-        GIT_REPOSITORY https://github.com/qnzhou/MshIO.git
-        GIT_TAG        main
-        GIT_SHALLOW TRUE
-    )
-
-    FetchContent_GetProperties(MshIO)
-    if (NOT mshio_POPULATED)
-        FetchContent_Populate(MshIO)
-        option(MSHIO_EXT_NANOSPLINE "Enable nanospline extension" On)
-        add_subdirectory(${mshio_SOURCE_DIR} ${mshio_BINARY_DIR})
-    endif()
-
+if(TARGET mshio::mshio)
+    return()
 endif()
+
+message(STATUS "Third-party (external): creating target 'mshio::mshio'")
+
+set(MSHIO_EXT_NANOSPLINE On CACHE BOOL "Enable Nanospline extension")
+
+include(CPM)
+CPMAddPackage(
+    NAME mshio
+    GITHUB_REPOSITORY qnzhou/MshIO
+    GIT_TAG 8d3254b0c4408f914f4074d0f4d9be5d8beff0a3
+)
+
+set_target_properties(mshio PROPERTIES FOLDER third_party)
+set_target_properties(mshio PROPERTIES POSITION_INDEPENDENT_CODE ON)

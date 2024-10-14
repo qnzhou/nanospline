@@ -1,4 +1,5 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <nanospline/Circle.h>
 
@@ -19,9 +20,9 @@ TEST_CASE("Circle", "[primitive][circle]")
             auto p1 = curve.evaluate(M_PI);
             auto p2 = curve.evaluate(2*M_PI);
             auto c = (p0 + p1) / 2;
-            REQUIRE((p0 - p2).norm() == Approx(0).margin(1e-6));
+            REQUIRE_THAT((p0 - p2).norm(), Catch::Matchers::WithinAbs(0, 1e-6));
             auto p3 = curve.evaluate(M_PI/3);
-            REQUIRE((p3 - c).norm() == Approx((p0 - c).norm()));
+            REQUIRE_THAT((p3 - c).norm(), Catch::Matchers::WithinAbs((p0 - c).norm(), 1e-6));
         }
 
         {
@@ -58,7 +59,7 @@ TEST_CASE("Circle", "[primitive][circle]")
 
         REQUIRE(!curve.get_periodic());
         REQUIRE(!curve.is_closed());
-        REQUIRE(curve.get_turning_angle(0, M_PI) == Approx(M_PI));
+        REQUIRE_THAT(curve.get_turning_angle(0, M_PI), Catch::Matchers::WithinAbs(M_PI, 1e-6));
     }
 
     SECTION("Degenerate circle")
