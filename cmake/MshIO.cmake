@@ -4,6 +4,8 @@ endif()
 
 message(STATUS "Third-party (external): creating target 'mshio::mshio'")
 
+set(MSHIO_EXT_NANOSPLINE On CACHE BOOL "Enable Nanospline extension")
+
 include(CPM)
 CPMAddPackage(
     NAME mshio
