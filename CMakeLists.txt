@@ -17,10 +17,10 @@ option(NANOSPLINE_BUILD_TESTS "Build Tests" ON)
 option(NANOSPLINE_HEADER_ONLY "Enable header-only mode" ON)
 option(NANOSPLINE_SYMPY "Enable sympy generated code (slow to compile)" OFF)
 
-include(FetchContent)
-include(cmake/Eigen3.cmake)
-include(cmake/MshIO.cmake)
-include(cmake/sanitizer-cmake.cmake)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
+include(Eigen3)
+include(MshIO)
+include(sanitizer-cmake)
 
 
 file(GLOB INC_FILES "${PROJECT_SOURCE_DIR}/include/nanospline/*.h"
@@ -82,11 +82,11 @@ endif()
 if (NANOSPLINE_BUILD_TESTS)
     include(CTest)
     enable_testing()
-    include(cmake/Catch2.cmake)
+    include(Catch2)
 
     file(GLOB TEST_FILES "${PROJECT_SOURCE_DIR}/tests/*.cpp")
     add_executable(nanospline_test ${TEST_FILES})
-    target_link_libraries(nanospline_test nanospline::nanospline Catch2::Catch2)
+    target_link_libraries(nanospline_test nanospline::nanospline Catch2::Catch2WithMain)
     target_compile_definitions(nanospline_test PRIVATE -DCATCH_CONFIG_ENABLE_BENCHMARKING)
     catch_discover_tests(nanospline_test)
 

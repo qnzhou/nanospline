@@ -1,5 +1,6 @@
-#include <catch2/catch.hpp>
-#include <iostream>
+#include <catch2/benchmark/catch_benchmark.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <nanospline/BSplinePatch.h>
 #include <nanospline/forward_declaration.h>
@@ -32,15 +33,19 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]")
         const auto corner_01 = patch.evaluate(0.0, 1.0);
         const auto corner_11 = patch.evaluate(1.0, 1.0);
         const auto corner_10 = patch.evaluate(1.0, 0.0);
-        REQUIRE((corner_00 - control_grid.row(0)).norm() == Approx(0.0));
-        REQUIRE((corner_01 - control_grid.row(1)).norm() == Approx(0.0));
-        REQUIRE((corner_10 - control_grid.row(2)).norm() == Approx(0.0));
-        REQUIRE((corner_11 - control_grid.row(3)).norm() == Approx(0.0));
+        REQUIRE_THAT(
+            (corner_00 - control_grid.row(0)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT(
+            (corner_01 - control_grid.row(1)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT(
+            (corner_10 - control_grid.row(2)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT(
+            (corner_11 - control_grid.row(3)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
 
         const auto p_mid = patch.evaluate(0.5, 0.5);
-        REQUIRE(p_mid[0] == Approx(0.5));
-        REQUIRE(p_mid[1] == Approx(0.5));
-        REQUIRE(p_mid[2] == Approx(0.5));
+        REQUIRE_THAT(p_mid[0], Catch::Matchers::WithinAbs(0.5, 1e-6));
+        REQUIRE_THAT(p_mid[1], Catch::Matchers::WithinAbs(0.5, 1e-6));
+        REQUIRE_THAT(p_mid[2], Catch::Matchers::WithinAbs(0.5, 1e-6));
 
         validate_iso_curves(patch, 10);
         validate_derivative(patch, 10, 10);
@@ -184,7 +189,7 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]")
         // Out of bound extrapolation.
         const auto p0 = patch.evaluate(1.5707963267948966, -16.000000000000011);
         const auto p1 = patch.evaluate(1.5707963267948966, -16.000000000000004);
-        REQUIRE((p0 - p1).norm() == Approx(0.0).margin(1e-12));
+        REQUIRE_THAT((p0 - p1).norm(), Catch::Matchers::WithinAbs(0.0, 1e-12));
     }
 
     SECTION("Extrapolation")
@@ -259,22 +264,28 @@ TEST_CASE("BSplinePatch", "[nonrational][bspline_patch]")
         const auto period = u_max - u_min;
         const auto d = period / 5;
 
-        REQUIRE((patch.evaluate(u_min + d, v_mid) - patch.evaluate(u_min + 10 * period + d, v_mid))
-                    .norm() == Approx(0).margin(1e-6));
-        REQUIRE((patch.evaluate(u_min - 2 * period + d, v_mid) -
-                    patch.evaluate(u_min + period + d, v_mid))
-                    .norm() == Approx(0).margin(1e-6));
+        REQUIRE_THAT(
+            (patch.evaluate(u_min + d, v_mid) - patch.evaluate(u_min + 10 * period + d, v_mid))
+                .norm(),
+            Catch::Matchers::WithinAbs(0, 1e-6));
+        REQUIRE_THAT((patch.evaluate(u_min - 2 * period + d, v_mid) -
+                         patch.evaluate(u_min + period + d, v_mid))
+                         .norm(),
+            Catch::Matchers::WithinAbs(0, 1e-6));
 
         auto q = patch.evaluate(u_min, v_mid);
         const auto uv0 = std::get<0>(patch.inverse_evaluate(q, u_min, u_max, v_min, v_max));
-        REQUIRE((patch.evaluate(uv0[0], uv0[1]) - q).norm() == Approx(0));
+        REQUIRE_THAT(
+            (patch.evaluate(uv0[0], uv0[1]) - q).norm(), Catch::Matchers::WithinAbs(0, 1e-6));
         const auto uv1 = std::get<0>(patch.inverse_evaluate(q, u_max - d, u_max + d, v_min, v_max));
-        REQUIRE((patch.evaluate(uv1[0], uv1[1]) - q).norm() == Approx(0));
-        const auto uv2 =
-            std::get<0>(patch.inverse_evaluate(q, u_min - 2 * period - d, u_min - 2 * period + d, v_min, v_max));
-        REQUIRE((patch.evaluate(uv2[0], uv2[1]) - q).norm() == Approx(0));
-        const auto uv3 =
-            std::get<0>(patch.inverse_evaluate(q, u_min - period + d, u_max - period - d, v_min, v_max));
+        REQUIRE_THAT(
+            (patch.evaluate(uv1[0], uv1[1]) - q).norm(), Catch::Matchers::WithinAbs(0, 1e-6));
+        const auto uv2 = std::get<0>(patch.inverse_evaluate(
+            q, u_min - 2 * period - d, u_min - 2 * period + d, v_min, v_max));
+        REQUIRE_THAT(
+            (patch.evaluate(uv2[0], uv2[1]) - q).norm(), Catch::Matchers::WithinAbs(0, 1e-6));
+        const auto uv3 = std::get<0>(
+            patch.inverse_evaluate(q, u_min - period + d, u_max - period - d, v_min, v_max));
         REQUIRE((patch.evaluate(uv3[0], uv3[1]) - q).norm() > 0.1);
     }
 }
@@ -299,7 +310,10 @@ TEST_CASE("BSplinePatch Benchmark", "[!benchmark][bspline_patch]")
     patch.set_knots_v(knots_v);
     patch.initialize();
 
-    BENCHMARK("Evaluation") { return patch.evaluate(0.5, 0.6); };
+    BENCHMARK("Evaluation")
+    {
+        return patch.evaluate(0.5, 0.6);
+    };
 
     BENCHMARK("Derivative")
     {

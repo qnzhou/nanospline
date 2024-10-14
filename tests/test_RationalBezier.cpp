@@ -1,4 +1,5 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <cmath>
 
@@ -27,9 +28,9 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
         auto mid = curve.evaluate(0.5);
         auto end = curve.evaluate(1);
 
-        REQUIRE((start-control_pts.row(0)).norm() == Approx(0.0));
-        REQUIRE((end-control_pts.row(0)).norm() == Approx(0.0));
-        REQUIRE((mid-control_pts.row(0)).norm() == Approx(0.0));
+        REQUIRE_THAT((start-control_pts.row(0)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT((end-control_pts.row(0)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT((mid-control_pts.row(0)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
 
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
@@ -37,7 +38,7 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
         }
         SECTION("Curvature") {
             auto k = curve.evaluate_curvature(0.4);
-            REQUIRE(k.norm() == Approx(0.0));
+            REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
         }
         SECTION("Degree elevation") {
             const auto new_curve = curve.elevate_degree();
@@ -68,8 +69,8 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
         auto mid = curve.evaluate(0.5);
         auto end = curve.evaluate(1);
 
-        REQUIRE((start-control_pts.row(0)).norm() == Approx(0.0));
-        REQUIRE((end-control_pts.row(1)).norm() == Approx(0.0));
+        REQUIRE_THAT((start-control_pts.row(0)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT((end-control_pts.row(1)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
         REQUIRE((mid-control_pts.row(0)).norm() > 0.5);
 
         SECTION("Derivative") {
@@ -78,12 +79,12 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
         }
         SECTION("Curvature") {
             auto k = curve.evaluate_curvature(0.4);
-            REQUIRE(k.norm() == Approx(0.0));
+            REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
         }
         SECTION("Turning angle") {
 #if NANOSPLINE_SYMPY
             const auto total_turning_angle = curve.get_turning_angle(0, 1);
-            REQUIRE(total_turning_angle == Approx(0));
+            REQUIRE_THAT(total_turning_angle, Catch::Matchers::WithinAbs(0.0, 1e-6));
             const auto split_pts = curve.reduce_turning_angle(0, 1);
             REQUIRE(split_pts.size() == 0);
 #endif
@@ -132,13 +133,13 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
 
 #if NANOSPLINE_SYMPY
             const auto total_turning_angle = curve.get_turning_angle(0, 1);
-            REQUIRE(std::abs(total_turning_angle) == Approx(M_PI/2));
+            REQUIRE_THAT(std::abs(total_turning_angle), Catch::Matchers::WithinAbs(M_PI/2, 1e-6));
             const auto split_pts = curve.reduce_turning_angle(0, 1);
             REQUIRE(split_pts.size() == 1);
             const auto turning_angle_1 = curve.get_turning_angle(0, split_pts[0]);
             const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
-            REQUIRE(std::abs(turning_angle_1) == Approx(M_PI/4));
-            REQUIRE(std::abs(turning_angle_2) == Approx(M_PI/4));
+            REQUIRE_THAT(std::abs(turning_angle_1), Catch::Matchers::WithinAbs(M_PI/4, 1e-6));
+            REQUIRE_THAT(std::abs(turning_angle_2), Catch::Matchers::WithinAbs(M_PI/4, 1e-6));
 
             const auto singular_pts = curve.compute_singularities(0, 1);
             REQUIRE(singular_pts.size() == 0);
@@ -165,14 +166,14 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
                 curve.initialize();
 
                 const auto mid = curve.evaluate(0.5);
-                REQUIRE(mid[1] == Approx(0.0));
+                REQUIRE_THAT((mid[1]), Catch::Matchers::WithinAbs(0.0, 1e-6));
+
+                auto start = curve.evaluate(0);
+                auto end = curve.evaluate(1);
+
+                REQUIRE_THAT((start-control_pts.row(0)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
+                REQUIRE_THAT((end-control_pts.row(2)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
             }
-
-            auto start = curve.evaluate(0);
-            auto end = curve.evaluate(1);
-
-            REQUIRE((start-control_pts.row(0)).norm() == Approx(0.0));
-            REQUIRE((end-control_pts.row(2)).norm() == Approx(0.0));
             validate_derivatives(curve, 10, 1e-5);
             validate_2nd_derivatives(curve, 10);
             validate_approximate_inverse_evaluation(curve, 10);
@@ -184,15 +185,15 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
                 const auto total_turning_angle = curve.get_turning_angle(0, 1);
                 const auto turning_angle_1 = curve.get_turning_angle(0, split_pts[0]);
                 const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
-                REQUIRE(turning_angle_1 == Approx(0.5 * total_turning_angle));
-                REQUIRE(turning_angle_2 == Approx(0.5 * total_turning_angle));
+                REQUIRE_THAT(turning_angle_1, Catch::Matchers::WithinAbs(0.5 * total_turning_angle, 1e-6));
+                REQUIRE_THAT(turning_angle_2, Catch::Matchers::WithinAbs(0.5 * total_turning_angle, 1e-6));
             }
             const auto singular_pts = curve.compute_singularities(0, 1+1e-3);
             if (weights[1] == 0) {
                 REQUIRE(singular_pts.size() == 2);
                 for (auto t : singular_pts) {
                     const auto d = curve.evaluate_derivative(t);
-                    REQUIRE(d.norm() == Approx(0).margin(1e-6));
+                    REQUIRE_THAT(d.norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
                 }
             } else {
                 REQUIRE(singular_pts.size() == 0);
@@ -227,7 +228,7 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
 
             for (Scalar t=0.0; t<1.01; t+=0.2) {
                 const auto p = curve.evaluate(t);
-                REQUIRE(p.norm() == Approx(R));
+                REQUIRE_THAT(p.norm(), Catch::Matchers::WithinAbs(R, 1e-6));
             }
             SECTION("Derivative") {
                 validate_derivatives(curve, 10);
@@ -238,26 +239,26 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             }
             SECTION("Curvature") {
                 auto k = curve.evaluate_curvature(0.4);
-                REQUIRE(k.norm() == Approx(1.0/R));
+                REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(1.0/R, 1e-6));
                 k = curve.evaluate_curvature(0.5);
-                REQUIRE(k.norm() == Approx(1.0/R));
+                REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(1.0/R, 1e-6));
                 k = curve.evaluate_curvature(0.8);
-                REQUIRE(k.norm() == Approx(1.0/R));
+                REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(1.0/R, 1e-6));
                 k = curve.evaluate_curvature(0.0);
-                REQUIRE(k.norm() == Approx(1.0/R));
+                REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(1.0/R, 1e-6));
                 k = curve.evaluate_curvature(1.0);
-                REQUIRE(k.norm() == Approx(1.0/R));
+                REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(1.0/R, 1e-6));
             }
             SECTION("Turning angle") {
 #if NANOSPLINE_SYMPY
                 const auto total_turning_angle = curve.get_turning_angle(0, 1);
-                REQUIRE(std::abs(total_turning_angle) == Approx(M_PI/2));
+                REQUIRE_THAT(std::abs(total_turning_angle), Catch::Matchers::WithinAbs(M_PI/2, 1e-6));
                 const auto split_pts = curve.reduce_turning_angle(0, 1);
                 REQUIRE(split_pts.size() == 1);
                 const auto turning_angle_1 = curve.get_turning_angle(0, split_pts[0]);
                 const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
-                REQUIRE(std::abs(turning_angle_1) == Approx(M_PI/4));
-                REQUIRE(std::abs(turning_angle_2) == Approx(M_PI/4));
+                REQUIRE_THAT(std::abs(turning_angle_1), Catch::Matchers::WithinAbs(M_PI/4, 1e-6));
+                REQUIRE_THAT(std::abs(turning_angle_2), Catch::Matchers::WithinAbs(M_PI/4, 1e-6));
 #endif
             }
             SECTION("Degree elevation") {
@@ -289,7 +290,7 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
 
             for (Scalar t=0.0; t<1.01; t+=0.2) {
                 const auto p = curve.evaluate(t);
-                REQUIRE((p-c).norm() == Approx(R));
+                REQUIRE_THAT((p-c).norm(), Catch::Matchers::WithinAbs(R, 1e-6));
             }
             SECTION("Derivative") {
                 validate_derivatives(curve, 10);
@@ -300,26 +301,26 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
             }
             SECTION("Curvature") {
                 auto k = curve.evaluate_curvature(0.4);
-                REQUIRE(k.norm() == Approx(1.0/R));
+                REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(1.0/R, 1e-6));
                 k = curve.evaluate_curvature(0.5);
-                REQUIRE(k.norm() == Approx(1.0/R));
+                REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(1.0/R, 1e-6));
                 k = curve.evaluate_curvature(0.8);
-                REQUIRE(k.norm() == Approx(1.0/R));
+                REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(1.0/R, 1e-6));
                 k = curve.evaluate_curvature(0.0);
-                REQUIRE(k.norm() == Approx(1.0/R));
+                REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(1.0/R, 1e-6));
                 k = curve.evaluate_curvature(1.0);
-                REQUIRE(k.norm() == Approx(1.0/R));
+                REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(1.0/R, 1e-6));
             }
             SECTION("Turning angle") {
 #if NANOSPLINE_SYMPY
                 const auto total_turning_angle = curve.get_turning_angle(0, 1);
-                REQUIRE(std::abs(total_turning_angle) == Approx(2*M_PI/3));
+                REQUIRE_THAT(std::abs(total_turning_angle), Catch::Matchers::WithinAbs(2*M_PI/3, 1e-6));
                 const auto split_pts = curve.reduce_turning_angle(0, 1);
                 REQUIRE(split_pts.size() == 1);
                 const auto turning_angle_1 = curve.get_turning_angle(0, split_pts[0]);
                 const auto turning_angle_2 = curve.get_turning_angle(split_pts[0], 1);
-                REQUIRE(std::abs(turning_angle_1) == Approx(2*M_PI/6));
-                REQUIRE(std::abs(turning_angle_2) == Approx(2*M_PI/6));
+                REQUIRE_THAT(std::abs(turning_angle_1), Catch::Matchers::WithinAbs(2*M_PI/6, 1e-6));
+                REQUIRE_THAT(std::abs(turning_angle_2), Catch::Matchers::WithinAbs(2*M_PI/6, 1e-6));
 #endif
             }
             SECTION("Degree elevation") {
@@ -376,9 +377,9 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
                     last = k.norm();
                     center = curve.evaluate(0.5) + k / k.squaredNorm();
                 } else {
-                    REQUIRE(last == Approx(k.norm()));
+                    REQUIRE_THAT(last, Catch::Matchers::WithinAbs(k.norm(), 1e-6));
                     Eigen::Matrix<Scalar, 2, 1> c = curve.evaluate(0.5) + k / k.squaredNorm();
-                    REQUIRE((c-center).norm() == Approx(0).margin(1e-6));
+                    REQUIRE_THAT((c-center).norm(), Catch::Matchers::WithinAbs(0, 1e-6));
                 }
             }
         }
@@ -413,8 +414,8 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
 
         auto dd0 = curve.evaluate_2nd_derivative(curve.get_domain_lower_bound() - 0.1);
         auto dd1 = curve.evaluate_2nd_derivative(curve.get_domain_upper_bound() + 0.1);
-        REQUIRE(dd0[0] == Approx(dd1[0]));
-        REQUIRE(dd0[1] == Approx(-dd1[1]));
+        REQUIRE_THAT(dd0[0], Catch::Matchers::WithinAbs(dd1[0], 1e-6));
+        REQUIRE_THAT(dd0[1], Catch::Matchers::WithinAbs(-dd1[1], 1e-6));
     }
 
     SECTION("Periodic curve") {
@@ -439,11 +440,11 @@ TEST_CASE("RationalBezier", "[rational][bezier]") {
 
         Eigen::Matrix<Scalar, 1, 2> q(-1, -1);
         Scalar t0 = curve.approximate_inverse_evaluate(q, 0, 1);
-        REQUIRE(curve.evaluate(t0).norm() == Approx(0.0));
+        REQUIRE_THAT(curve.evaluate(t0).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
         Scalar t1 = curve.approximate_inverse_evaluate(q, 1.5, 2.5, 10);
-        REQUIRE(curve.evaluate(t1).norm() == Approx(0.0).margin(1e-3));
+        REQUIRE_THAT(curve.evaluate(t1).norm(), Catch::Matchers::WithinAbs(0.0, 1e-3));
         Scalar t2 = curve.approximate_inverse_evaluate(q, -2.1, -1.5, 10);
-        REQUIRE(curve.evaluate(t2).norm() == Approx(0.0).margin(1e-3));
+        REQUIRE_THAT(curve.evaluate(t2).norm(), Catch::Matchers::WithinAbs(0.0, 1e-3));
         Scalar t3 = curve.approximate_inverse_evaluate(q, 2.25, 2.75);
         REQUIRE(curve.evaluate(t3).norm() > 0.1);
 

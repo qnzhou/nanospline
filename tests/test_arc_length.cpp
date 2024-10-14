@@ -1,7 +1,3 @@
-#include <catch2/catch.hpp>
-
-#include <vector>
-
 #include <nanospline/BSpline.h>
 #include <nanospline/Bezier.h>
 #include <nanospline/BezierPatch.h>
@@ -11,6 +7,11 @@
 #include <nanospline/forward_declaration.h>
 #include <nanospline/save_obj.h>
 #include "validation_utils.h"
+
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
+
+#include <vector>
 
 TEST_CASE("arc_length", "[arc_length]")
 {
@@ -30,7 +31,7 @@ TEST_CASE("arc_length", "[arc_length]")
         for (size_t i = 0; i <= N; i++) {
             const Scalar t1 = (Scalar)i / (Scalar)N * (t_max - t_min) + t_min;
             const Scalar t2 = inverse_arc_length(curve, lengths[i]);
-            REQUIRE(t1 == Approx(t2));
+            REQUIRE_THAT(t1, Catch::Matchers::WithinAbs(t2, 1e-6));
         }
     };
 
@@ -45,8 +46,8 @@ TEST_CASE("arc_length", "[arc_length]")
         const auto diag_3 = arc_length(patch, u_min, v_max, u_max, v_min);
         const auto diag_4 = arc_length(patch, u_max, v_min, u_min, v_max);
 
-        REQUIRE(diag_1 == Approx(diag_2));
-        REQUIRE(diag_3 == Approx(diag_4));
+        REQUIRE_THAT(diag_1, Catch::Matchers::WithinAbs(diag_2, 1e-6));
+        REQUIRE_THAT(diag_3, Catch::Matchers::WithinAbs(diag_4, 1e-6));
 
         constexpr size_t N = 10;
         for (size_t i = 0; i <= N; i++) {
@@ -57,8 +58,8 @@ TEST_CASE("arc_length", "[arc_length]")
 
             auto l = arc_length(patch, u_min, v_min, u, v);
             auto p = inverse_arc_length(patch, u_min, v_min, u_max, v_max, l);
-            REQUIRE(p[0] == Approx(u).margin(1e-6 * (u_max - u_min)));
-            REQUIRE(p[1] == Approx(v).margin(1e-6 * (v_max - v_min)));
+            REQUIRE_THAT(p[0], Catch::Matchers::WithinAbs(u, 1e-6 * (u_max - u_min)));
+            REQUIRE_THAT(p[1], Catch::Matchers::WithinAbs(v, 1e-6 * (v_max - v_min)));
         }
     };
 
@@ -184,9 +185,9 @@ TEST_CASE("arc_length", "[arc_length]")
         const Scalar t_min = curve.get_domain_lower_bound();
         const Scalar t_max = curve.get_domain_upper_bound();
         auto single_round = arc_length(curve, t_min, t_max, 20);
-        REQUIRE(single_round == Approx(2 * M_PI * R).epsilon(1e-3));
+        REQUIRE_THAT(single_round, Catch::Matchers::WithinRel(2 * M_PI * R, 1e-3));
         auto double_round = arc_length(curve, t_min, t_max * 2 - t_min, 20);
-        REQUIRE(double_round == Approx(4 * M_PI * R).epsilon(1e-3));
+        REQUIRE_THAT(double_round, Catch::Matchers::WithinRel(4 * M_PI * R, 1e-3));
     }
 
     SECTION("Perioidc patch")
@@ -226,7 +227,7 @@ TEST_CASE("arc_length", "[arc_length]")
 
         auto single_round = arc_length(patch, u_min, v_mid, u_max, v_mid);
         auto double_round = arc_length(patch, u_min, v_mid, 2 * u_max - u_min, v_mid);
-        REQUIRE(double_round == Approx(single_round * 2).epsilon(1e-3));
+        REQUIRE_THAT(double_round, Catch::Matchers::WithinAbs(single_round * 2, 1e-3));
         auto double_spiral = arc_length(patch, u_min, v_min, 2 * u_max - u_min, v_max);
         REQUIRE(double_spiral > double_round);
     }

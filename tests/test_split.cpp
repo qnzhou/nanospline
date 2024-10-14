@@ -1,4 +1,5 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <nanospline/split.h>
 #include <nanospline/BezierPatch.h>
@@ -8,6 +9,8 @@
 #include <nanospline/save_svg.h>
 #include <nanospline/forward_declaration.h>
 #include "validation_utils.h"
+
+#include <random>
 
 template<typename PatchType>
 void validate_bezier_patch_splitting(PatchType patch){
@@ -200,11 +203,11 @@ TEST_CASE("Test curve splitting", "[split][curve]") {
 
         const auto& ctrl_pts_1 = parts[0].get_control_points();
         const auto& ctrl_pts_2 = parts[1].get_control_points();
-        REQUIRE((ctrl_pts_1.row(0) - control_pts.row(0)).norm() == Approx(0.0));
-        REQUIRE((ctrl_pts_2.row(1) - control_pts.row(1)).norm() == Approx(0.0));
-        REQUIRE((ctrl_pts_1.row(1) - ctrl_pts_2.row(0)).norm() == Approx(0.0));
-        REQUIRE(ctrl_pts_1(1, 0) == Approx(0.5));
-        REQUIRE(ctrl_pts_1(1, 1) == Approx(0.0));
+        REQUIRE_THAT((ctrl_pts_1.row(0) - control_pts.row(0)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT((ctrl_pts_2.row(1) - control_pts.row(1)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT((ctrl_pts_1.row(1) - ctrl_pts_2.row(0)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT(ctrl_pts_1(1, 0), Catch::Matchers::WithinAbs(0.5, 1e-6));
+        REQUIRE_THAT(ctrl_pts_1(1, 1), Catch::Matchers::WithinAbs(0.0, 1e-6));
     }
 
     SECTION("Bezier degree 3") {

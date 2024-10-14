@@ -1,4 +1,5 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <cmath>
 #include <iostream>
@@ -32,16 +33,16 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
         REQUIRE(curve.get_degree() == 0);
 
         auto p0 = curve.evaluate(0.1);
-        REQUIRE(p0[0] == Approx(0.0));
-        REQUIRE(p0[1] == Approx(0.0));
+        REQUIRE_THAT(p0[0], Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT(p0[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
 
         auto p1 = curve.evaluate(0.6);
-        REQUIRE(p1[0] == Approx(1.0));
-        REQUIRE(p1[1] == Approx(0.0));
+        REQUIRE_THAT(p1[0], Catch::Matchers::WithinAbs(1.0, 1e-6));
+        REQUIRE_THAT(p1[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
 
         auto p2 = curve.evaluate(1.0);
-        REQUIRE(p2[0] == Approx(2.0));
-        REQUIRE(p2[1] == Approx(0.0));
+        REQUIRE_THAT(p2[0], Catch::Matchers::WithinAbs(2.0, 1e-6));
+        REQUIRE_THAT(p2[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
 
         SECTION("Derivative") {
             validate_derivatives(curve, 10);
@@ -76,12 +77,12 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
 
         SECTION("Evaluation") {
             auto p0 = curve.evaluate(0.0);
-            REQUIRE(p0[0] == Approx(0.0));
-            REQUIRE(p0[1] == Approx(0.0));
+            REQUIRE_THAT(p0[0], Catch::Matchers::WithinAbs(0.0, 1e-6));
+            REQUIRE_THAT(p0[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
 
             auto p1 = curve.evaluate(1.0);
-            REQUIRE(p1[0] == Approx(1.0));
-            REQUIRE(p1[1] == Approx(1.0));
+            REQUIRE_THAT(p1[0], Catch::Matchers::WithinAbs(1.0, 1e-6));
+            REQUIRE_THAT(p1[1], Catch::Matchers::WithinAbs(1.0, 1e-6));
         }
 
         SECTION("Derivative") {
@@ -118,17 +119,17 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
 
         SECTION("Evaluation") {
             auto p0 = curve.evaluate(0.0);
-            REQUIRE(p0[0] == Approx(0.0));
-            REQUIRE(p0[1] == Approx(0.0));
+            REQUIRE_THAT(p0[0], Catch::Matchers::WithinAbs(0.0, 1e-6));
+            REQUIRE_THAT(p0[1], Catch::Matchers::WithinAbs(0.0, 1e-6));
 
             auto p1 = curve.evaluate(1.0);
-            REQUIRE(p1[0] == Approx(0.0));
-            REQUIRE(p1[1] == Approx(1.0));
+            REQUIRE_THAT(p1[0], Catch::Matchers::WithinAbs(0.0, 1e-6));
+            REQUIRE_THAT(p1[1], Catch::Matchers::WithinAbs(1.0, 1e-6));
         }
 
         SECTION("weights") {
             auto p = curve.evaluate(0.5);
-            REQUIRE(p[1] == Approx(0.5));
+            REQUIRE_THAT(p[1], Catch::Matchers::WithinAbs(0.5, 1e-6));
 
             weights[1] = 0.1;
             weights[2] = 0.1;
@@ -136,8 +137,8 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
             curve.initialize();
 
             auto q = curve.evaluate(0.5);
-            REQUIRE(q[1] == Approx(0.5));
-            REQUIRE(q[0] == Approx(p[0]));
+            REQUIRE_THAT(q[1], Catch::Matchers::WithinAbs(0.5, 1e-6));
+            REQUIRE_THAT(q[0], Catch::Matchers::WithinAbs(p[0], 1e-6));
         }
 
         SECTION("Derivative") {
@@ -185,7 +186,7 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
 
             for (Scalar t=0.0; t<1.01; t+=0.2) {
                 const auto p = curve.evaluate(t);
-                REQUIRE((p-c).norm() == Approx(R));
+                REQUIRE_THAT((p-c).norm(), Catch::Matchers::WithinAbs(R, 1e-6));
             }
             SECTION("Derivative") {
                 validate_derivatives(curve, 10);
@@ -196,15 +197,15 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
             }
             SECTION("Curvature") {
                 auto k = curve.evaluate_curvature(0.4);
-                REQUIRE(k.norm() == Approx(1.0/R));
+                REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(1.0/R, 1e-6));
                 k = curve.evaluate_curvature(0.5);
-                REQUIRE(k.norm() == Approx(1.0/R));
+                REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(1.0/R, 1e-6));
                 k = curve.evaluate_curvature(0.8);
-                REQUIRE(k.norm() == Approx(1.0/R));
+                REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(1.0/R, 1e-6));
                 k = curve.evaluate_curvature(0.0);
-                REQUIRE(k.norm() == Approx(1.0/R));
+                REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(1.0/R, 1e-6));
                 k = curve.evaluate_curvature(1.0);
-                REQUIRE(k.norm() == Approx(1.0/R));
+                REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(1.0/R, 1e-6));
             }
 
             SECTION("Inflections") {
@@ -260,7 +261,7 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
 
             for (Scalar t=0.0; t<1.01; t+=0.2) {
                 const auto p = curve.evaluate(t);
-                REQUIRE((p-c).norm() == Approx(R));
+                REQUIRE_THAT((p-c).norm(), Catch::Matchers::WithinAbs(R, 1e-6));
             }
 
             SECTION("Derivative") {
@@ -291,15 +292,15 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
 
             SECTION("Curvature") {
                 auto k = curve.evaluate_curvature(0.4);
-                REQUIRE(k.norm() == Approx(1.0/R));
+                REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(1.0/R, 1e-6));
                 k = curve.evaluate_curvature(0.5);
-                REQUIRE(k.norm() == Approx(1.0/R));
+                REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(1.0/R, 1e-6));
                 k = curve.evaluate_curvature(0.8);
-                REQUIRE(k.norm() == Approx(1.0/R));
+                REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(1.0/R, 1e-6));
                 k = curve.evaluate_curvature(0.0);
-                REQUIRE(k.norm() == Approx(1.0/R));
+                REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(1.0/R, 1e-6));
                 k = curve.evaluate_curvature(1.0);
-                REQUIRE(k.norm() == Approx(1.0/R));
+                REQUIRE_THAT(k.norm(), Catch::Matchers::WithinAbs(1.0/R, 1e-6));
             }
 
             SECTION("Inflections") {
@@ -348,7 +349,7 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
         SECTION("Inflection") {
             auto inflections = curve.compute_inflections(0, 1);
             REQUIRE(inflections.size() == 1);
-            REQUIRE(inflections[0] == Approx(0.5));
+            REQUIRE_THAT(inflections[0], Catch::Matchers::WithinAbs(0.5, 1e-6));
         }
 
         SECTION("Singularity") {
@@ -394,7 +395,7 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
                     knots.minCoeff(), knots.maxCoeff());
             for (auto t : inflections) {
                 auto k = curve.evaluate_curvature(t).norm();
-                REQUIRE(k == Approx(0).margin(1e-6));
+                REQUIRE_THAT(k, Catch::Matchers::WithinAbs(0, 1e-6));
             }
         }
 
@@ -454,8 +455,8 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
 
         auto dd0 = curve.evaluate_2nd_derivative(curve.get_domain_lower_bound() - 0.1);
         auto dd1 = curve.evaluate_2nd_derivative(curve.get_domain_upper_bound() + 0.1);
-        REQUIRE(dd0[0] == Approx(dd1[0]));
-        REQUIRE(dd0[1] == Approx(-dd1[1]));
+        REQUIRE_THAT(dd0[0], Catch::Matchers::WithinAbs(dd1[0], 1e-6));
+        REQUIRE_THAT(dd0[1], Catch::Matchers::WithinAbs(-dd1[1], 1e-6));
     }
 
     SECTION("Turning angle debug") {
@@ -478,13 +479,13 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
         curve.initialize();
 
         auto theta = curve.get_turning_angle(0, 1);
-        REQUIRE(std::abs(theta) == Approx(M_PI));
+        REQUIRE_THAT(std::abs(theta), Catch::Matchers::WithinAbs(M_PI, 1e-6));
         auto cuts = curve.reduce_turning_angle(0, 1);
         REQUIRE(cuts.size() == 1);
 
         auto theta_1 = curve.get_turning_angle(0, cuts[0]);
         auto theta_2 = curve.get_turning_angle(cuts[0], 1);
-        REQUIRE(theta_1 + theta_2 == Approx(theta));
+        REQUIRE_THAT(theta_1 + theta_2, Catch::Matchers::WithinAbs(theta, 1e-6));
 #endif
     }
 
@@ -522,11 +523,11 @@ TEST_CASE("NURBS", "[rational][nurbs][bspline]") {
 
         Eigen::Matrix<Scalar, 1, 2> q(0.0, -1.0);
         Scalar t0 = curve.approximate_inverse_evaluate(q, 0, 1);
-        REQUIRE(curve.evaluate(t0).norm() == Approx(0.0));
+        REQUIRE_THAT(curve.evaluate(t0).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
         Scalar t1 = curve.approximate_inverse_evaluate(q, 1.5, 2.5);
-        REQUIRE(curve.evaluate(t1).norm() == Approx(0.0));
+        REQUIRE_THAT(curve.evaluate(t1).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
         Scalar t2 = curve.approximate_inverse_evaluate(q, -10.1, -9.9);
-        REQUIRE(curve.evaluate(t2).norm() == Approx(0.0));
+        REQUIRE_THAT(curve.evaluate(t2).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
         Scalar t3 = curve.approximate_inverse_evaluate(q, 2.25, 2.75);
         REQUIRE(curve.evaluate(t3).norm() > 0.1);
 

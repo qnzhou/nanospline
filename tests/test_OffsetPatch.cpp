@@ -1,6 +1,3 @@
-#include <catch2/catch.hpp>
-#include <iostream>
-
 #include <nanospline/BezierPatch.h>
 #include <nanospline/ExtrusionPatch.h>
 #include <nanospline/NURBSPatch.h>
@@ -9,6 +6,9 @@
 #include <nanospline/save_msh.h>
 
 #include "validation_utils.h"
+
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 TEST_CASE("OffsetPatch", "[offset_patch][primitive]")
 {
@@ -288,7 +288,7 @@ TEST_CASE("OffsetPatch", "[offset_patch][primitive]")
 
             auto p = patch.evaluate(uv[0], uv[1]);
 
-            REQUIRE((p-q).norm() == Approx(0).margin(1e-4));
+            REQUIRE_THAT((p - q).norm(), Catch::Matchers::WithinAbs(0, 1e-4));
             REQUIRE(converged);
         }
     }

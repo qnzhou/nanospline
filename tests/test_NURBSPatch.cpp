@@ -1,5 +1,4 @@
-#include <catch2/catch.hpp>
-#include <iostream>
+#include "validation_utils.h"
 
 #include <nanospline/Line.h>
 #include <nanospline/NURBSPatch.h>
@@ -9,7 +8,11 @@
 #include <nanospline/save_msh.h>
 #include <nanospline/save_obj.h>
 
-#include "validation_utils.h"
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <catch2/benchmark/catch_benchmark.hpp>
+
+#include <random>
 
 TEST_CASE("NURBSPatch", "[rational][nurbs_patch]")
 {
@@ -41,15 +44,19 @@ TEST_CASE("NURBSPatch", "[rational][nurbs_patch]")
         const auto corner_01 = patch.evaluate(0.0, 1.0);
         const auto corner_11 = patch.evaluate(1.0, 1.0);
         const auto corner_10 = patch.evaluate(1.0, 0.0);
-        REQUIRE((corner_00 - control_grid.row(0)).norm() == Approx(0.0));
-        REQUIRE((corner_01 - control_grid.row(1)).norm() == Approx(0.0));
-        REQUIRE((corner_10 - control_grid.row(2)).norm() == Approx(0.0));
-        REQUIRE((corner_11 - control_grid.row(3)).norm() == Approx(0.0));
+        REQUIRE_THAT(
+            (corner_00 - control_grid.row(0)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT(
+            (corner_01 - control_grid.row(1)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT(
+            (corner_10 - control_grid.row(2)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT(
+            (corner_11 - control_grid.row(3)).norm(), Catch::Matchers::WithinAbs(0.0, 1e-6));
 
         const auto p_mid = patch.evaluate(0.5, 0.5);
-        REQUIRE(p_mid[0] == Approx(0.5));
-        REQUIRE(p_mid[1] == Approx(0.5));
-        REQUIRE(p_mid[2] == Approx(0.5));
+        REQUIRE_THAT(p_mid[0], Catch::Matchers::WithinAbs(0.5, 1e-6));
+        REQUIRE_THAT(p_mid[1], Catch::Matchers::WithinAbs(0.5, 1e-6));
+        REQUIRE_THAT(p_mid[2], Catch::Matchers::WithinAbs(0.5, 1e-6));
 
         validate_derivative(patch, 10, 10);
         validate_inverse_evaluation(patch, 10, 10);
@@ -94,21 +101,27 @@ TEST_CASE("NURBSPatch", "[rational][nurbs_patch]")
         const auto period = u_max - u_min;
         const auto d = period / 5;
 
-        REQUIRE((patch.evaluate(u_min + d, v_mid) - patch.evaluate(u_min + 10 * period + d, v_mid))
-                    .norm() == Approx(0).margin(1e-6));
-        REQUIRE((patch.evaluate(u_min - 2 * period + d, v_mid) -
-                    patch.evaluate(u_min + period + d, v_mid))
-                    .norm() == Approx(0).margin(1e-6));
+        REQUIRE_THAT(
+            (patch.evaluate(u_min + d, v_mid) - patch.evaluate(u_min + 10 * period + d, v_mid))
+                .norm(),
+            Catch::Matchers::WithinAbs(0.0, 1e-6));
+        REQUIRE_THAT((patch.evaluate(u_min - 2 * period + d, v_mid) -
+                         patch.evaluate(u_min + period + d, v_mid))
+                         .norm(),
+            Catch::Matchers::WithinAbs(0.0, 1e-6));
 
         auto q = patch.evaluate(u_min, v_mid);
         constexpr Scalar TOL = std::numeric_limits<Scalar>::epsilon() * 100;
         const auto uv0 = std::get<0>(patch.inverse_evaluate(q, u_min, u_max, v_min, v_max));
-        REQUIRE((patch.evaluate(uv0[0], uv0[1]) - q).norm() == Approx(0).margin(TOL));
+        REQUIRE_THAT(
+            (patch.evaluate(uv0[0], uv0[1]) - q).norm(), Catch::Matchers::WithinAbs(0.0, TOL));
         const auto uv1 = std::get<0>(patch.inverse_evaluate(q, u_max - d, u_max + d, v_min, v_max));
-        REQUIRE((patch.evaluate(uv1[0], uv1[1]) - q).norm() == Approx(0).margin(TOL));
+        REQUIRE_THAT(
+            (patch.evaluate(uv1[0], uv1[1]) - q).norm(), Catch::Matchers::WithinAbs(0.0, TOL));
         const auto uv2 = std::get<0>(patch.inverse_evaluate(
             q, u_min - 2 * period - d, u_min - 2 * period + d, v_min, v_max));
-        REQUIRE((patch.evaluate(uv2[0], uv2[1]) - q).norm() == Approx(0).margin(TOL));
+        REQUIRE_THAT(
+            (patch.evaluate(uv2[0], uv2[1]) - q).norm(), Catch::Matchers::WithinAbs(0.0, TOL));
         const auto uv3 = std::get<0>(
             patch.inverse_evaluate(q, u_min - period + d, u_max - period - d, v_min, v_max));
         REQUIRE((patch.evaluate(uv3[0], uv3[1]) - q).norm() > 0.1);
@@ -138,7 +151,10 @@ TEST_CASE("NURBSPatch 2", "[rational][nurbs_patch]")
 
         Eigen::Matrix<Scalar, 16, 1> weights;
         weights.setOnes();
-        SECTION("Uniform weight") { weights.setConstant(2.0); }
+        SECTION("Uniform weight")
+        {
+            weights.setConstant(2.0);
+        }
         SECTION("Non-uniform weight")
         {
             weights[5] = 2.0;
@@ -186,7 +202,10 @@ TEST_CASE("NURBSPatch 3", "[rational][nurbs_patch]")
 
         Eigen::Matrix<Scalar, Eigen::Dynamic, 1> weights(64, 1);
         weights.setOnes();
-        SECTION("Uniform weight") { weights.setConstant(2.0); }
+        SECTION("Uniform weight")
+        {
+            weights.setConstant(2.0);
+        }
         SECTION("Non-uniform weight")
         {
             std::mt19937 generator(0);
@@ -389,7 +408,10 @@ TEST_CASE("NURBSPatch Benchmark", "[!benchmark][numbs_patch]")
     patch.set_weights(weights);
     patch.initialize();
 
-    BENCHMARK("Evaluation") { return patch.evaluate(0.5, 0.6); };
+    BENCHMARK("Evaluation")
+    {
+        return patch.evaluate(0.5, 0.6);
+    };
 
     BENCHMARK("Derivative")
     {
@@ -455,13 +477,16 @@ TEST_CASE("Periodic_debug", "[perioidc][nurbs]")
                 auto p0 = patch.evaluate(u, v);
                 auto p1 = patch.evaluate(u + u_period, v);
                 auto p2 = patch.evaluate(u - u_period, v);
-                REQUIRE((p0 - p1).norm() == Approx(0).margin(1e-6));
-                REQUIRE((p0 - p2).norm() == Approx(0).margin(1e-6));
+                REQUIRE_THAT((p0 - p1).norm(), Catch::Matchers::WithinAbs(0, 1e-6));
+                REQUIRE_THAT((p0 - p2).norm(), Catch::Matchers::WithinAbs(0, 1e-6));
             }
         }
     };
 
-    SECTION("Point check") { periodic_check(patch); }
+    SECTION("Point check")
+    {
+        periodic_check(patch);
+    }
 
     SECTION("Copy")
     {
@@ -529,8 +554,8 @@ TEST_CASE("Periodic_debug_2", "[periodic][numbs_patch]")
         q, prev_u - u_delta, prev_u + u_delta, prev_v - v_delta, prev_v + v_delta));
     Eigen::Matrix<double, 1, 3> p = patch.evaluate(uv[0], uv[1]);
 
-    REQUIRE((q - p).norm() == Approx(0).margin(1e-6));
-    REQUIRE(uv[0] == Approx(prev_u).margin(1e-3));
+    REQUIRE_THAT((q - p).norm(), Catch::Matchers::WithinAbs(0, 1e-6));
+    REQUIRE_THAT(uv[0], Catch::Matchers::WithinAbs(prev_u, 1e-3));
     REQUIRE(std::abs(uv[1] - prev_v) < 0.2);
 }
 
@@ -1228,7 +1253,7 @@ TEST_CASE("Inverse_eval_debug", "[inverse_evaluation][nurbs_patch]")
         patch.get_v_upper_bound()));
     auto p = patch.evaluate(uv[0], uv[1]);
 
-    REQUIRE((q - p).norm() == Approx(0).margin(1e-5));
+    REQUIRE_THAT((q - p).norm(), Catch::Matchers::WithinAbs(0, 1e-5));
 }
 
 
@@ -1286,7 +1311,7 @@ TEST_CASE("Inverse evaluation singularity", "[inverse_evaluation][nurbs_patch]")
             q, 0.0102719692398306, 0.93560518468040033, 0.059533170036664362, 1));
         auto p = patch.evaluate(uv[0], uv[1]);
 
-        REQUIRE((q - p).norm() == Approx(0).margin(1e-5));
+        REQUIRE_THAT((q - p).norm(), Catch::Matchers::WithinAbs(0, 1e-5));
     }
 
     SECTION("inverse evaluate 2")
@@ -1296,7 +1321,7 @@ TEST_CASE("Inverse evaluation singularity", "[inverse_evaluation][nurbs_patch]")
             q, patch.get_u_lower_bound() + 1e-3, patch.get_u_upper_bound(), 0.0, 1.0));
         auto p = patch.evaluate(uv[0], uv[1]);
 
-        REQUIRE((q - p).norm() == Approx(0).margin(1e-3));
+        REQUIRE_THAT((q - p).norm(), Catch::Matchers::WithinAbs(0, 1e-3));
     }
 
     SECTION("inverse evaluate with initial guess")
@@ -1314,7 +1339,7 @@ TEST_CASE("Inverse evaluation singularity", "[inverse_evaluation][nurbs_patch]")
         auto p = patch.evaluate(uv[0], uv[1]);
 
         REQUIRE(converged);
-        REQUIRE((q - p).norm() == Approx(0).margin(1e-5));
+        REQUIRE_THAT((q - p).norm(), Catch::Matchers::WithinAbs(0, 1e-5));
     }
 }
 
@@ -1533,7 +1558,7 @@ TEST_CASE("Inverse evaluation debug 3", "[inverse_evaluation][nurbs_patch]")
 
     REQUIRE(converged);
     auto p = patch.evaluate(uv[0], uv[1]);
-    REQUIRE((q - p).norm() == Approx(0).margin(1e-5));
+    REQUIRE_THAT((q - p).norm(), Catch::Matchers::WithinAbs(0, 1e-5));
 }
 
 TEST_CASE("Inverse evaluation debug 4", "[inverse_evaluation][nurbs_patch]")
@@ -1627,7 +1652,7 @@ TEST_CASE("Inverse evaluation debug 4", "[inverse_evaluation][nurbs_patch]")
         auto p = patch.evaluate(uv[0], uv[1]);
 
         REQUIRE(converged);
-        REQUIRE((q - p).norm() == Approx(0).margin(1e-5));
+        REQUIRE_THAT((q - p).norm(), Catch::Matchers::WithinAbs(0, 1e-5));
     };
 
     SECTION("Query 1")
@@ -1757,7 +1782,7 @@ TEST_CASE("Inverse evaluation debug 5", "[inverse_evaluation][nurbs_patch][!mayf
         auto p = patch.evaluate(uv[0], uv[1]);
 
         REQUIRE(std::get<1>(r));
-        REQUIRE((q - p).norm() == Approx(0).margin(1e-6));
+        REQUIRE_THAT((q - p).norm(), Catch::Matchers::WithinAbs(0, 1e-6));
     }
 
     SECTION("Query 2")
@@ -1769,6 +1794,6 @@ TEST_CASE("Inverse evaluation debug 5", "[inverse_evaluation][nurbs_patch][!mayf
 
         auto p = patch.evaluate(uv[0], uv[1]);
 
-        REQUIRE((q - p).norm() == Approx(0).margin(1e-6));
+        REQUIRE_THAT((q - p).norm(), Catch::Matchers::WithinAbs(0, 1e-6));
     }
 }

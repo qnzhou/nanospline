@@ -1,16 +1,15 @@
-include_guard()
-
-FetchContent_Declare(
-    sanitizer
-    GIT_REPOSITORY https://github.com/arsenm/sanitizers-cmake.git
-    GIT_TAG        99e159ec9bc8dd362b08d18436bd40ff0648417b
-)
-
-FetchContent_GetProperties(sanitizer)
-if(NOT sanitizer_POPULATED)
-    FetchContent_Populate(sanitizer)
-    set(CMAKE_MODULE_PATH
-        "${sanitizer_SOURCE_DIR}/cmake"
-        ${CMAKE_MODULE_PATH})
-    find_package(Sanitizers REQUIRED)
+if(COMMAND add_sanitizers)
+    return()
 endif()
+
+message(STATUS "Third-party (external): creating command 'add_sanitizers'")
+
+include(CPM)
+CPMAddPackage(
+    NAME sanitizers
+    GITHUB_REPOSITORY arsenm/sanitizers-cmake
+    GIT_TAG 0573e2ea8651b9bb3083f193c41eb086497cc80a
+    DOWNLOAD_ONLY Yes
+)
+set(CMAKE_MODULE_PATH "${sanitizers_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+find_package(Sanitizers REQUIRED)

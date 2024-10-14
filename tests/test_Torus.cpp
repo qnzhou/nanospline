@@ -1,9 +1,9 @@
-#include <catch2/catch.hpp>
-#include <iostream>
-
 #include <nanospline/Torus.h>
 
 #include "validation_utils.h"
+
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 TEST_CASE("Torus", "[Torus][primitive]")
 {
@@ -75,7 +75,7 @@ TEST_CASE("Torus", "[Torus][primitive]")
             auto p = patch.evaluate(uv[0], uv[1]);
 
             REQUIRE(std::get<1>(r));
-            REQUIRE((q - p).norm() == Approx(0).margin(1e-6));
+            REQUIRE_THAT((q - p).norm(), Catch::Matchers::WithinAbs(0, 1e-6));
         }
 
         SECTION("Query 2")
@@ -90,7 +90,7 @@ TEST_CASE("Torus", "[Torus][primitive]")
             auto p = patch.evaluate(uv[0], uv[1]);
 
             REQUIRE(std::get<1>(r));
-            REQUIRE((q - p).norm() == Approx(0).margin(1e-6));
+            REQUIRE_THAT((q - p).norm(), Catch::Matchers::WithinAbs(0, 1e-6));
         }
     }
 }
