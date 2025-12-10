@@ -1,5 +1,7 @@
 #pragma once
 
+#if defined(NANOSPLINE_MSHIO)
+
 #include <nanospline/CurveBase.h>
 #include <nanospline/PatchBase.h>
 #include <nanospline/enums.h>
@@ -327,3 +329,4 @@ void save_msh(const std::string& filename,
 
 
 } // namespace nanospline
+#endif

@@ -488,7 +488,9 @@ void validate_inverse_evaluation_3d(const PatchType& patch,
                 line2.set_direction(-n);
                 line2.set_domain_upper_bound(0.05);
                 line2.initialize();
+#if defined(NANOSPLINE_MSHIO)
                 save_msh<typename PatchType::Scalar>("validate.msh", {&line, &line2}, {&patch});
+#endif
                 // assert(false);
             }
             CHECK_THAT((p - q).norm(), Catch::Matchers::WithinAbs(0.05, 1e-12));
