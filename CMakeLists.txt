@@ -34,7 +34,7 @@ file(GLOB SRC_FILES "${PROJECT_SOURCE_DIR}/src/*.cpp")
 add_library(nanospline INTERFACE)
 target_link_libraries(nanospline INTERFACE Eigen3::Eigen)
 if (NANOSPLINE_MSHIO)
-    target_link_libraries(nanospline INTERFACE MshIO::MshIO)
+    target_link_libraries(nanospline INTERFACE mshio::mshio)
     target_compile_definitions(nanospline INTERFACE NANOSPLINE_MSHIO)
 endif()
 target_include_directories(nanospline INTERFACE
