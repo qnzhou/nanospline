@@ -1,5 +1,7 @@
 #pragma once
 
+#if defined(NANOSPLINE_MSHIO)
+
 #include <nanospline/BSpline.h>
 #include <nanospline/BSplinePatch.h>
 #include <nanospline/Bezier.h>
@@ -308,3 +310,4 @@ auto load_msh(const std::string& filename)
 }
 
 } // namespace nanospline
+#endif // NANOSPLINE_MSHIO

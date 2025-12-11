@@ -16,6 +16,8 @@
 #include <nanospline/RationalBezierPatch.h>
 #include <nanospline/NURBSPatch.h>
 
+#if defined(NANOSPLINE_MSHIO)
+
 TEST_CASE("IO", "[io][msh]")
 {
     using namespace nanospline;
@@ -110,3 +112,4 @@ TEST_CASE("IO", "[io][msh]")
             patch2.get_v_lower_bound(),
             patch2.get_v_upper_bound());
 }
+#endif // defined(NANOSPLINE_MSHIO)

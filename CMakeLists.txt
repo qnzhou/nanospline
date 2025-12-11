@@ -16,10 +16,13 @@ option(NANOSPLINE_HIGH_DEGREE_SUPPORT "With high degree polynomial solver suppor
 option(NANOSPLINE_BUILD_TESTS "Build Tests" ON)
 option(NANOSPLINE_HEADER_ONLY "Enable header-only mode" ON)
 option(NANOSPLINE_SYMPY "Enable sympy generated code (slow to compile)" OFF)
+option(NANOSPLINE_MSHIO "Enable mshio" OFF)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 include(Eigen3)
-include(MshIO)
+if (NANOSPLINE_MSHIO)
+    include(MshIO)
+endif()
 include(sanitizer-cmake)
 
 
@@ -29,7 +32,11 @@ file(GLOB SRC_FILES "${PROJECT_SOURCE_DIR}/src/*.cpp")
 
 
 add_library(nanospline INTERFACE)
-target_link_libraries(nanospline INTERFACE Eigen3::Eigen mshio::mshio)
+target_link_libraries(nanospline INTERFACE Eigen3::Eigen)
+if (NANOSPLINE_MSHIO)
+    target_link_libraries(nanospline INTERFACE mshio::mshio)
+    target_compile_definitions(nanospline INTERFACE NANOSPLINE_MSHIO)
+endif()
 target_include_directories(nanospline INTERFACE
     ${PROJECT_SOURCE_DIR}/include)
 target_compile_features(nanospline INTERFACE cxx_std_20)
