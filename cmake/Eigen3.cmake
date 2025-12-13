@@ -10,6 +10,7 @@ CPMAddPackage(
     GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
     GIT_TAG 3.4.0
     DOWNLOAD_ONLY ON
+    SYSTEM ON
 )
 set(EIGEN_INCLUDE_DIRS ${eigen_SOURCE_DIR})
 
